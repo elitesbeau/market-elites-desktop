@@ -2233,6 +2233,38 @@ function completeAuth(user){
   S.firebaseUid=user.uid;S.isGuest=false;save();hideAuthScreen();checkLegal();renderProfile();
   firebase.database().ref('users/'+user.uid).update({lastLogin:Date.now()}).catch(()=>{});
   listenToFirebasePosts();
+  // Auto-recover positions from Firebase if empty
+  if(!S.positions||S.positions.length===0){
+    setTimeout(()=>recoverPositionsFromFirebase(),2000);
+  }
+}
+
+async function recoverPositionsFromFirebase(){
+  if(!firebaseReady||!S.firebaseUid||S.isGuest)return;
+  try{
+    const snap=await firebase.database().ref('posts').orderByChild('timestamp').limitToLast(200).once('value');
+    if(!snap.exists())return;
+    const allPosts=[];snap.forEach(c=>{allPosts.push({...c.val(),id:c.key})});
+    function parsePrem(s){if(!s)return 0;if(typeof s==='number')return s;const m=String(s).match(/\$?([\d.]+)/);return m?parseFloat(m[1]):0}
+    // Rebuild positions from open signals
+    const openSignals=allPosts.filter(p=>p.kind==='signal'&&p.ticker&&p.strike&&(!p.status||p.status==='open'));
+    if(openSignals.length>0){
+      S.positions=openSignals.map(s=>({id:Date.now()+'_'+Math.random().toString(36).slice(2,6),symbol:s.ticker,type:s.type||'csp',strike:parseFloat(s.strike),expiration:s.exp||'',premium:parsePrem(s.prem),contracts:1,openDate:new Date(s.timestamp||Date.now()).toISOString(),fromSignal:true,signalId:s.id,fees:S.feePerContract||0.65}));
+    }
+    // Rebuild history from winners
+    const winners=allPosts.filter(p=>p.kind==='signal'&&p.status==='winner'&&p.ticker);
+    S.history=S.history||[];
+    for(const w of winners){
+      if(S.history.find(h=>h.signalId===w.id))continue;
+      const prem=parsePrem(w.prem);
+      S.history.unshift({id:'w-'+(w.closedAt||w.timestamp),symbol:w.ticker,type:w.type||'csp',strike:w.strike,expiration:w.exp||'',premium:prem,contracts:1,openDate:new Date(w.timestamp).toISOString(),closeDate:new Date(w.closedAt||Date.now()).toISOString(),pnl:prem*100,grossPnl:prem*100,fees:S.feePerContract||0.65,outcome:'expired',signalId:w.id});
+    }
+    save();
+    if(S.positions.length>0||S.history.length>0){
+      showToast('Recovered '+S.positions.length+' positions + '+S.history.length+' history from Firebase','success');
+      renderAll();
+    }
+  }catch(e){console.warn('Recovery:',e)}
 }
 
 async function loadUserData(uid){
