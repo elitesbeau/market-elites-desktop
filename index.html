@@ -2094,18 +2094,12 @@ function loadState(){try{const d=localStorage.getItem('meDesktop');if(d)Object.a
   if(S[k]&&typeof S[k]==='string'){try{S[k]=JSON.parse(S[k])}catch(e){S[k]=[]}}
   if(S[k]&&!Array.isArray(S[k]))S[k]=[];
 });}catch(e){}}
-function save(){
-  S._localSaveAt=Date.now();
-  try{localStorage.setItem('meDesktop',JSON.stringify(S))}catch(e){}
-  scheduleSyncToFirebase();
-}
+function save(){try{localStorage.setItem('meDesktop',JSON.stringify(S))}catch(e){}}
 loadState();
 
-// ── Firebase Persistent Sync (write-through with debounce) ──
-const FB_SYNC_FIELDS=['positions','history','watchlist','achievements','incomeGoalHistory','adminPosts'];
+// ── Firebase Sync — READ-ONLY for trading data (main site is the writer) ──
+const FB_READ_FIELDS=['positions','history','wheelPositions','watchlist','achievements','incomeGoalHistory'];
 const FB_SETTINGS_FIELDS=['incomeGoal','accSize','feePerContract','dteThreshold','leaderboardOptIn','leaderboardName'];
-const SITE_ID='desktop';
-let _fbSyncTimer=null;
 
 function sanitizeArrayField(val){
   if(val&&typeof val==='string'){try{return JSON.parse(val)}catch(e){return[]}}
@@ -2113,100 +2107,30 @@ function sanitizeArrayField(val){
   return val||[];
 }
 
-let _initialLoadDone=false;
-function scheduleSyncToFirebase(){
-  if(!_initialLoadDone)return; // Don't sync until initial Firebase load completes
-  if(_fbSyncTimer)clearTimeout(_fbSyncTimer);
-  _fbSyncTimer=setTimeout(syncToFirebase,3000);
-}
-
-async function syncToFirebase(){
-  if(!S.firebaseUid||S.isGuest||!firebaseReady)return;
-  try{
-    // HARD SAFETY: Never overwrite Firebase data with empty local data
-    const localPos=(S.positions||[]).length;
-    const localHist=(S.history||[]).length;
-    if(localPos===0&&localHist===0){
-      const check=await firebase.database().ref('users/'+S.firebaseUid+'/tradingData/positions').once('value');
-      const fbPos=check.val();
-      if(fbPos&&Array.isArray(fbPos)&&fbPos.length>0){
-        console.warn('[Sync] BLOCKED — refusing to overwrite '+fbPos.length+' Firebase positions with empty local data');
-        return;
-      }
-    }
-    const td={_meta:{lastWriteAt:Date.now(),lastWriteBy:SITE_ID,schemaVersion:2},settings:{}};
-    FB_SYNC_FIELDS.forEach(k=>{td[k]=S[k]||[]});
-    FB_SETTINGS_FIELDS.forEach(k=>{if(S[k]!==undefined){td[k]=S[k];td.settings[k]=S[k]}});
-    // Preserve wheelPositions from main site — read-merge-write
-    const snap=await firebase.database().ref('users/'+S.firebaseUid+'/tradingData/wheelPositions').once('value');
-    const existingWheels=snap.val();
-    if(existingWheels&&Array.isArray(existingWheels))td.wheelPositions=existingWheels;
-    await firebase.database().ref('users/'+S.firebaseUid+'/tradingData').set(td);
-    S._firebaseSynced=true;
-    console.log('[Sync] Saved to Firebase ('+FB_SYNC_FIELDS.map(k=>(S[k]||[]).length).join('/')+')');
-  }catch(e){console.warn('[Sync] Firebase write failed:',e)}
-}
-
 async function loadFromFirebase(){
   if(!S.firebaseUid||S.isGuest||!firebaseReady)return;
   try{
     const snap=await firebase.database().ref('users/'+S.firebaseUid+'/tradingData').once('value');
     const td=snap.val();
-    if(!td){
-      console.log('[Sync] No Firebase data — uploading from localStorage');
-      syncToFirebase();
-      return;
-    }
-    // Legacy migration
+    if(!td){console.log('[Sync] No Firebase tradingData found');return}
+    // Legacy migration: parse stringified arrays
     if(!td._meta||!td._meta.schemaVersion){
-      console.log('[Sync] Found legacy stringified data — migrating');
-      FB_SYNC_FIELDS.forEach(k=>{if(td[k]&&typeof td[k]==='string'){try{td[k]=JSON.parse(td[k])}catch(e){td[k]=[]}}});
-      td._meta={lastWriteAt:Date.now(),lastWriteBy:SITE_ID,schemaVersion:2};
-      await firebase.database().ref('users/'+S.firebaseUid+'/tradingData').set(td);
+      FB_READ_FIELDS.forEach(k=>{if(td[k]&&typeof td[k]==='string'){try{td[k]=JSON.parse(td[k])}catch(e){td[k]=[]}}});
     }
-    // Compare by data volume first, then timestamp — prevents empty local overwriting Firebase
-    const fbCount=FB_SYNC_FIELDS.reduce((s,k)=>{const v=sanitizeArrayField(td[k]);return s+v.length},0);
-    const localCount=FB_SYNC_FIELDS.reduce((s,k)=>s+(Array.isArray(S[k])?S[k].length:0),0);
-    const fbTime=td._meta?td._meta.lastWriteAt:0;
-    const localTime=S._localSaveAt||0;
-    if(fbCount>localCount){
-      console.log('[Sync] Firebase has more data ('+fbCount+' vs '+localCount+') — applying');
-      applyFirebaseData(td);
-    }else if(localCount>fbCount){
-      console.log('[Sync] localStorage has more data ('+localCount+' vs '+fbCount+') — pushing to Firebase');
-      syncToFirebase();
-    }else if(fbTime>localTime){
-      console.log('[Sync] Same data volume, Firebase is newer — applying');
-      applyFirebaseData(td);
-    }else if(localTime>fbTime){
-      console.log('[Sync] Same data volume, localStorage is newer — pushing');
-      syncToFirebase();
+    // Always apply Firebase data — main site is source of truth
+    let applied=0;
+    FB_READ_FIELDS.forEach(k=>{
+      const fbVal=sanitizeArrayField(td[k]);
+      if(fbVal.length>0||(S[k]||[]).length===0){S[k]=fbVal;applied+=fbVal.length}
+    });
+    if(td.settings){
+      FB_SETTINGS_FIELDS.forEach(k=>{if(td.settings[k]!==undefined)S[k]=td.settings[k]});
     }else{
-      console.log('[Sync] Data in sync');
+      FB_SETTINGS_FIELDS.forEach(k=>{if(td[k]!==undefined)S[k]=td[k]});
     }
-    S._firebaseSynced=true;
-    _initialLoadDone=true;
-  }catch(e){console.warn('[Sync] loadFromFirebase failed:',e);_initialLoadDone=true}
-}
-
-function applyFirebaseData(td){
-  FB_SYNC_FIELDS.forEach(k=>{
-    const fbVal=sanitizeArrayField(td[k]);
-    const localVal=S[k]||[];
-    if(fbVal.length===0&&localVal.length>0){
-      console.log('[Sync] Skipping empty Firebase field:',k,'(local has',localVal.length,')');
-      return;
-    }
-    S[k]=fbVal;
-  });
-  if(td.settings){
-    FB_SETTINGS_FIELDS.forEach(k=>{if(td.settings[k]!==undefined)S[k]=td.settings[k]});
-  }else{
-    FB_SETTINGS_FIELDS.forEach(k=>{if(td[k]!==undefined)S[k]=td[k]});
-  }
-  S._localSaveAt=Date.now();
-  try{localStorage.setItem('meDesktop',JSON.stringify(S))}catch(e){}
-  console.log('[Sync] Applied Firebase data — positions:',S.positions.length,'history:',S.history.length);
+    save();
+    console.log('[Sync] Loaded from Firebase (READ-ONLY) — positions:',S.positions.length,'history:',S.history.length,'items:',applied);
+  }catch(e){console.warn('[Sync] loadFromFirebase failed:',e)}
 }
 
 // ── Wheel Tracker Firebase Sync ──
