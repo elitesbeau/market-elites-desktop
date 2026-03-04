@@ -2088,9 +2088,142 @@ const S={theme:'dark',apiKey:'',secretKey:'',accSize:25000,feePerContract:0.65,
   achievements:[],leaderboardOptIn:false,leaderboardName:'',
   adminAuthenticated:false,adminPosts:[]};
 
-function loadState(){try{const d=localStorage.getItem('meDesktop');if(d)Object.assign(S,JSON.parse(d))}catch(e){}}
-function save(){try{localStorage.setItem('meDesktop',JSON.stringify(S))}catch(e){}}
+function loadState(){try{const d=localStorage.getItem('meDesktop');if(d)Object.assign(S,JSON.parse(d));
+// Fix corrupted data — strings instead of arrays
+['positions','history','watchlist','achievements','incomeGoalHistory','adminPosts'].forEach(k=>{
+  if(S[k]&&typeof S[k]==='string'){try{S[k]=JSON.parse(S[k])}catch(e){S[k]=[]}}
+  if(S[k]&&!Array.isArray(S[k]))S[k]=[];
+});}catch(e){}}
+function save(){
+  S._localSaveAt=Date.now();
+  try{localStorage.setItem('meDesktop',JSON.stringify(S))}catch(e){}
+  scheduleSyncToFirebase();
+}
 loadState();
+
+// ── Firebase Persistent Sync (write-through with debounce) ──
+const FB_SYNC_FIELDS=['positions','history','watchlist','achievements','incomeGoalHistory','adminPosts'];
+const FB_SETTINGS_FIELDS=['incomeGoal','accSize','feePerContract','dteThreshold','leaderboardOptIn','leaderboardName'];
+const SITE_ID='desktop';
+let _fbSyncTimer=null;
+
+function sanitizeArrayField(val){
+  if(val&&typeof val==='string'){try{return JSON.parse(val)}catch(e){return[]}}
+  if(val&&!Array.isArray(val))return[];
+  return val||[];
+}
+
+function scheduleSyncToFirebase(){
+  if(_fbSyncTimer)clearTimeout(_fbSyncTimer);
+  _fbSyncTimer=setTimeout(syncToFirebase,3000);
+}
+
+async function syncToFirebase(){
+  if(!S.firebaseUid||S.isGuest||!firebaseReady)return;
+  try{
+    const td={_meta:{lastWriteAt:Date.now(),lastWriteBy:SITE_ID,schemaVersion:2},settings:{}};
+    FB_SYNC_FIELDS.forEach(k=>{td[k]=S[k]||[]});
+    // Include wheelPositions from main site if present in Firebase (don't overwrite)
+    FB_SETTINGS_FIELDS.forEach(k=>{if(S[k]!==undefined){td[k]=S[k];td.settings[k]=S[k]}});
+    // Preserve wheelPositions from main site — read-merge-write
+    const snap=await firebase.database().ref('users/'+S.firebaseUid+'/tradingData/wheelPositions').once('value');
+    const existingWheels=snap.val();
+    if(existingWheels&&Array.isArray(existingWheels))td.wheelPositions=existingWheels;
+    await firebase.database().ref('users/'+S.firebaseUid+'/tradingData').set(td);
+    S._firebaseSynced=true;
+    console.log('[Sync] Saved to Firebase ('+FB_SYNC_FIELDS.map(k=>(S[k]||[]).length).join('/')+')');
+  }catch(e){console.warn('[Sync] Firebase write failed:',e)}
+}
+
+async function loadFromFirebase(){
+  if(!S.firebaseUid||S.isGuest||!firebaseReady)return;
+  try{
+    const snap=await firebase.database().ref('users/'+S.firebaseUid+'/tradingData').once('value');
+    const td=snap.val();
+    if(!td){
+      console.log('[Sync] No Firebase data — uploading from localStorage');
+      syncToFirebase();
+      return;
+    }
+    // Legacy migration
+    if(!td._meta||!td._meta.schemaVersion){
+      console.log('[Sync] Found legacy stringified data — migrating');
+      FB_SYNC_FIELDS.forEach(k=>{if(td[k]&&typeof td[k]==='string'){try{td[k]=JSON.parse(td[k])}catch(e){td[k]=[]}}});
+      td._meta={lastWriteAt:Date.now(),lastWriteBy:SITE_ID,schemaVersion:2};
+      await firebase.database().ref('users/'+S.firebaseUid+'/tradingData').set(td);
+    }
+    const fbTime=td._meta?td._meta.lastWriteAt:0;
+    const localTime=S._localSaveAt||0;
+    if(fbTime>localTime){
+      console.log('[Sync] Firebase is newer — applying');
+      applyFirebaseData(td);
+    }else if(localTime>fbTime){
+      console.log('[Sync] localStorage is newer — pushing to Firebase');
+      syncToFirebase();
+    }else{
+      console.log('[Sync] Data in sync');
+    }
+    S._firebaseSynced=true;
+  }catch(e){console.warn('[Sync] loadFromFirebase failed:',e)}
+}
+
+function applyFirebaseData(td){
+  FB_SYNC_FIELDS.forEach(k=>{
+    const fbVal=sanitizeArrayField(td[k]);
+    const localVal=S[k]||[];
+    if(fbVal.length===0&&localVal.length>0){
+      console.log('[Sync] Skipping empty Firebase field:',k,'(local has',localVal.length,')');
+      return;
+    }
+    S[k]=fbVal;
+  });
+  if(td.settings){
+    FB_SETTINGS_FIELDS.forEach(k=>{if(td.settings[k]!==undefined)S[k]=td.settings[k]});
+  }else{
+    FB_SETTINGS_FIELDS.forEach(k=>{if(td[k]!==undefined)S[k]=td[k]});
+  }
+  S._localSaveAt=Date.now();
+  try{localStorage.setItem('meDesktop',JSON.stringify(S))}catch(e){}
+  console.log('[Sync] Applied Firebase data — positions:',S.positions.length,'history:',S.history.length);
+}
+
+// ── Wheel Tracker Firebase Sync ──
+let _wtSyncTimer=null;
+function scheduleWtSync(){
+  if(_wtSyncTimer)clearTimeout(_wtSyncTimer);
+  _wtSyncTimer=setTimeout(syncWtToFirebase,3000);
+}
+async function syncWtToFirebase(){
+  if(!S.firebaseUid||S.isGuest||!firebaseReady)return;
+  try{
+    const data=JSON.parse(localStorage.getItem(WT_KEY)||'{"wheels":[]}');
+    await firebase.database().ref('users/'+S.firebaseUid+'/wheelTracker').set({
+      _meta:{lastWriteAt:Date.now(),lastWriteBy:'desktop',schemaVersion:2},
+      ...data
+    });
+    console.log('[WtSync] Saved to Firebase (',data.wheels?data.wheels.length:0,'wheels)');
+  }catch(e){console.warn('[WtSync] Firebase write failed:',e)}
+}
+async function loadWtFromFirebase(){
+  if(!S.firebaseUid||S.isGuest||!firebaseReady)return;
+  try{
+    const snap=await firebase.database().ref('users/'+S.firebaseUid+'/wheelTracker').once('value');
+    const fb=snap.val();
+    if(!fb)return;
+    const local=JSON.parse(localStorage.getItem(WT_KEY)||'{}');
+    const fbTime=fb._meta?fb._meta.lastWriteAt:0;
+    const localWheels=local.wheels||[];
+    const fbWheels=fb.wheels||[];
+    // If Firebase has more wheels, use Firebase
+    if(fbWheels.length>localWheels.length||(fbTime>0&&localWheels.length===0)){
+      const{_meta,...data}=fb;
+      localStorage.setItem(WT_KEY,JSON.stringify(data));
+      console.log('[WtSync] Loaded from Firebase (',fbWheels.length,'wheels)');
+    }else if(localWheels.length>fbWheels.length){
+      syncWtToFirebase();
+    }
+  }catch(e){console.warn('[WtSync] loadWtFromFirebase failed:',e)}
+}
 
 // ── Firebase Config ──
 const firebaseConfig={
@@ -2300,7 +2433,10 @@ function checkAuthState(){
   initFirebase().then(ok=>{
     if(ok&&firebase.auth){
       firebase.auth().onAuthStateChanged(user=>{
-        if(user){S.firebaseUid=user.uid;loadUserData(user.uid);save();hideAuthScreen();checkLegal();renderProfile();listenToFirebasePosts();firebase.database().ref('users/'+user.uid).update({lastLogin:Date.now()}).catch(()=>{})}
+        if(user){S.firebaseUid=user.uid;loadUserData(user.uid);save();hideAuthScreen();checkLegal();renderProfile();listenToFirebasePosts();firebase.database().ref('users/'+user.uid).update({lastLogin:Date.now()}).catch(()=>{});
+          loadFromFirebase().then(()=>{renderProfile();renderSignals()});
+          loadWtFromFirebase();
+        }
         else if(S.firebaseUid&&!S.isGuest){showAuthScreen()}
       });
     }
@@ -3291,7 +3427,7 @@ function wtLoad() {
   try { return JSON.parse(localStorage.getItem(WT_KEY)) || { wheels: [] }; }
   catch { return { wheels: [] }; }
 }
-function wtSave(data) { localStorage.setItem(WT_KEY, JSON.stringify(data)); }
+function wtSave(data) { localStorage.setItem(WT_KEY, JSON.stringify(data)); scheduleWtSync(); }
 
 // ── Toast ──
 function wtToast(msg, type = 'success') {
