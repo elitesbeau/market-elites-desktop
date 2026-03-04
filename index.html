@@ -2380,7 +2380,7 @@ function checkAuthState(){
     if(ok&&firebase.auth){
       firebase.auth().onAuthStateChanged(user=>{
         if(user){S.firebaseUid=user.uid;loadUserData(user.uid);save();hideAuthScreen();checkLegal();renderProfile();listenToFirebasePosts();firebase.database().ref('users/'+user.uid).update({lastLogin:Date.now()}).catch(()=>{});
-          loadFromFirebase().then(()=>{renderProfile();renderSignals()});
+          loadFromFirebase().then(()=>{renderDashboard();renderProfile();renderSignals()});
           loadWtFromFirebase();
         }
         else if(S.firebaseUid&&!S.isGuest){showAuthScreen()}
@@ -2634,7 +2634,7 @@ function toggleSidebar(){
 // ═══════════════════════════════════════════
 function initApp(){
   if(!checkAuthState())showAuthScreen();
-  else{checkLegal();renderProfile()}
+  else{checkLegal();renderProfile();renderDashboard()}
   renderLearnGrid();
   renderSignals();
 }
@@ -2820,6 +2820,123 @@ function generateQuiz(m){
       {question:'Consistency in the wheel means?',options:['Trading every day','Following your rules every time','Never losing','Using maximum leverage'],correct:1}]
   };
   return bank[m.id]||bank.m1;
+}
+
+// ═══════════════════════════════════════════
+// DYNAMIC DASHBOARD + POSITIONS RENDERER
+// ═══════════════════════════════════════════
+function renderDashboard(){
+  const pos=S.positions||[];
+  const hist=S.history||[];
+  const cspCount=pos.filter(p=>(p.type||'csp')==='csp').length;
+  const ccCount=pos.filter(p=>p.type==='cc').length;
+  const totalPrem=pos.reduce((s,p)=>s+(p.premium||0)*(p.contracts||1)*100,0);
+  const now=new Date();
+  const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const monthPrem=hist.filter(h=>{const d=new Date(h.closeDate||h.openDate||0);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')===ym}).reduce((s,h)=>s+(h.pnl||0),0);
+  const wins=hist.filter(h=>(h.pnl||0)>=0).length;
+  const winRate=hist.length>0?(wins/hist.length*100).toFixed(1):'0';
+  const goal=S.incomeGoal||500;
+  const goalPct=Math.min(100,Math.round(monthPrem/goal*100));
+  const logo=t=>'https://assets.parqet.com/logos/symbol/'+t;
+
+  // Hero section
+  const heroVal=document.querySelector('.hero-val');
+  if(heroVal)heroVal.innerHTML='$'+Math.round(totalPrem).toLocaleString()+'<span>.00</span>';
+  const heroLbl=document.querySelector('.hero-lbl');
+  if(heroLbl)heroLbl.textContent='Total Open Premium — USD';
+  const heroChg=document.querySelector('.hero-chg');
+  if(heroChg){heroChg.className='hero-chg '+(monthPrem>=0?'gain':'loss');heroChg.textContent=(monthPrem>=0?'\u25B2':'\u25BC')+' $'+Math.abs(Math.round(monthPrem)).toLocaleString()+' this month'}
+  const heroMeta=document.querySelector('.hero-meta');
+  if(heroMeta)heroMeta.textContent=pos.length+' active positions · '+cspCount+' CSP / '+ccCount+' CC';
+  const hgVal=document.querySelector('.hg-val');
+  if(hgVal)hgVal.innerHTML='$'+Math.round(monthPrem).toLocaleString()+' <span style="font-size:12px;color:var(--t4);font-weight:400">/ $'+goal.toLocaleString()+'</span>';
+  const hgFill=document.querySelector('.hg-fill');
+  if(hgFill)hgFill.style.width=goalPct+'%';
+
+  // Stats cards
+  const statCards=document.querySelectorAll('.dash-stats .card');
+  if(statCards[0]){statCards[0].querySelector('.stat-v').textContent=pos.length;statCards[0].querySelector('.stat-sub').textContent=cspCount+' CSP / '+ccCount+' CC'}
+  if(statCards[1]){statCards[1].querySelector('.stat-v').textContent='$'+Math.round(monthPrem).toLocaleString()}
+  if(statCards[2]){const sv=statCards[2].querySelector('.stat-v');sv.textContent=winRate+'%';sv.className='stat-v '+(parseFloat(winRate)>=50?'gain':'loss');statCards[2].querySelector('.stat-sub').textContent=wins+'W / '+(hist.length-wins)+'L'}
+  if(statCards[3]){const sv=statCards[3].querySelector('.stat-v');sv.textContent=goalPct+'%';sv.className='stat-v '+(goalPct>=80?'gain':goalPct>=50?'warn':'loss');statCards[3].querySelector('.stat-sub').textContent='$'+Math.round(monthPrem).toLocaleString()+' / $'+goal.toLocaleString();const pf=statCards[3].querySelector('.prog-f');if(pf)pf.style.width=goalPct+'%'}
+
+  // Recent trades panel
+  const tpList=document.querySelector('.tp-list');
+  if(tpList){
+    const recent=hist.slice(0,7);
+    if(recent.length>0){
+      tpList.innerHTML=recent.map(h=>{
+        const pnl=h.pnl||0;const cls=pnl>=0?'gain':'loss';
+        const outcome=h.outcome==='rolled'?'Rolled':h.outcome==='assigned'?'Assigned':'Closed';
+        const dt=h.closeDate?new Date(h.closeDate).toLocaleDateString('en-US',{month:'2-digit',day:'2-digit'}):'';
+        return '<div class="tp-item"><img src="'+logo(h.symbol)+'" class="tk-logo-sm" onerror="this.style.display=\'none\'"><span class="tp-tk">'+h.symbol+'</span><div class="tp-info">'+(h.type||'csp').toUpperCase()+' $'+h.strike+'<br>'+outcome+(dt?' '+dt:'')+'</div><span class="tp-result '+cls+'">'+(pnl>=0?'+':'')+' $'+Math.round(Math.abs(pnl)).toLocaleString()+'</span></div>';
+      }).join('');
+    }else{tpList.innerHTML='<div style="color:var(--t4);padding:16px;text-align:center;font-size:12px">No closed trades yet</div>'}
+  }
+
+  // Dashboard active positions mini-table
+  const dashTbody=document.querySelector('.dash-bottom .tbl tbody');
+  if(dashTbody){
+    if(pos.length>0){
+      dashTbody.innerHTML=pos.slice(0,5).map(p=>{
+        const dte=p.expiration?Math.max(0,Math.ceil((new Date(p.expiration)-now)/(864e5))):'-';
+        const type=(p.type||'csp').toUpperCase();
+        const badge='badge-'+(p.type||'csp');
+        const prem=(p.premium||0)*(p.contracts||1)*100;
+        return '<tr><td style="display:flex;align-items:center;gap:8px"><img src="'+logo(p.symbol)+'" width="22" height="22" style="border-radius:4px;background:var(--bge)" onerror="this.style.display=\'none\'"><span class="tk">'+p.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+p.strike+'</td><td class="m">'+(p.expiration||'-')+'</td><td class="m">'+dte+'</td><td class="m">$'+(p.premium||0).toFixed(2)+'</td><td class="m gain">+$'+Math.round(prem).toLocaleString()+'</td><td style="color:var(--t4)">Open</td></tr>';
+      }).join('');
+    }else{dashTbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--t4);padding:20px">No open positions — add one on the main site</td></tr>'}
+  }
+
+  // Full positions page table
+  const posTbody=document.querySelector('#positions .tbl tbody');
+  if(posTbody){
+    if(pos.length>0){
+      posTbody.innerHTML=pos.map(p=>{
+        const dte=p.expiration?Math.max(0,Math.ceil((new Date(p.expiration)-now)/(864e5))):'-';
+        const type=(p.type||'csp').toUpperCase();
+        const badge='badge-'+(p.type||'csp');
+        const prem=(p.premium||0)*(p.contracts||1)*100;
+        const collateral=type==='CSP'?'$'+(p.strike*(p.contracts||1)*100).toLocaleString():(p.contracts||1)*100+' sh';
+        return '<tr><td class="tk-cell"><img src="'+logo(p.symbol)+'" class="tk-logo" onerror="this.style.display=\'none\'"><span class="tk">'+p.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+Number(p.strike).toFixed(2)+'</td><td class="m">'+(p.expiration||'-')+'</td><td class="m">'+dte+'</td><td class="m">$'+(p.premium||0).toFixed(2)+'</td><td class="m">'+(p.contracts||1)+'</td><td class="m">'+collateral+'</td><td class="m gain">+$'+Math.round(prem).toLocaleString()+'</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>';
+      }).join('');
+    }else{posTbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--t4);padding:20px">No open positions</td></tr>'}
+  }
+
+  // Positions page summary cards
+  const posSummary=document.querySelector('.pos-summary');
+  if(posSummary){
+    const cards=posSummary.querySelectorAll('.card');
+    if(cards[0]){cards[0].querySelector('.stat-v').textContent=pos.length;cards[0].querySelector('.stat-sub').textContent=cspCount+' CSP / '+ccCount+' CC'}
+    if(cards[1]){cards[1].querySelector('.stat-v').textContent='$'+totalPrem.toFixed(2)}
+  }
+
+  // Positions filter pills
+  const pills=document.querySelector('.pos-filters .pills');
+  if(pills){
+    const shareCount=pos.filter(p=>p.type==='shares').length;
+    const assignedCount=pos.filter(p=>p.type==='assigned'||p.status==='assigned').length;
+    pills.innerHTML='<button class="pill active">All ('+pos.length+')</button><button class="pill">CSP ('+cspCount+')</button><button class="pill">CC ('+ccCount+')</button><button class="pill">Shares ('+shareCount+')</button><button class="pill">Assigned ('+assignedCount+')</button>';
+  }
+
+  // DTE timeline
+  const dteTl=document.querySelector('.dte-timeline');
+  if(dteTl&&pos.length>0){
+    const lbl=dteTl.querySelector('.card-label');
+    const bars=pos.slice(0,8).map(p=>{
+      const dte=p.expiration?Math.max(0,Math.ceil((new Date(p.expiration)-now)/(864e5))):0;
+      const pct=Math.min(100,Math.round(dte/50*100));
+      const type=(p.type||'csp').toUpperCase();
+      const badge='badge-'+(p.type||'csp');
+      const warnCls=dte<=7?'warn':'';
+      const barColor=dte<=7?'var(--w)':'var(--g)';
+      return '<div class="dte-bar"><img src="'+logo(p.symbol)+'" class="tk-logo-sm" onerror="this.style.display=\'none\'"><span class="dte-tk">'+p.symbol+'</span><span class="dte-type"><span class="badge '+badge+'" style="font-size:8px;padding:2px 6px">'+type+'</span></span><div class="dte-track"><div class="dte-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div><span class="dte-days '+warnCls+'">'+dte+' DTE</span></div>';
+    }).join('');
+    dteTl.innerHTML=(lbl?'<div class="card-label">Expiration Timeline</div>':'')+bars;
+  }
+
+  console.log('[Render] Dashboard updated — '+pos.length+' positions, '+hist.length+' history');
 }
 
 // ═══════════════════════════════════════════
