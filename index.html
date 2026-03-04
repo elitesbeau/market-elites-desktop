@@ -2936,7 +2936,118 @@ function renderDashboard(){
     dteTl.innerHTML=(lbl?'<div class="card-label">Expiration Timeline</div>':'')+bars;
   }
 
+  // Analytics page
+  renderAnalyticsPage();
+  // Signals recently executed
+  renderSignalsRecent();
+
   console.log('[Render] Dashboard updated — '+pos.length+' positions, '+hist.length+' history');
+}
+
+function renderAnalyticsPage(){
+  const pos=S.positions||[];const hist=S.history||[];
+  const all=[...pos,...hist];
+  const wins=hist.filter(h=>(h.pnl||0)>=0).length;
+  const losses=hist.length-wins;
+  const winRate=hist.length>0?(wins/hist.length*100).toFixed(1):'0';
+  const totalPnl=hist.reduce((s,h)=>s+(h.pnl||0),0);
+  const avgPrem=all.length>0?(all.reduce((s,t)=>s+(t.premium||0),0)/all.length).toFixed(2):'0';
+  // Win streak
+  let streak=0,bestStreak=0;
+  for(const h of hist){if((h.pnl||0)>=0){streak++;bestStreak=Math.max(bestStreak,streak)}else{streak=0}}
+  // Avg DTE at entry
+  const now=new Date();
+  const avgDte=pos.length>0?Math.round(pos.reduce((s,p)=>{const dte=p.expiration?Math.max(0,Math.ceil((new Date(p.expiration)-now)/(864e5))):0;return s+dte},0)/pos.length):0;
+
+  const anaStats=document.querySelectorAll('.ana-stats .card');
+  if(anaStats[0]){anaStats[0].querySelector('.stat-v').textContent=all.length;anaStats[0].querySelector('.stat-sub').textContent='ALL TIME'}
+  if(anaStats[1]){const sv=anaStats[1].querySelector('.stat-v');sv.textContent=winRate+'%';sv.className='stat-v '+(parseFloat(winRate)>=50?'gain':'loss');anaStats[1].querySelector('.stat-sub').textContent=wins+'W / '+losses+'L'}
+  if(anaStats[2]){const sv=anaStats[2].querySelector('.stat-v');sv.textContent=(totalPnl>=0?'+':'-')+'$'+Math.abs(Math.round(totalPnl)).toLocaleString();sv.className='stat-v '+(totalPnl>=0?'gain':'loss');anaStats[2].querySelector('.stat-sub').textContent='REALIZED'}
+  if(anaStats[3]){anaStats[3].querySelector('.stat-v').textContent='$'+avgPrem}
+  if(anaStats[4]){anaStats[4].querySelector('.stat-v').textContent=streak;anaStats[4].querySelector('.stat-sub').textContent='CURRENT / BEST: '+bestStreak}
+  if(anaStats[5]){anaStats[5].querySelector('.stat-v').textContent=avgDte}
+
+  // Win/loss donut
+  const donutVal=document.querySelector('.donut-val');
+  if(donutVal)donutVal.textContent=Math.round(parseFloat(winRate))+'%';
+  const donutParent=document.querySelector('.donut')?.parentElement?.nextElementSibling;
+  if(donutParent){
+    // Find top/worst tickers
+    const byTicker={};hist.forEach(h=>{if(!byTicker[h.symbol])byTicker[h.symbol]={w:0,l:0};if((h.pnl||0)>=0)byTicker[h.symbol].w++;else byTicker[h.symbol].l++});
+    const sorted=Object.entries(byTicker).map(([t,v])=>({t,rate:v.w/(v.w+v.l)*100})).sort((a,b)=>b.rate-a.rate);
+    const best=sorted[0];const worst=sorted[sorted.length-1];
+    donutParent.innerHTML='<div><span style="display:inline-block;width:8px;height:8px;background:var(--g);border-radius:1px;margin-right:6px"></span>Winners: '+wins+'</div>'+
+      '<div><span style="display:inline-block;width:8px;height:8px;background:var(--r);border-radius:1px;margin-right:6px"></span>Losers: '+losses+'</div>'+
+      (best?'<div style="margin-top:8px;color:var(--t4)">Best: '+best.t+' ('+Math.round(best.rate)+'%)</div>':'')+
+      (worst&&sorted.length>1?'<div style="color:var(--t4)">Worst: '+worst.t+' ('+Math.round(worst.rate)+'%)</div>':'');
+  }
+
+  // Monthly breakdown table
+  const anaTbody=document.querySelector('.ana-bottom .tbl tbody');
+  if(anaTbody){
+    const months={};
+    hist.forEach(h=>{const d=new Date(h.closeDate||h.openDate||0);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!months[k])months[k]={realized:0,trades:0,wins:0};months[k].realized+=(h.pnl||0);months[k].trades++;if((h.pnl||0)>=0)months[k].wins++});
+    pos.forEach(p=>{const d=new Date(p.openDate||0);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!months[k])months[k]={realized:0,trades:0,wins:0};months[k].pending=(months[k].pending||0)+(p.premium||0)*(p.contracts||1)*100});
+    const sorted=Object.entries(months).sort((a,b)=>b[0].localeCompare(a[0]));
+    if(sorted.length>0){
+      anaTbody.innerHTML=sorted.map(([k,v])=>{
+        const [y,m]=k.split('-');const label=new Date(y,m-1).toLocaleDateString('en-US',{month:'short',year:'2-digit'});
+        const wr=v.trades>0?Math.round(v.wins/v.trades*100):0;
+        return '<tr><td class="m">'+label+'</td><td class="m '+(v.realized>=0?'gain':'loss')+'">'+(v.realized>=0?'+':'-')+'$'+Math.abs(Math.round(v.realized)).toLocaleString()+'</td><td class="m" style="color:var(--t4)">$'+Math.round(v.pending||0).toLocaleString()+'</td><td class="m">'+v.trades+'</td><td class="m '+(wr>=70?'gain':'')+'">'+wr+'%</td></tr>';
+      }).join('');
+    }else{anaTbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--t4);padding:20px">No trade history yet</td></tr>'}
+  }
+
+  // Top performers
+  const topEl=$('topTickers');
+  if(topEl){
+    const byTicker={};hist.forEach(h=>{if(!byTicker[h.symbol])byTicker[h.symbol]=0;byTicker[h.symbol]+=(h.pnl||0)});
+    const sorted=Object.entries(byTicker).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    if(sorted.length>0){
+      topEl.innerHTML=sorted.map(([t,pnl])=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-family:var(--fm);font-size:11px"><span class="tk">'+t+'</span><span class="'+(pnl>=0?'gain':'loss')+'">'+(pnl>=0?'+':'')+' $'+Math.round(Math.abs(pnl)).toLocaleString()+'</span></div>').join('');
+    }else{topEl.innerHTML='<div style="color:var(--t4);font-size:11px">No data yet</div>'}
+  }
+
+  // CSP vs CC type split
+  const cspPnl=hist.filter(h=>(h.type||'csp')==='csp').reduce((s,h)=>s+(h.pnl||0),0);
+  const ccPnl=hist.filter(h=>h.type==='cc').reduce((s,h)=>s+(h.pnl||0),0);
+  const totalTypePnl=Math.abs(cspPnl)+Math.abs(ccPnl)||1;
+  const cspPct=Math.round(Math.abs(cspPnl)/totalTypePnl*100);
+  const typeSplit=document.querySelector('.ana-bottom .card:last-child');
+  if(typeSplit){
+    const bars=typeSplit.querySelectorAll('div[style*="flex:"]');
+    if(bars.length>=2){bars[0].style.flex=cspPct;bars[1].style.flex=100-cspPct}
+    const labels=typeSplit.querySelectorAll('span');
+    if(labels.length>=2){labels[labels.length-2].textContent='CSP '+cspPct+'%';labels[labels.length-1].textContent='CC '+(100-cspPct)+'%'}
+  }
+
+  // P&L cumulative chart
+  const plChart=$('plChart');
+  if(plChart&&hist.length>1){
+    let cum=0;const pts=hist.slice().reverse().map((h,i)=>{cum+=(h.pnl||0);return{x:i,y:cum}});
+    const maxY=Math.max(...pts.map(p=>p.y),1);const minY=Math.min(...pts.map(p=>p.y),0);
+    const range=maxY-minY||1;
+    const path=pts.map((p,i)=>{const x=p.x/(pts.length-1)*500;const y=140-(p.y-minY)/range*130;return(i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)}).join(' ');
+    plChart.innerHTML='<polyline points="'+pts.map((p,i)=>{const x=p.x/(pts.length-1)*500;const y=140-(p.y-minY)/range*130;return x.toFixed(1)+','+y.toFixed(1)}).join(' ')+'" fill="none" stroke="var(--g)" stroke-width="2"/>';
+  }
+}
+
+function renderSignalsRecent(){
+  const hist=S.history||[];
+  const tbody=document.querySelector('#signals .tbl tbody');
+  if(!tbody)return;
+  const recent=hist.slice(0,6);
+  if(recent.length>0){
+    const logo=t=>'https://assets.parqet.com/logos/symbol/'+t;
+    tbody.innerHTML=recent.map(h=>{
+      const type=(h.type||'csp').toUpperCase();const badge='badge-'+(h.type||'csp');
+      const pnl=h.pnl||0;const pnlCls=pnl>=0?'gain':'loss';
+      const conf=pnl>200?'HIGH':pnl>0?'MEDIUM':'LOW';const confCls=conf==='HIGH'?'var(--g)':'var(--w)';
+      const dt=h.closeDate?new Date(h.closeDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+      const result=h.outcome==='assigned'?'Assigned':(pnl>=0?'+':'')+'$'+Math.round(Math.abs(pnl)).toLocaleString();
+      return '<tr><td class="tk-cell"><img src="'+logo(h.symbol)+'" class="tk-logo" onerror="this.style.display=\'none\'"><span class="tk">'+h.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+h.strike+' '+(type==='CSP'?'PUT':'CALL')+' '+(h.expiration||'')+'</td><td class="m '+pnlCls+'">'+result+'</td><td class="m" style="color:'+confCls+'">'+conf+'</td><td class="m" style="color:var(--t4)">'+dt+'</td></tr>';
+    }).join('');
+  }else{tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--t4);padding:20px">No executed trades yet</td></tr>'}
 }
 
 // ═══════════════════════════════════════════
