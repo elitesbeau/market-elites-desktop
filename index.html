@@ -1,0 +1,2965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MARKET ELITES</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050505;--bgs:#08080a;--bgc:#0c0c0e;--bgch:#101014;--bge:#161619;
+  --tx:#E8E0D0;--t2:rgba(232,224,208,.7);--t3:rgba(232,224,208,.5);
+  --t4:rgba(232,224,208,.35);--t5:rgba(232,224,208,.2);--t6:rgba(232,224,208,.08);--tg:rgba(232,224,208,.03);
+  --ac:#C9A97C;--ac2:rgba(201,169,124,.5);--acbg:rgba(201,169,124,.06);--acbr:rgba(201,169,124,.15);
+  --mg:#B07CC8;--mgbg:rgba(176,124,200,.08);--mgbr:rgba(176,124,200,.25);
+  --g:#4ADE80;--gbg:rgba(74,222,128,.08);--gbr:rgba(74,222,128,.2);
+  --r:#F87171;--rbg:rgba(248,113,113,.08);--rbr:rgba(248,113,113,.2);
+  --bl:#60A5FA;--blbg:rgba(96,165,250,.08);--blbr:rgba(96,165,250,.2);
+  --pr:#A78BFA;--prbg:rgba(167,139,250,.08);--prbr:rgba(167,139,250,.2);
+  --w:#FBBF24;
+  --bd:rgba(232,224,208,.06);--bd2:rgba(232,224,208,.12);
+  --fd:'Space Grotesk',sans-serif;--fb:'Inter',sans-serif;--fm:'JetBrains Mono',monospace;
+  --sw:240px;--th:40px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:var(--fb);font-size:15px;line-height:1.6;overflow:hidden;height:100vh}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--t5);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--t4)}
+
+/* ── OVERLAYS ── */
+body::after{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(var(--tg) 1px,transparent 1px),linear-gradient(90deg,var(--tg) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0}
+.grain{position:fixed;inset:-50%;width:200%;height:200%;z-index:10000;pointer-events:none;opacity:.03;
+  animation:grn .5s steps(6) infinite}
+@keyframes grn{0%,100%{transform:translate(0)}20%{transform:translate(-3%,-3%)}40%{transform:translate(3%,3%)}60%{transform:translate(-2%,2%)}80%{transform:translate(2%,-2%)}}
+
+/* ── LAYOUT ── */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sw);background:var(--bgs);
+  border-right:1px solid var(--bd);z-index:100;display:flex;flex-direction:column;padding:20px 0;overflow:hidden}
+.main{margin-left:var(--sw);height:calc(100vh - var(--th));overflow-y:auto;overflow-x:hidden;position:relative;z-index:1}
+.ticker-wrap{position:fixed;bottom:0;left:var(--sw);right:0;height:var(--th);z-index:100;
+  background:var(--bg);border-top:1px solid var(--bd);overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sb-brand{position:relative;margin:0 12px 12px;height:130px;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding:0 12px 14px;border:1px solid var(--bd);border-radius:3px;overflow:hidden;background:var(--bgc)}
+.sb-brand::before,.sb-brand::after{content:'';position:absolute;width:10px;height:10px}
+.sb-brand::before{top:6px;left:6px;border-top:1px solid var(--t5);border-left:1px solid var(--t5)}
+.sb-brand::after{top:6px;right:6px;border-top:1px solid var(--t5);border-right:1px solid var(--t5)}
+.sb-brand-img{position:absolute;top:-15px;left:50%;transform:translateX(-50%);width:170px;height:170px;
+  object-fit:contain;mix-blend-mode:screen;opacity:.4;
+  -webkit-mask-image:radial-gradient(ellipse at center,black 18%,rgba(0,0,0,.6) 38%,transparent 62%);
+  mask-image:radial-gradient(ellipse at center,black 18%,rgba(0,0,0,.6) 38%,transparent 62%);
+  filter:brightness(1.6) drop-shadow(0 0 30px rgba(176,124,200,.6))}
+.sb-brand-glow{position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:220px;height:220px;
+  background:radial-gradient(circle,rgba(176,124,200,.1) 0%,rgba(176,124,200,.03) 40%,transparent 65%);pointer-events:none}
+.sb-brand-name{font-family:var(--fd);font-size:18px;letter-spacing:8px;font-weight:700;
+  text-align:center;position:relative;z-index:2;line-height:1.25;
+  text-shadow:0 0 30px rgba(176,124,200,.15)}
+.sb-brand-sub{font-family:var(--fm);font-size:7px;letter-spacing:3px;color:var(--t4);
+  margin-top:8px;position:relative;z-index:2;text-transform:uppercase}
+.sb-div{height:1px;background:var(--bd);margin:0 20px 12px}
+.sb-nav{flex:1}
+/* Vertical Japanese text decoration */
+.sb-jp{writing-mode:vertical-rl;font-size:11px;color:rgba(176,124,200,.12);letter-spacing:8px;
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;font-weight:500}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;color:var(--t4);cursor:pointer;
+  transition:all .2s;border-left:2px solid transparent;font-size:14px;text-decoration:none;user-select:none}
+.nav-item:hover{color:var(--t2);background:rgba(232,224,208,.02)}
+.nav-item.active{color:var(--tx);background:var(--acbg);border-left-color:var(--ac)}
+.nav-num{font-family:var(--fm);font-size:10px;color:var(--t5);min-width:20px;letter-spacing:1px}
+.nav-item.active .nav-num{color:var(--ac)}
+.nav-item svg{width:18px;height:18px;flex-shrink:0;opacity:.5}
+.nav-item.active svg{opacity:.9}
+.sb-footer{padding:0 20px;margin-top:auto}
+.sb-status{display:flex;align-items:center;gap:8px;font-family:var(--fm);font-size:10px;letter-spacing:1px;color:var(--t4);margin-bottom:8px}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--g);box-shadow:0 0 10px rgba(74,222,128,.6);animation:breathe 3s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.5}50%{opacity:1}}
+.sb-meta{font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1.5px;line-height:1.8}
+/* Sidebar mascot watermark */
+.sb-mascot{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);width:180px;height:180px;
+  object-fit:contain;mix-blend-mode:screen;opacity:.25;pointer-events:none;
+  -webkit-mask-image:radial-gradient(ellipse at center,black 22%,rgba(0,0,0,.5) 42%,transparent 65%);
+  mask-image:radial-gradient(ellipse at center,black 22%,rgba(0,0,0,.5) 42%,transparent 65%);
+  filter:brightness(1.3) drop-shadow(0 0 20px rgba(176,124,200,.25))}
+
+/* ── PAGES ── */
+.page{display:none;padding:28px 36px;min-height:100%}
+.page.active{display:block;animation:fadeUp .3s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.page-head{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.page-label{font-family:var(--fm);font-size:12px;letter-spacing:3px;color:var(--t4);text-transform:uppercase}
+.page-line{flex:1;height:1px;background:var(--bd)}
+
+/* ── COMMON ── */
+.card{background:var(--bgc);border:1px solid var(--bd);border-radius:3px;padding:20px;position:relative;transition:border-color .2s}
+.card:hover{border-color:var(--bd2)}
+.card-label{font-family:var(--fm);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--t4);margin-bottom:8px}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{font-family:var(--fm);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--t4);
+  text-align:left;padding:10px 12px;border-bottom:1px solid var(--bd);font-weight:400;white-space:nowrap}
+.tbl td{padding:10px 12px;border-bottom:1px solid rgba(232,224,208,.03);vertical-align:middle}
+.tbl tr:hover td{background:rgba(232,224,208,.02)}
+.m{font-family:var(--fm);font-size:13px;letter-spacing:.5px}
+.tk{font-family:var(--fd);font-size:22px;letter-spacing:2px;font-weight:700}
+.badge{font-family:var(--fm);font-size:10px;letter-spacing:1px;padding:3px 10px;border-radius:2px;display:inline-block}
+.badge-csp{background:var(--gbg);color:var(--g);border:1px solid var(--gbr)}
+.badge-cc{background:var(--blbg);color:var(--bl);border:1px solid var(--blbr)}
+.badge-shares{background:var(--prbg);color:var(--pr);border:1px solid var(--prbr)}
+.badge-warn{background:rgba(251,191,36,.08);color:var(--w);border:1px solid rgba(251,191,36,.2)}
+.btn{font-family:var(--fm);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
+  padding:10px 20px;border:1px solid var(--acbr);background:var(--acbg);color:var(--tx);
+  cursor:pointer;transition:all .2s;border-radius:2px}
+.btn:hover{border-color:var(--ac2);background:rgba(201,169,124,.12);box-shadow:0 0 16px rgba(201,169,124,.1)}
+.btn-g{border-color:var(--gbr);background:var(--gbg);color:var(--g)}
+.btn-g:hover{border-color:rgba(74,222,128,.4);background:rgba(74,222,128,.12)}
+.btn-sm{padding:6px 14px;font-size:10px}
+.inp{background:rgba(232,224,208,.03);border:1px solid var(--bd);color:var(--tx);font-family:var(--fm);
+  font-size:14px;padding:10px 14px;border-radius:2px;outline:none;transition:border-color .2s}
+.inp:focus{border-color:var(--acbr);box-shadow:0 0 10px rgba(201,169,124,.08)}
+.inp::placeholder{color:var(--t5)}
+select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx)}
+.pills{display:flex;gap:6px}
+.pill{font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+  padding:7px 16px;border:1px solid var(--bd);background:transparent;color:var(--t4);
+  cursor:pointer;border-radius:2px;transition:all .15s}
+.pill:hover{color:var(--t3);border-color:var(--bd2)}
+.pill.active{color:var(--tx);border-color:var(--acbr);background:var(--acbg)}
+.prog{height:4px;background:rgba(232,224,208,.04);border-radius:2px;overflow:hidden}
+.prog-f{height:100%;border-radius:2px;transition:width .5s ease}
+.prog-f.green{background:var(--g);box-shadow:0 0 8px rgba(74,222,128,.3)}
+.prog-f.gold{background:var(--w);box-shadow:0 0 8px rgba(251,191,36,.3)}
+.stat-v{font-family:var(--fd);font-size:36px;letter-spacing:1px;line-height:1;font-weight:700}
+.stat-sub{font-family:var(--fm);font-size:10px;color:var(--t4);margin-top:4px;letter-spacing:1px}
+.gain{color:var(--g)!important}.loss{color:var(--r)!important}.warn{color:var(--w)!important}
+.tk-logo{width:22px;height:22px;border-radius:4px;background:var(--bge);flex-shrink:0}
+.tk-logo-sm{width:16px;height:16px;border-radius:3px;background:var(--bge);flex-shrink:0}
+.tk-logo-lg{width:32px;height:32px;border-radius:6px;background:var(--bge);flex-shrink:0}
+.tk-cell{display:flex;align-items:center;gap:8px}
+.tk-cell-sm{display:flex;align-items:center;gap:6px}
+
+/* ── ANIMATIONS & EFFECTS ── */
+/* Cards lift on hover */
+.card{transition:border-color .2s,transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+/* Staggered fade-in for cards */
+@keyframes cardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.dash-stats .card,.pos-summary .card,.ana-stats .card,.watch-stats .card,.sig-stats .card,.learn-stats .card{
+  animation:cardIn .4s cubic-bezier(.16,1,.3,1) backwards}
+.dash-stats .card:nth-child(1),.pos-summary .card:nth-child(1),.ana-stats .card:nth-child(1){animation-delay:.05s}
+.dash-stats .card:nth-child(2),.pos-summary .card:nth-child(2),.ana-stats .card:nth-child(2){animation-delay:.1s}
+.dash-stats .card:nth-child(3),.pos-summary .card:nth-child(3),.ana-stats .card:nth-child(3){animation-delay:.15s}
+.dash-stats .card:nth-child(4),.pos-summary .card:nth-child(4),.ana-stats .card:nth-child(4){animation-delay:.2s}
+/* Shimmer effect on hero value */
+@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+.hero-val{background:linear-gradient(90deg,var(--tx) 0%,var(--tx) 40%,var(--ac) 50%,var(--tx) 60%,var(--tx) 100%);
+  background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 6s ease-in-out infinite}
+/* Glow pulse on status dot */
+.status-dot{animation:breathe 3s ease-in-out infinite,statusGlow 3s ease-in-out infinite}
+@keyframes statusGlow{0%,100%{box-shadow:0 0 6px rgba(74,222,128,.3)}50%{box-shadow:0 0 16px rgba(74,222,128,.8)}}
+/* Table row slide-in */
+.tbl tbody tr{animation:rowIn .3s cubic-bezier(.16,1,.3,1) backwards}
+.tbl tbody tr:nth-child(1){animation-delay:.05s}
+.tbl tbody tr:nth-child(2){animation-delay:.08s}
+.tbl tbody tr:nth-child(3){animation-delay:.11s}
+.tbl tbody tr:nth-child(4){animation-delay:.14s}
+.tbl tbody tr:nth-child(5){animation-delay:.17s}
+.tbl tbody tr:nth-child(6){animation-delay:.2s}
+.tbl tbody tr:nth-child(7){animation-delay:.23s}
+.tbl tbody tr:nth-child(8){animation-delay:.26s}
+@keyframes rowIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+/* Badge pulse on ITM */
+.warn{animation:warnPulse 2s ease-in-out infinite}
+@keyframes warnPulse{0%,100%{opacity:1}50%{opacity:.6}}
+/* Progress bar animated fill */
+.prog-f{animation:fillIn 1s cubic-bezier(.16,1,.3,1) backwards;animation-delay:.3s}
+@keyframes fillIn{from{width:0!important}}
+/* Hover glow on nav items */
+.nav-item{position:relative}
+.nav-item::after{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:var(--ac);transform:scaleY(0);transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.nav-item:hover::after{transform:scaleY(.5)}
+.nav-item.active::after{transform:scaleY(1)}
+/* Smooth number counter feel for stat values */
+.stat-v{transition:color .3s}
+/* Hero mascot subtle float */
+@keyframes mascotFloat{0%,100%{transform:translateY(-50%) translateX(0)}50%{transform:translateY(-50%) translateX(-4px) scale(1.01)}}
+.hero-mascot{animation:mascotFloat 8s ease-in-out infinite}
+/* Hero glow breathe */
+@keyframes glowBreathe{0%,100%{opacity:1;transform:translateY(-50%) scale(1)}50%{opacity:.7;transform:translateY(-50%) scale(1.05)}}
+.hero-glow{animation:glowBreathe 6s ease-in-out infinite}
+/* Signal cards stagger */
+.sig-card{animation:cardIn .4s cubic-bezier(.16,1,.3,1) backwards}
+.sig-card:nth-child(1){animation-delay:.05s}
+.sig-card:nth-child(2){animation-delay:.1s}
+.sig-card:nth-child(3){animation-delay:.15s}
+.sig-card:nth-child(4){animation-delay:.2s}
+.sig-card:nth-child(5){animation-delay:.25s}
+.sig-card:nth-child(6){animation-delay:.3s}
+/* Watch cards stagger */
+.watch-card{animation:cardIn .4s cubic-bezier(.16,1,.3,1) backwards}
+.watch-card:nth-child(1){animation-delay:.05s}
+.watch-card:nth-child(2){animation-delay:.1s}
+.watch-card:nth-child(3){animation-delay:.15s}
+.watch-card:nth-child(4){animation-delay:.2s}
+.watch-card:nth-child(5){animation-delay:.25s}
+.watch-card:nth-child(6){animation-delay:.3s}
+/* Module cards stagger */
+.mod-card{animation:cardIn .4s cubic-bezier(.16,1,.3,1) backwards}
+.mod-card:nth-child(1){animation-delay:.05s}
+.mod-card:nth-child(2){animation-delay:.1s}
+.mod-card:nth-child(3){animation-delay:.15s}
+.mod-card:nth-child(4){animation-delay:.2s}
+/* Sidebar brand mascot subtle pulse */
+@keyframes brandPulse{0%,100%{opacity:.3;filter:brightness(1.5) drop-shadow(0 0 30px rgba(176,124,200,.5))}
+  50%{opacity:.35;filter:brightness(1.6) drop-shadow(0 0 40px rgba(176,124,200,.7))}}
+.sb-brand-img{animation:brandPulse 5s ease-in-out infinite}
+/* Button hover scale */
+.btn{transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+.btn:hover{transform:scale(1.03)}
+.btn:active{transform:scale(.97)}
+
+/* ── DASHBOARD ── */
+.hero{position:relative;background:var(--bgc);border:1px solid var(--bd);border-radius:3px;
+  padding:40px 44px;margin-bottom:20px;overflow:hidden;min-height:200px}
+.hero::before,.hero::after{content:'';position:absolute;width:24px;height:24px}
+.hero::before{top:14px;left:14px;border-top:1.5px solid var(--t4);border-left:1.5px solid var(--t4)}
+.hero::after{bottom:14px;right:14px;border-bottom:1.5px solid var(--t4);border-right:1.5px solid var(--t4)}
+.hero-ghost{position:absolute;left:36px;top:50%;transform:translateY(-50%);font-family:var(--fd);
+  font-size:clamp(100px,12vw,160px);font-weight:700;letter-spacing:10px;color:var(--tx);opacity:.04;
+  pointer-events:none;white-space:nowrap;line-height:1}
+/* Purple glow behind mascot — from halftone cat reference */
+.hero-glow{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:500px;height:500px;
+  background:radial-gradient(circle,rgba(176,124,200,.12) 0%,rgba(176,124,200,.06) 30%,rgba(176,124,200,.02) 50%,transparent 70%);
+  pointer-events:none;z-index:1}
+.hero-mascot{position:absolute;right:30px;top:50%;transform:translateY(-50%);width:340px;height:340px;
+  object-fit:contain;mix-blend-mode:screen;opacity:.55;pointer-events:none;z-index:2;
+  filter:brightness(1.4) drop-shadow(0 0 40px rgba(176,124,200,.6));
+  -webkit-mask-image:radial-gradient(ellipse at center,black 30%,rgba(0,0,0,.7) 50%,transparent 75%);
+  mask-image:radial-gradient(ellipse at center,black 30%,rgba(0,0,0,.7) 50%,transparent 75%)}
+/* Halftone dot overlay on hero — from CYBERWAVE reference */
+.hero-halftone{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:.03;
+  background-image:radial-gradient(circle,var(--tx) .5px,transparent .5px);background-size:4px 4px}
+.hero-lbl{font-family:var(--fm);font-size:12px;letter-spacing:4px;color:var(--t4);text-transform:uppercase;
+  margin-bottom:10px;position:relative;z-index:4}
+.hero-val{font-family:var(--fd);font-size:72px;letter-spacing:2px;line-height:1;font-weight:700;
+  position:relative;z-index:4}
+.hero-val span{font-size:36px;color:var(--t3)}
+.hero-chg{font-family:var(--fm);font-size:14px;margin-top:8px;position:relative;z-index:4}
+.hero-meta{font-family:var(--fm);font-size:12px;color:var(--t4);margin-top:6px;letter-spacing:.5px;position:relative;z-index:4}
+/* Horizontal slice lines — from Fubuki sliced poster reference */
+.hero-slice{position:absolute;right:160px;top:0;bottom:0;width:1px;
+  background:repeating-linear-gradient(to bottom,transparent 0px,transparent 30px,var(--t5) 30px,var(--t5) 31px);
+  pointer-events:none;z-index:3;opacity:.3}
+.dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.dash-chart{margin-bottom:20px}
+.tv-chart-box{background:var(--bgc);border:1px solid var(--bd);border-radius:3px;height:400px;overflow:hidden;position:relative}
+.tv-chart-box .tv-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--fm);font-size:11px;color:var(--t5);letter-spacing:2px}
+.dash-chart-row{display:grid;grid-template-columns:1fr 280px;gap:14px;margin-bottom:20px}
+.trades-panel{background:var(--bgc);border:1px solid var(--bd);border-radius:3px;
+  display:flex;flex-direction:column;overflow:hidden}
+.trades-panel .tp-head{padding:14px 16px 0;font-family:var(--fm);font-size:10px;letter-spacing:2px;
+  color:var(--t4);text-transform:uppercase;margin-bottom:8px}
+.trades-panel .tp-list{flex:1;overflow-y:auto;padding:0 16px 12px}
+.tp-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(232,224,208,.04)}
+.tp-item:last-child{border-bottom:none}
+.tp-item .tp-tk{font-family:var(--fd);font-size:16px;letter-spacing:1px;font-weight:700;min-width:46px}
+.tp-item .tp-info{flex:1;font-family:var(--fm);font-size:10px;color:var(--t4);letter-spacing:.5px;line-height:1.5}
+.tp-item .tp-result{font-family:var(--fm);font-size:11px;letter-spacing:.5px}
+.dash-bottom{}
+/* Income goal integrated into hero */
+.hero-goal{position:absolute;right:44px;bottom:20px;z-index:5;text-align:right}
+.hero-goal .hg-label{font-family:var(--fm);font-size:9px;letter-spacing:2px;color:var(--t5);text-transform:uppercase}
+.hero-goal .hg-bar{width:140px;height:4px;background:rgba(232,224,208,.06);border-radius:2px;margin-top:4px;margin-left:auto;overflow:hidden}
+.hero-goal .hg-fill{height:100%;background:var(--w);border-radius:2px;box-shadow:0 0 6px rgba(251,191,36,.3)}
+.hero-goal .hg-val{font-family:var(--fd);font-size:18px;letter-spacing:1px;font-weight:600;color:var(--w);margin-top:2px}
+
+/* ── POSITIONS ── */
+.pos-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
+.pos-filters{display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+.pos-sort{margin-left:auto;font-family:var(--fm);font-size:10px;color:var(--t5);letter-spacing:1px}
+
+/* ── CALCULATOR ── */
+.calc-search{display:flex;gap:10px;margin-bottom:20px;align-items:center;flex-wrap:wrap}
+.calc-search .inp{max-width:220px;font-size:16px;text-transform:uppercase}
+.calc-quick{display:flex;gap:8px;flex-wrap:wrap;margin-left:12px}
+.calc-quick button{font-family:var(--fm);font-size:11px;padding:6px 14px;background:var(--bge);
+  border:1px solid var(--bd);color:var(--t3);cursor:pointer;border-radius:2px;transition:all .2s}
+.calc-quick button:hover{border-color:var(--acbr);color:var(--tx)}
+.calc-layout{display:grid;grid-template-columns:1fr 400px;gap:20px}
+.calc-stock{display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--bd);margin-bottom:16px}
+.calc-stock-tk{font-family:var(--fd);font-size:42px;letter-spacing:3px;font-weight:700}
+.calc-stock-nm{font-size:14px;color:var(--t3)}
+.calc-stock-pr{font-family:var(--fd);font-size:32px;margin-left:auto;letter-spacing:2px;font-weight:700}
+.chain-hdr{display:flex;padding:6px 10px;font-family:var(--fm);font-size:10px;color:var(--t5);letter-spacing:1px;text-transform:uppercase}
+.chain-hdr span{min-width:70px}
+.chain-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid transparent;
+  cursor:pointer;border-radius:2px;transition:all .15s;font-family:var(--fm);font-size:13px}
+.chain-row:hover{background:rgba(232,224,208,.02);border-color:var(--bd)}
+.chain-row.selected{background:var(--acbg);border-color:var(--acbr)}
+.chain-row .strike{min-width:70px;font-weight:600;color:var(--tx)}
+.chain-row .bid{color:var(--g);min-width:70px}
+.chain-row .ask{color:var(--r);min-width:70px}
+.chain-row .delta{color:var(--t4);min-width:70px}
+.result-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(232,224,208,.03)}
+.result-lbl{font-family:var(--fm);font-size:12px;letter-spacing:1px;color:var(--t3);text-transform:uppercase}
+.result-val{font-family:var(--fd);font-size:26px;letter-spacing:1px;font-weight:700}
+.ct-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--bd);margin-bottom:14px}
+.ct-btn{width:34px;height:34px;border:1px solid var(--bd);background:var(--bge);color:var(--tx);
+  font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:2px;transition:all .2s}
+.ct-btn:hover{border-color:var(--acbr);background:var(--bgch)}
+.ct-val{font-family:var(--fd);font-size:38px;letter-spacing:2px;min-width:50px;text-align:center;font-weight:700}
+
+/* ── WATCHLIST ── */
+.watch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.watch-card{min-height:240px;overflow:hidden}
+.watch-card .w-top{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.watch-card .w-tk{font-family:var(--fd);font-size:26px;letter-spacing:2px;font-weight:700}
+.watch-card .w-nm{font-size:13px;color:var(--t4)}
+.watch-card .w-pr{font-family:var(--fd);font-size:24px;margin-left:auto;letter-spacing:1px;font-weight:600}
+.watch-card .w-chg{font-family:var(--fm);font-size:12px;letter-spacing:.5px}
+.watch-card .tv-mini{height:160px;margin:-20px -20px -20px;margin-top:10px;overflow:hidden}
+
+/* ── SIGNALS ── */
+.sig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
+.sig-card .sig-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.sig-card .sig-tk{font-family:var(--fd);font-size:32px;letter-spacing:2px;font-weight:700}
+.sig-card .sig-detail{font-family:var(--fm);font-size:12px;color:var(--t3);line-height:1.9;letter-spacing:.5px}
+.sig-card .sig-detail span{display:block}
+.sig-card .sig-conf{display:inline-block;font-family:var(--fm);font-size:10px;letter-spacing:1px;padding:4px 12px;
+  border-radius:2px;margin-top:8px}
+.sig-card .conf-high{background:var(--gbg);color:var(--g);border:1px solid var(--gbr)}
+.sig-card .conf-med{background:rgba(251,191,36,.08);color:var(--w);border:1px solid rgba(251,191,36,.2)}
+.sig-card .sig-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:14px;
+  padding-top:12px;border-top:1px solid var(--bd)}
+.sig-card .sig-time{font-family:var(--fm);font-size:11px;color:var(--t5)}
+
+/* ── LEARN ── */
+.learn-prog{margin-bottom:24px}
+.learn-prog .lp-txt{font-family:var(--fm);font-size:12px;color:var(--t4);letter-spacing:1px;margin-bottom:8px}
+.learn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.mod-card{cursor:pointer;transition:border-color .2s}
+.mod-card:hover{border-color:var(--acbr)}
+.mod-num{font-family:var(--fd);font-size:56px;color:var(--t6);line-height:1;font-weight:700}
+.mod-title{font-family:var(--fd);font-size:24px;letter-spacing:2px;margin-bottom:6px;font-weight:700}
+.mod-meta{font-family:var(--fm);font-size:11px;color:var(--t4);letter-spacing:1px;margin-bottom:12px}
+.mod-lessons{font-size:14px;color:var(--t3);line-height:1.9}
+.mod-lessons div{padding:3px 0;border-bottom:1px solid var(--bd)}
+.mod-prog{margin-top:12px}
+.mod-prog-txt{font-family:var(--fm);font-size:10px;color:var(--t4);margin-bottom:5px}
+.mod-complete{border-color:var(--gbr)!important}
+.mod-complete .mod-num{color:rgba(74,222,128,.08)!important}
+.mod-locked{opacity:.5;pointer-events:none}
+
+/* ── ANALYTICS ── */
+.ana-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:20px}
+.ana-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.chart-card{min-height:220px}
+.chart-title{font-family:var(--fm);font-size:10px;letter-spacing:2px;color:var(--t4);text-transform:uppercase;margin-bottom:14px}
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:160px;padding-top:10px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.bar-col .bar{width:100%;background:rgba(74,222,128,.15);border-top:2px solid var(--g);border-radius:1px;transition:height .5s}
+.bar-col:hover .bar{background:rgba(74,222,128,.25)}
+.bar-col .bar-label{font-family:var(--fm);font-size:10px;color:var(--t5);letter-spacing:1px}
+.bar-col .bar-val{font-family:var(--fm);font-size:10px;color:var(--t4)}
+.donut{width:140px;height:140px;border-radius:50%;position:relative;margin:0 auto;
+  background:conic-gradient(var(--g) 0deg 282deg,var(--r) 282deg 360deg);display:flex;align-items:center;justify-content:center}
+.donut::after{content:'';position:absolute;inset:22px;border-radius:50%;background:var(--bgc)}
+.donut-center{position:relative;z-index:2;text-align:center}
+.donut-val{font-family:var(--fd);font-size:34px;letter-spacing:1px;font-weight:700}
+.donut-lbl{font-family:var(--fm);font-size:10px;color:var(--t4);letter-spacing:1px}
+.line-chart{width:100%;height:160px}
+.line-chart polyline{fill:none;stroke:var(--g);stroke-width:2}
+.line-chart .area{fill:url(#greenGrad);stroke:none}
+.line-chart .dot{fill:var(--g);r:3}
+.ana-bottom{display:grid;grid-template-columns:1fr 1fr 320px;gap:14px}
+.top-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(232,224,208,.03)}
+.top-row .tt-sym{font-family:var(--fd);font-size:22px;letter-spacing:2px;min-width:60px;font-weight:700}
+.top-row .tt-bar{flex:1;height:5px;background:rgba(232,224,208,.03);border-radius:2px;overflow:hidden}
+.top-row .tt-fill{height:100%;background:var(--g);border-radius:2px}
+.top-row .tt-val{font-family:var(--fm);font-size:12px;color:var(--t3);min-width:70px;text-align:right}
+
+/* ── WATCHLIST ENHANCED ── */
+.watch-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.watch-card .w-metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-top:12px;
+  font-family:var(--fm);font-size:11px;letter-spacing:.5px}
+.watch-card .w-met-lbl{color:var(--t5);font-size:9px;letter-spacing:1px;text-transform:uppercase}
+.watch-card .w-met-val{color:var(--t2)}
+.watch-card .w-tags{display:flex;gap:4px;margin-top:10px;flex-wrap:wrap}
+.watch-card .w-tag{font-family:var(--fm);font-size:8px;letter-spacing:1px;padding:2px 8px;
+  border:1px solid var(--bd);color:var(--t4);border-radius:2px}
+.watch-card .w-note{font-family:var(--fm);font-size:10px;color:var(--t3);margin-top:8px;
+  padding-top:8px;border-top:1px solid var(--bd);font-style:italic}
+.w-range{height:4px;background:var(--bge);border-radius:2px;position:relative;margin-top:8px}
+.w-range-fill{position:absolute;height:100%;border-radius:2px;left:0;right:0;
+  background:linear-gradient(90deg,var(--r),var(--t5),var(--g));opacity:.15}
+.w-range-dot{position:absolute;top:-3px;width:10px;height:10px;border-radius:50%;border:2px solid var(--ac);
+  background:var(--bgc);transform:translateX(-50%)}
+
+/* ── SIGNALS ENHANCED ── */
+.sig-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.sig-card .sig-rr{display:flex;gap:16px;margin-top:10px;font-family:var(--fm);font-size:11px}
+.sig-card .sig-rr div{flex:1}
+.sig-card .sig-rr-lbl{font-size:9px;color:var(--t5);letter-spacing:1px;text-transform:uppercase}
+.sig-card .sig-rr-val{color:var(--t2);margin-top:2px}
+.sig-meter{height:3px;background:var(--bge);border-radius:2px;overflow:hidden;margin-top:10px}
+.sig-meter-fill{height:100%;border-radius:2px;transition:width .3s}
+
+/* ── LEARN ENHANCED ── */
+.learn-hero{display:grid;grid-template-columns:1fr 300px;gap:20px;margin-bottom:24px}
+.learn-continue{padding:28px}
+.learn-continue .lc-label{font-family:var(--fm);font-size:10px;letter-spacing:2px;color:var(--ac);margin-bottom:8px}
+.learn-continue .lc-title{font-family:var(--fd);font-size:28px;letter-spacing:2px;font-weight:700;margin-bottom:4px}
+.learn-continue .lc-meta{font-family:var(--fm);font-size:11px;color:var(--t4);margin-bottom:14px}
+.learn-continue .lc-lesson{font-size:14px;color:var(--t3);margin-bottom:14px}
+.learn-badges{display:flex;flex-direction:column;gap:8px}
+.learn-badge{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--bd);
+  border-radius:2px;font-family:var(--fm);font-size:11px;color:var(--t3);transition:all .2s;background:var(--bgc)}
+.learn-badge.earned{border-color:var(--gbr);background:var(--gbg);color:var(--g)}
+.learn-badge.locked{opacity:.35}
+.learn-badge-icon{font-size:18px;min-width:26px;text-align:center}
+.learn-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+
+/* ── POSITIONS ENHANCED ── */
+.dte-timeline{margin-bottom:20px}
+.dte-timeline .card-label{margin-bottom:12px}
+.dte-bar{display:flex;align-items:center;gap:10px;padding:6px 0;font-family:var(--fm);font-size:11px}
+.dte-tk{min-width:50px;font-family:var(--fd);font-size:16px;letter-spacing:1px;font-weight:600}
+.dte-type{min-width:36px}
+.dte-track{flex:1;height:6px;background:var(--bge);border-radius:3px;position:relative;overflow:hidden}
+.dte-fill{height:100%;border-radius:3px;transition:width .5s}
+.dte-days{min-width:55px;text-align:right;letter-spacing:1px;color:var(--t4)}
+.pos-exposure{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.exp-bar-row{display:flex;align-items:center;gap:10px;padding:5px 0;font-family:var(--fm);font-size:11px}
+.exp-bar-lbl{min-width:80px;color:var(--t3);letter-spacing:.5px}
+.exp-bar-track{flex:1;height:5px;background:var(--bge);border-radius:2px;overflow:hidden}
+.exp-bar-fill{height:100%;border-radius:2px}
+.exp-bar-val{min-width:60px;text-align:right;color:var(--t4);letter-spacing:.5px}
+
+/* ── CALCULATOR ENHANCED ── */
+.payoff-card{margin-top:16px}
+.payoff-chart{height:160px;position:relative;margin:10px 0}
+.payoff-chart svg{width:100%;height:100%}
+.payoff-labels{display:flex;justify-content:space-between;font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1px;margin-top:4px}
+.calc-scenarios{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.calc-scenario{text-align:center;padding:14px 10px;border:1px solid var(--bd);border-radius:2px;background:var(--bgc)}
+.calc-scenario .sc-label{font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.calc-scenario .sc-val{font-family:var(--fd);font-size:20px;font-weight:600;letter-spacing:1px}
+.calc-scenario .sc-sub{font-family:var(--fm);font-size:9px;color:var(--t4);margin-top:3px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1400px){
+  .ana-stats{grid-template-columns:repeat(3,1fr)}
+  .ana-bottom{grid-template-columns:1fr 1fr}
+  .watch-grid{grid-template-columns:repeat(2,1fr)}
+  .dash-chart-row{grid-template-columns:1fr 240px}
+}
+@media(max-width:1100px){
+  .calc-layout{grid-template-columns:1fr}
+  .pos-summary{grid-template-columns:repeat(3,1fr)}
+  .learn-hero{grid-template-columns:1fr}
+}
+
+/* ══════════════════════════════════════════
+   WHEEL TRACKER STYLES (wt- namespace)
+   ══════════════════════════════════════════ */
+
+/* Container */
+.wt-wrap{max-width:1400px;margin:0 auto;position:relative;z-index:1}
+.wt-head{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.wt-label{font-family:var(--fm);font-size:12px;letter-spacing:3px;color:var(--t4);text-transform:uppercase}
+.wt-line{flex:1;height:1px;background:var(--bd)}
+.wt-head-actions{display:flex;gap:8px}
+
+/* Stats Row */
+.wt-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.wt-stats .card{animation:cardIn .4s cubic-bezier(.16,1,.3,1) backwards}
+.wt-stats .card:nth-child(1){animation-delay:.05s}
+.wt-stats .card:nth-child(2){animation-delay:.1s}
+.wt-stats .card:nth-child(3){animation-delay:.15s}
+.wt-stats .card:nth-child(4){animation-delay:.2s}
+.wt-stat-icon{width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;
+  margin-bottom:10px;font-size:14px}
+.wt-stat-icon.gold{background:var(--acbg);border:1px solid var(--acbr)}
+.wt-stat-icon.green{background:var(--gbg);border:1px solid var(--gbr)}
+.wt-stat-icon.blue{background:var(--blbg);border:1px solid var(--blbr)}
+.wt-stat-icon.purple{background:var(--mgbg);border:1px solid var(--mgbr)}
+
+/* Filter Bar */
+.wt-filter-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px}
+.wt-view-toggles{display:flex;gap:4px}
+.wt-view-btn{width:32px;height:32px;border:1px solid var(--bd);background:transparent;color:var(--t4);
+  cursor:pointer;border-radius:2px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.wt-view-btn:hover{border-color:var(--bd2);color:var(--t3)}
+.wt-view-btn.active{border-color:var(--acbr);background:var(--acbg);color:var(--tx)}
+
+/* Wheel Cards Grid */
+.wt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-bottom:20px}
+.wt-card{background:var(--bgc);border:1px solid var(--bd);border-radius:3px;padding:0;position:relative;
+  transition:all .2s cubic-bezier(.34,1.56,.64,1);overflow:hidden;cursor:pointer;
+  animation:cardIn .4s cubic-bezier(.16,1,.3,1) backwards}
+.wt-card:nth-child(1){animation-delay:.05s}
+.wt-card:nth-child(2){animation-delay:.1s}
+.wt-card:nth-child(3){animation-delay:.15s}
+.wt-card:nth-child(4){animation-delay:.2s}
+.wt-card:hover{border-color:var(--bd2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.wt-card-top{display:flex;align-items:center;gap:10px;padding:16px 16px 0}
+.wt-card-sym{font-family:var(--fd);font-size:20px;letter-spacing:2px;font-weight:700}
+.wt-card-name{font-size:12px;color:var(--t4);margin-top:-2px}
+.wt-card-badge{margin-left:auto}
+.wt-card-body{padding:12px 16px}
+.wt-card-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+.wt-card-lbl{font-family:var(--fm);font-size:10px;letter-spacing:1px;color:var(--t4);text-transform:uppercase}
+.wt-card-val{font-family:var(--fm);font-size:13px;letter-spacing:.5px}
+.wt-card-divider{height:1px;background:var(--bd);margin:6px 0}
+.wt-card-discipline{padding:0 16px 4px}
+.wt-card-disc-row{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.wt-card-disc-lbl{font-family:var(--fm);font-size:9px;color:var(--t5);min-width:36px;text-align:right}
+.wt-card-disc-bar{flex:1;height:3px;background:rgba(232,224,208,.04);border-radius:2px;overflow:hidden}
+.wt-card-disc-fill{height:100%;border-radius:2px;transition:width .6s ease}
+.wt-card-footer{display:flex;gap:8px;padding:10px 16px;border-top:1px solid var(--bd)}
+.wt-card-footer .btn{flex:1;text-align:center;display:flex;align-items:center;justify-content:center}
+.wt-card-cycle-bar{padding:0 16px 12px}
+
+/* Discipline Score Color Coding */
+.wt-score{font-family:var(--fd);font-weight:700}
+.wt-score.s-elite{color:var(--g)}
+.wt-score.s-strong{color:var(--bl)}
+.wt-score.s-average{color:var(--w)}
+.wt-score.s-poor{color:var(--r)}
+
+/* ── DETAIL MODAL (fullscreen overlay) ── */
+.wt-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;display:none;
+  overflow-y:auto;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.wt-overlay.open{display:block;animation:fadeUp .25s ease}
+.wt-detail{max-width:1100px;margin:40px auto;padding:0 24px 60px;position:relative;z-index:1}
+.wt-detail-close{position:fixed;top:20px;right:24px;width:36px;height:36px;border:1px solid var(--bd);
+  background:var(--bgc);color:var(--tx);cursor:pointer;border-radius:2px;display:flex;align-items:center;
+  justify-content:center;font-size:18px;z-index:1001;transition:all .2s}
+.wt-detail-close:hover{border-color:var(--rbr);background:var(--rbg);color:var(--r)}
+.wt-detail-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:24px;padding-top:8px}
+.wt-detail-info{flex:1}
+.wt-detail-sym{font-family:var(--fd);font-size:36px;letter-spacing:3px;font-weight:700;line-height:1}
+.wt-detail-meta{font-family:var(--fm);font-size:11px;color:var(--t4);margin-top:4px;letter-spacing:1px}
+.wt-detail-stats{display:flex;gap:24px;margin-top:12px}
+.wt-detail-stat{text-align:center}
+.wt-detail-stat-val{font-family:var(--fd);font-size:22px;font-weight:700;letter-spacing:1px}
+.wt-detail-stat-lbl{font-family:var(--fm);font-size:9px;color:var(--t4);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+.wt-detail-actions{display:flex;gap:8px;margin-left:auto;align-self:center;flex-wrap:wrap}
+
+/* Sub-navigation tabs within detail */
+.wt-detail-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--bd)}
+.wt-detail-tab{font-family:var(--fm);font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  padding:10px 20px;color:var(--t4);cursor:pointer;border-bottom:2px solid transparent;
+  transition:all .15s;background:transparent;border-top:none;border-left:none;border-right:none}
+.wt-detail-tab:hover{color:var(--t2)}
+.wt-detail-tab.active{color:var(--ac);border-bottom-color:var(--ac)}
+.wt-detail-panel{display:none}
+.wt-detail-panel.active{display:block;animation:fadeUp .2s ease}
+
+/* Transaction Log Table */
+.wt-tx-type{display:flex;align-items:center;gap:6px}
+.wt-tx-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.wt-tx-dot.csp{background:var(--g)}.wt-tx-dot.cc{background:var(--bl)}
+.wt-tx-dot.assign{background:var(--ac)}.wt-tx-dot.shares{background:var(--pr)}
+.wt-tx-dot.div{background:var(--mg)}.wt-tx-dot.other{background:var(--t4)}
+.wt-credit{color:var(--g)}.wt-debit{color:var(--r)}
+
+/* Cycle History Accordion */
+.wt-cycle{border:1px solid var(--bd);border-radius:3px;margin-bottom:8px;overflow:hidden}
+.wt-cycle-head{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;
+  background:var(--bgc);transition:background .15s}
+.wt-cycle-head:hover{background:var(--bge)}
+.wt-cycle-chevron{color:var(--t4);font-size:12px;transition:transform .2s;font-family:var(--fm)}
+.wt-cycle.open .wt-cycle-chevron{transform:rotate(90deg)}
+.wt-cycle-title{font-family:var(--fd);font-size:14px;letter-spacing:1px;font-weight:600}
+.wt-cycle-summary{margin-left:auto;display:flex;gap:16px;font-family:var(--fm);font-size:11px;color:var(--t4)}
+.wt-cycle-body{display:none;padding:12px 16px;background:var(--bg);border-top:1px solid var(--bd)}
+.wt-cycle.open .wt-cycle-body{display:block}
+.wt-cycle-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+.wt-cycle-stat{text-align:center;padding:10px;background:var(--bgc);border:1px solid var(--bd);border-radius:2px}
+.wt-cycle-stat-val{font-family:var(--fd);font-size:18px;font-weight:700}
+.wt-cycle-stat-lbl{font-family:var(--fm);font-size:9px;color:var(--t4);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+
+/* Discipline Score Panel */
+.wt-disc-panel{display:grid;grid-template-columns:1fr 280px;gap:20px}
+.wt-disc-bars{display:flex;flex-direction:column;gap:14px}
+.wt-disc-metric{display:flex;align-items:center;gap:12px}
+.wt-disc-metric-lbl{min-width:140px;font-family:var(--fm);font-size:11px;color:var(--t3);letter-spacing:.5px}
+.wt-disc-metric-bar{flex:1;height:8px;background:rgba(232,224,208,.04);border-radius:4px;overflow:hidden;position:relative}
+.wt-disc-metric-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.16,1,.3,1);
+  animation:fillIn .8s cubic-bezier(.16,1,.3,1) backwards;animation-delay:.3s}
+.wt-disc-metric-val{min-width:32px;text-align:right;font-family:var(--fm);font-size:12px;font-weight:600}
+.wt-disc-summary{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--bgc);border:1px solid var(--bd);border-radius:3px;padding:24px;text-align:center}
+.wt-disc-score{font-family:var(--fd);font-size:72px;font-weight:700;line-height:1}
+.wt-disc-tier{font-family:var(--fm);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-top:8px}
+.wt-disc-tip{font-size:12px;color:var(--t4);margin-top:16px;line-height:1.6;max-width:240px}
+.wt-disc-ring{width:120px;height:120px;border-radius:50%;border:4px solid var(--bd);position:relative;
+  display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.wt-disc-ring svg{position:absolute;inset:-4px;width:calc(100% + 8px);height:calc(100% + 8px);transform:rotate(-90deg)}
+.wt-disc-ring circle{fill:none;stroke-width:4;stroke-linecap:round}
+.wt-disc-ring .ring-bg{stroke:var(--bd)}
+.wt-disc-ring .ring-fill{transition:stroke-dashoffset .8s cubic-bezier(.16,1,.3,1)}
+
+/* Analytics Section */
+.wt-ana-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.wt-ana-full{grid-column:1/-1}
+.wt-ana-bar{display:flex;height:24px;border-radius:2px;overflow:hidden;margin-top:8px}
+.wt-ana-bar-seg{display:flex;align-items:center;justify-content:center;font-family:var(--fm);
+  font-size:9px;letter-spacing:.5px;color:rgba(0,0,0,.7);font-weight:600;transition:width .5s ease}
+.wt-ana-bar-seg.csp{background:var(--g)}.wt-ana-bar-seg.cc{background:var(--bl)}
+.wt-chart-bars{display:flex;align-items:flex-end;gap:6px;height:120px;padding-top:12px}
+.wt-chart-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.wt-chart-bar{width:100%;border-radius:2px 2px 0 0;transition:height .5s cubic-bezier(.16,1,.3,1);
+  min-height:2px;position:relative}
+.wt-chart-bar.green{background:var(--g);box-shadow:0 0 8px rgba(74,222,128,.2)}
+.wt-chart-bar.blue{background:var(--bl);box-shadow:0 0 8px rgba(96,165,250,.2)}
+.wt-chart-bar.gold{background:var(--ac);box-shadow:0 0 8px rgba(201,169,124,.2)}
+.wt-chart-bar.red{background:var(--r);box-shadow:0 0 8px rgba(248,113,113,.2)}
+.wt-chart-lbl{font-family:var(--fm);font-size:8px;color:var(--t5);letter-spacing:1px;text-transform:uppercase}
+.wt-chart-val{font-family:var(--fm);font-size:9px;color:var(--t3);position:absolute;top:-16px;left:50%;
+  transform:translateX(-50%);white-space:nowrap}
+.wt-export-row{display:flex;gap:8px;margin-top:16px}
+
+/* Calendar View */
+.wt-cal{margin-bottom:20px}
+.wt-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.wt-cal-nav{display:flex;align-items:center;gap:12px}
+.wt-cal-nav-btn{width:28px;height:28px;border:1px solid var(--bd);background:transparent;color:var(--t4);
+  cursor:pointer;border-radius:2px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--fm);font-size:12px;transition:all .15s}
+.wt-cal-nav-btn:hover{border-color:var(--bd2);color:var(--tx)}
+.wt-cal-month{font-family:var(--fd);font-size:16px;letter-spacing:2px;font-weight:600}
+.wt-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.wt-cal-dow{font-family:var(--fm);font-size:9px;letter-spacing:1.5px;color:var(--t5);text-transform:uppercase;
+  text-align:center;padding:8px 0}
+.wt-cal-day{aspect-ratio:1;border:1px solid var(--bd);border-radius:2px;padding:4px;display:flex;
+  flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:all .15s;position:relative;min-height:48px}
+.wt-cal-day:hover{border-color:var(--bd2);background:rgba(232,224,208,.02)}
+.wt-cal-day.today{border-color:var(--acbr);background:var(--acbg)}
+.wt-cal-day.empty{border-color:transparent;cursor:default;background:transparent}
+.wt-cal-day.empty:hover{background:transparent}
+.wt-cal-num{font-family:var(--fm);font-size:10px;color:var(--t4)}
+.wt-cal-dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;margin-top:auto}
+.wt-cal-dot{width:5px;height:5px;border-radius:50%}
+.wt-cal-dot.csp{background:var(--g)}.wt-cal-dot.cc{background:var(--bl)}
+.wt-cal-dot.assign{background:var(--ac)}.wt-cal-dot.loss{background:var(--r)}
+.wt-cal-dot.div{background:var(--mg)}
+.wt-cal-legend{display:flex;gap:16px;justify-content:center;margin-top:12px}
+.wt-cal-legend-item{display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:10px;color:var(--t4);letter-spacing:.5px}
+.wt-cal-legend-dot{width:6px;height:6px;border-radius:50%}
+
+/* Day detail popup */
+.wt-cal-popup{position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);z-index:50;
+  background:var(--bgc);border:1px solid var(--bd2);border-radius:3px;padding:10px;min-width:200px;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);display:none}
+.wt-cal-popup.open{display:block;animation:fadeUp .15s ease}
+.wt-cal-popup-title{font-family:var(--fm);font-size:10px;color:var(--t4);letter-spacing:1px;margin-bottom:6px;text-transform:uppercase}
+.wt-cal-popup-item{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px;border-bottom:1px solid var(--bd)}
+.wt-cal-popup-item:last-child{border-bottom:none}
+
+/* ── MODALS ── */
+.wt-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;display:none;
+  align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.wt-modal-bg.open{display:flex;animation:fadeUp .2s ease}
+.wt-modal{background:var(--bgc);border:1px solid var(--bd);border-radius:3px;width:100%;max-width:520px;
+  max-height:85vh;overflow-y:auto;position:relative}
+.wt-modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;
+  border-bottom:1px solid var(--bd)}
+.wt-modal-title{font-family:var(--fd);font-size:16px;letter-spacing:2px;font-weight:700}
+.wt-modal-close{width:28px;height:28px;border:1px solid var(--bd);background:transparent;color:var(--t4);
+  cursor:pointer;border-radius:2px;display:flex;align-items:center;justify-content:center;
+  font-size:14px;transition:all .15s}
+.wt-modal-close:hover{border-color:var(--rbr);color:var(--r);background:var(--rbg)}
+.wt-modal-body{padding:20px}
+.wt-modal-footer{padding:12px 20px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end}
+
+/* Form elements */
+.wt-form-group{margin-bottom:14px}
+.wt-form-label{font-family:var(--fm);font-size:10px;letter-spacing:1.5px;color:var(--t4);text-transform:uppercase;
+  margin-bottom:6px;display:block}
+.wt-form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wt-form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+/* Transaction type selector */
+.wt-tx-types{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.wt-tx-type-btn{font-family:var(--fm);font-size:9px;letter-spacing:1px;text-transform:uppercase;
+  padding:6px 12px;border:1px solid var(--bd);background:transparent;color:var(--t4);
+  cursor:pointer;border-radius:2px;transition:all .15s;white-space:nowrap}
+.wt-tx-type-btn:hover{border-color:var(--bd2);color:var(--t3)}
+.wt-tx-type-btn.active{border-color:var(--acbr);background:var(--acbg);color:var(--tx)}
+.wt-tx-type-btn.csp{border-color:var(--gbr);background:var(--gbg);color:var(--g)}
+.wt-tx-type-btn.cc{border-color:var(--blbr);background:var(--blbg);color:var(--bl)}
+
+/* Calculated total */
+.wt-calc-total{background:rgba(232,224,208,.03);border:1px solid var(--bd);border-radius:2px;
+  padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.wt-calc-label{font-family:var(--fm);font-size:10px;color:var(--t4);letter-spacing:1px;text-transform:uppercase}
+.wt-calc-value{font-family:var(--fd);font-size:22px;font-weight:700;letter-spacing:1px}
+
+/* Empty state */
+.wt-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:60px 20px;text-align:center;border:1px dashed var(--bd);border-radius:3px}
+.wt-empty-icon{font-size:48px;margin-bottom:16px;opacity:.3}
+.wt-empty-title{font-family:var(--fd);font-size:18px;letter-spacing:2px;font-weight:600;margin-bottom:8px}
+.wt-empty-sub{font-size:13px;color:var(--t4);margin-bottom:20px;max-width:360px}
+
+/* Toast notification */
+.wt-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:var(--bgc);border:1px solid var(--bd);border-radius:3px;padding:10px 20px;
+  font-family:var(--fm);font-size:12px;letter-spacing:.5px;z-index:3000;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.wt-toast.show{transform:translateX(-50%) translateY(0)}
+.wt-toast.success{border-color:var(--gbr);color:var(--g)}
+.wt-toast.error{border-color:var(--rbr);color:var(--r)}
+
+/* Responsive */
+@media(max-width:900px){
+  .wt-stats{grid-template-columns:repeat(2,1fr)}
+  .wt-grid{grid-template-columns:1fr}
+  .wt-disc-panel{grid-template-columns:1fr}
+  .wt-ana-grid{grid-template-columns:1fr}
+  .wt-detail-header{flex-direction:column}
+  .wt-detail-actions{margin-left:0}
+  .wt-cycle-stats{grid-template-columns:repeat(2,1fr)}
+  .wt-cal-day{min-height:36px}
+}
+
+/* ══════════════════════════════════════════
+   INTERACTIVE EFFECTS
+   ══════════════════════════════════════════ */
+#cursorCanvas{position:fixed;inset:0;z-index:9999;pointer-events:none}
+#particleCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+.card,.sig-card,.watch-card,.wt-card{transform-style:preserve-3d;perspective:800px}
+@property --glow-angle{syntax:'<angle>';initial-value:0deg;inherits:false}
+.glow-border{position:relative;overflow:hidden}
+.glow-border::after{content:'';position:absolute;inset:-2px;background:conic-gradient(from var(--glow-angle),transparent 60%,var(--ac) 80%,var(--mg) 90%,transparent 100%);
+  border-radius:inherit;z-index:-1;opacity:0;transition:opacity .3s;animation:glowSpin 3s linear infinite}
+.glow-border:hover::after{opacity:1}
+@keyframes glowSpin{to{--glow-angle:360deg}}
+#scrollProgress{position:fixed;top:0;left:var(--sw);right:0;height:2px;z-index:200;
+  background:linear-gradient(90deg,var(--ac),var(--mg));transform-origin:left;transform:scaleX(0);transition:transform .1s}
+.page{transition:opacity .25s ease,transform .25s ease}
+.skeleton-shimmer{background:linear-gradient(90deg,var(--bgc) 25%,var(--bge) 50%,var(--bgc) 75%);
+  background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:3px}
+.btn-ripple{position:relative;overflow:hidden}
+.btn-ripple .ripple-wave{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(201,169,124,.4) 0%,transparent 70%);
+  transform:scale(0);animation:rippleExpand .5s ease-out forwards;pointer-events:none}
+@keyframes rippleExpand{to{transform:scale(4);opacity:0}}
+</style>
+</head>
+<body>
+
+<!-- SVG Defs -->
+<svg style="position:fixed;width:0;height:0">
+  <filter id="noise"><feTurbulence type="fractalNoise" baseFrequency=".65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+  <defs><linearGradient id="greenGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(74,222,128,.15)"/><stop offset="100%" stop-color="rgba(74,222,128,0)"/></linearGradient></defs>
+</svg>
+<div class="grain" style="filter:url(#noise)"></div>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<aside class="sidebar">
+  <div class="sb-jp">マーケットエリート</div>
+  <img src="cat-mascot.jpg" class="sb-mascot" alt="">
+  <div class="sb-brand">
+    <img src="cat-mascot.jpg" class="sb-brand-img" alt="">
+    <div class="sb-brand-glow"></div>
+    <div class="sb-brand-name">MARKET<br>ELITES</div>
+    <div class="sb-brand-sub">Wheel · Est. 2026</div>
+  </div>
+  <nav class="sb-nav">
+    <a class="nav-item active" data-tab="dashboard">
+      <span class="nav-num">01</span>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+      <span>Dashboard</span>
+    </a>
+    <a class="nav-item" data-tab="positions">
+      <span class="nav-num">02</span>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="1" y1="3" x2="15" y2="3"/><line x1="1" y1="8" x2="15" y2="8"/><line x1="1" y1="13" x2="15" y2="13"/></svg>
+      <span>Positions</span>
+    </a>
+    <a class="nav-item" data-tab="calculator">
+      <span class="nav-num">03</span>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="12" height="14" rx="1.5"/><line x1="5" y1="5" x2="11" y2="5"/><circle cx="5.5" cy="9" r=".8" fill="currentColor" stroke="none"/><circle cx="8" cy="9" r=".8" fill="currentColor" stroke="none"/><circle cx="10.5" cy="9" r=".8" fill="currentColor" stroke="none"/><circle cx="5.5" cy="12" r=".8" fill="currentColor" stroke="none"/><circle cx="8" cy="12" r=".8" fill="currentColor" stroke="none"/><circle cx="10.5" cy="12" r=".8" fill="currentColor" stroke="none"/></svg>
+      <span>Calculator</span>
+    </a>
+    <a class="nav-item" data-tab="watchlist">
+      <span class="nav-num">04</span>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5S1 8 1 8z"/><circle cx="8" cy="8" r="2"/></svg>
+      <span>Watchlist</span>
+    </a>
+    <a class="nav-item" data-tab="signals">
+      <span class="nav-num">05</span>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 1L4 9h4l-1 6 5-8H8l1-6z"/></svg>
+      <span>Signals</span>
+    </a>
+    <a class="nav-item" data-tab="learn">
+      <span class="nav-num">06</span>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2h5l1 1v11l-1-1H2V2z"/><path d="M14 2H9l-1 1v11l1-1h5V2z"/></svg>
+      <span>Learn</span>
+    </a>
+    <a class="nav-item" data-tab="analytics">
+      <span class="nav-num">07</span>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="9" width="3" height="6" rx=".5"/><rect x="6.5" y="5" width="3" height="10" rx=".5"/><rect x="12" y="1" width="3" height="14" rx=".5"/></svg>
+      <span>Analytics</span>
+    </a>
+    <a class="nav-item" data-tab="wheels">
+      <span class="nav-num">08</span>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6.5"/><circle cx="8" cy="8" r="3"/><line x1="8" y1="1.5" x2="8" y2="5"/><line x1="8" y1="11" x2="8" y2="14.5"/><line x1="1.5" y1="8" x2="5" y2="8"/><line x1="11" y1="8" x2="14.5" y2="8"/></svg>
+      <span>Wheel Tracker</span>
+    </a>
+  </nav>
+  <div class="sb-div" style="margin-top:16px"></div>
+  <div class="sb-footer">
+    <div class="sb-status"><div class="status-dot"></div>NYSE OPEN</div>
+    <div class="sb-meta">ME — SYS.07<br>2026.03.03 · EST</div>
+  </div>
+</aside>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main class="main">
+
+<!-- ────────── DASHBOARD ────────── -->
+<section id="dashboard" class="page active">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-ghost">PORTFOLIO</div>
+    <div class="hero-glow"></div>
+    <img src="cat-halftone.jpg" class="hero-mascot" alt="">
+    <div class="hero-halftone"></div>
+    <div class="hero-slice"></div>
+    <div class="hero-lbl">Portfolio Value — USD</div>
+    <div class="hero-val">$12,450<span>.00</span></div>
+    <div class="hero-chg gain">&#9650; +$234.50 (+1.92%) today</div>
+    <div class="hero-meta">8 active positions · 5 CSP / 3 CC · Last sync 09:41:22 ET</div>
+    <div class="hero-goal">
+      <div class="hg-label">Monthly Goal</div>
+      <div class="hg-val">$3,350 <span style="font-size:12px;color:var(--t4);font-weight:400">/ $5,000</span></div>
+      <div class="hg-bar"><div class="hg-fill" style="width:67%"></div></div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="dash-stats">
+    <div class="card">
+      <div class="card-label">Open Positions</div>
+      <div class="stat-v">8</div>
+      <div class="stat-sub">5 CSP / 3 CC</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Monthly Premium</div>
+      <div class="stat-v">$2,840</div>
+      <div class="stat-sub">+12% VS LAST MONTH</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Win Rate</div>
+      <div class="stat-v gain">78.4%</div>
+      <div class="stat-sub">122W / 34L</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Income Goal</div>
+      <div class="stat-v warn">67%</div>
+      <div class="stat-sub">$3,350 / $5,000</div>
+      <div class="prog" style="margin-top:8px"><div class="prog-f gold" style="width:67%"></div></div>
+    </div>
+  </div>
+
+  <!-- Chart + Recent Trades side by side -->
+  <div class="dash-chart-row">
+    <div class="tv-chart-box" id="tvChart" style="height:400px">
+      <div class="tv-loading">LOADING CHART...</div>
+    </div>
+    <div class="trades-panel">
+      <div class="tp-head">Recent Trades</div>
+      <div class="tp-list">
+        <div class="tp-item"><img src="https://assets.parqet.com/logos/symbol/AAPL" class="tk-logo-sm" onerror="this.style.display='none'"><span class="tp-tk">AAPL</span><div class="tp-info">CSP $180<br>Closed 02/28</div><span class="tp-result gain">+$280</span></div>
+        <div class="tp-item"><img src="https://assets.parqet.com/logos/symbol/SPY" class="tk-logo-sm" onerror="this.style.display='none'"><span class="tp-tk">SPY</span><div class="tp-info">CC $490<br>Closed 02/21</div><span class="tp-result gain">+$150</span></div>
+        <div class="tp-item"><img src="https://assets.parqet.com/logos/symbol/TSLA" class="tk-logo-sm" onerror="this.style.display='none'"><span class="tp-tk">TSLA</span><div class="tp-info">CSP $240<br>Assigned</div><span class="tp-result warn">Wheeling</span></div>
+        <div class="tp-item"><img src="https://assets.parqet.com/logos/symbol/NVDA" class="tk-logo-sm" onerror="this.style.display='none'"><span class="tp-tk">NVDA</span><div class="tp-info">CSP $820<br>Closed 02/07</div><span class="tp-result gain">+$520</span></div>
+        <div class="tp-item"><img src="https://assets.parqet.com/logos/symbol/AMD" class="tk-logo-sm" onerror="this.style.display='none'"><span class="tp-tk">AMD</span><div class="tp-info">CC $170<br>Called Away</div><span class="tp-result gain">+$680</span></div>
+        <div class="tp-item"><img src="https://assets.parqet.com/logos/symbol/GOOG" class="tk-logo-sm" onerror="this.style.display='none'"><span class="tp-tk">GOOG</span><div class="tp-info">CSP $165<br>Closed 01/31</div><span class="tp-result gain">+$340</span></div>
+        <div class="tp-item"><img src="https://assets.parqet.com/logos/symbol/META" class="tk-logo-sm" onerror="this.style.display='none'"><span class="tp-tk">META</span><div class="tp-info">CSP $480<br>Closed 01/24</div><span class="tp-result gain">+$410</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Positions with ticker logos -->
+  <div class="dash-bottom">
+    <div class="page-head" style="margin-bottom:12px">
+      <span class="page-label">02 — Active Positions</span>
+      <span class="page-line"></span>
+      <button class="btn btn-sm">+ Add</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="tbl">
+        <thead><tr><th>Ticker</th><th>Type</th><th>Strike</th><th>Exp</th><th>DTE</th><th>Premium</th><th>P&L</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td style="display:flex;align-items:center;gap:8px"><img src="https://assets.parqet.com/logos/symbol/AAPL" width="22" height="22" style="border-radius:4px;background:var(--bge)" onerror="this.style.display='none'"><span class="tk">AAPL</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$185</td><td class="m">03/21</td><td class="m">18</td><td class="m">$3.40</td><td class="m gain">+$240</td><td style="color:var(--t4)">Open</td></tr>
+          <tr><td style="display:flex;align-items:center;gap:8px"><img src="https://assets.parqet.com/logos/symbol/MSFT" width="22" height="22" style="border-radius:4px;background:var(--bge)" onerror="this.style.display='none'"><span class="tk">MSFT</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$400</td><td class="m">03/28</td><td class="m">25</td><td class="m">$5.20</td><td class="m gain">+$380</td><td style="color:var(--t4)">Open</td></tr>
+          <tr><td style="display:flex;align-items:center;gap:8px"><img src="https://assets.parqet.com/logos/symbol/TSLA" width="22" height="22" style="border-radius:4px;background:var(--bge)" onerror="this.style.display='none'"><span class="tk">TSLA</span></td><td><span class="badge badge-cc">CC</span></td><td class="m">$280</td><td class="m">03/21</td><td class="m">18</td><td class="m">$4.10</td><td class="m loss">-$180</td><td class="warn">ITM</td></tr>
+          <tr><td style="display:flex;align-items:center;gap:8px"><img src="https://assets.parqet.com/logos/symbol/NVDA" width="22" height="22" style="border-radius:4px;background:var(--bge)" onerror="this.style.display='none'"><span class="tk">NVDA</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$850</td><td class="m">04/04</td><td class="m">32</td><td class="m">$8.90</td><td class="m gain">+$640</td><td style="color:var(--t4)">Open</td></tr>
+          <tr><td style="display:flex;align-items:center;gap:8px"><img src="https://assets.parqet.com/logos/symbol/AMD" width="22" height="22" style="border-radius:4px;background:var(--bge)" onerror="this.style.display='none'"><span class="tk">AMD</span></td><td><span class="badge badge-cc">CC</span></td><td class="m">$175</td><td class="m">03/21</td><td class="m">18</td><td class="m">$2.80</td><td class="m gain">+$160</td><td style="color:var(--t4)">Open</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+<!-- ────────── POSITIONS ────────── -->
+<section id="positions" class="page">
+  <div class="page-head">
+    <span class="page-label">02 — Positions</span>
+    <span class="page-line"></span>
+    <button class="btn">+ Add Position</button>
+  </div>
+
+  <div class="pos-summary">
+    <div class="card"><div class="card-label">Open</div><div class="stat-v">8</div><div class="stat-sub">5 CSP / 3 CC</div></div>
+    <div class="card"><div class="card-label">Total Premium</div><div class="stat-v">$38.90</div><div class="stat-sub">COLLECTED</div></div>
+    <div class="card"><div class="card-label">Unrealized P&L</div><div class="stat-v gain">+$1,760</div><div class="stat-sub">ALL POSITIONS</div></div>
+    <div class="card"><div class="card-label">Avg DTE</div><div class="stat-v">26</div><div class="stat-sub">DAYS TO EXPIRY</div></div>
+    <div class="card"><div class="card-label">Capital Deployed</div><div class="stat-v">$18.5k</div><div class="stat-sub">OF $25,000</div>
+      <div class="prog" style="margin-top:6px"><div class="prog-f gold" style="width:74%"></div></div>
+    </div>
+  </div>
+
+  <!-- DTE Timeline + Exposure -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+    <div class="card dte-timeline">
+      <div class="card-label">Expiration Timeline</div>
+      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/AAPL" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">AAPL</span><span class="dte-type"><span class="badge badge-csp" style="font-size:8px;padding:2px 6px">CSP</span></span><div class="dte-track"><div class="dte-fill" style="width:36%;background:var(--g)"></div></div><span class="dte-days">18 DTE</span></div>
+      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/TSLA" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">TSLA</span><span class="dte-type"><span class="badge badge-cc" style="font-size:8px;padding:2px 6px">CC</span></span><div class="dte-track"><div class="dte-fill" style="width:36%;background:var(--w)"></div></div><span class="dte-days warn">18 DTE</span></div>
+      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/AMD" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">AMD</span><span class="dte-type"><span class="badge badge-cc" style="font-size:8px;padding:2px 6px">CC</span></span><div class="dte-track"><div class="dte-fill" style="width:36%;background:var(--g)"></div></div><span class="dte-days">18 DTE</span></div>
+      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/MSFT" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">MSFT</span><span class="dte-type"><span class="badge badge-csp" style="font-size:8px;padding:2px 6px">CSP</span></span><div class="dte-track"><div class="dte-fill" style="width:50%;background:var(--g)"></div></div><span class="dte-days">25 DTE</span></div>
+      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/GOOG" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">GOOG</span><span class="dte-type"><span class="badge badge-cc" style="font-size:8px;padding:2px 6px">CC</span></span><div class="dte-track"><div class="dte-fill" style="width:50%;background:var(--g)"></div></div><span class="dte-days">25 DTE</span></div>
+      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/NVDA" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">NVDA</span><span class="dte-type"><span class="badge badge-csp" style="font-size:8px;padding:2px 6px">CSP</span></span><div class="dte-track"><div class="dte-fill" style="width:64%;background:var(--g)"></div></div><span class="dte-days">32 DTE</span></div>
+      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/AMZN" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">AMZN</span><span class="dte-type"><span class="badge badge-csp" style="font-size:8px;padding:2px 6px">CSP</span></span><div class="dte-track"><div class="dte-fill" style="width:64%;background:var(--g)"></div></div><span class="dte-days">32 DTE</span></div>
+      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/META" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">META</span><span class="dte-type"><span class="badge badge-csp" style="font-size:8px;padding:2px 6px">CSP</span></span><div class="dte-track"><div class="dte-fill" style="width:78%;background:var(--g)"></div></div><span class="dte-days">39 DTE</span></div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-label">Sector Exposure</div>
+        <div class="exp-bar-row"><span class="exp-bar-lbl">Technology</span><div class="exp-bar-track"><div class="exp-bar-fill" style="width:75%;background:var(--ac)"></div></div><span class="exp-bar-val">$213.5k</span></div>
+        <div class="exp-bar-row"><span class="exp-bar-lbl">Consumer</span><div class="exp-bar-track"><div class="exp-bar-fill" style="width:20%;background:var(--bl)"></div></div><span class="exp-bar-val">$58.5k</span></div>
+        <div class="exp-bar-row"><span class="exp-bar-lbl">Auto</span><div class="exp-bar-track"><div class="exp-bar-fill" style="width:5%;background:var(--pr)"></div></div><span class="exp-bar-val">$28.0k</span></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Daily Theta Decay</div>
+        <div style="display:flex;align-items:baseline;gap:10px;margin-top:4px">
+          <span class="stat-v gain" style="font-size:28px">+$47.20</span>
+          <span style="font-family:var(--fm);font-size:10px;color:var(--t4)">/ DAY</span>
+        </div>
+        <div style="font-family:var(--fm);font-size:10px;color:var(--t4);margin-top:6px;letter-spacing:.5px">
+          $330.40 / week · $1,416 / month (est.)
+        </div>
+        <div style="display:flex;gap:4px;margin-top:10px">
+          <div style="flex:62;height:5px;background:var(--g);border-radius:2px" title="CSP theta"></div>
+          <div style="flex:38;height:5px;background:var(--bl);border-radius:2px" title="CC theta"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:8px;color:var(--t4);margin-top:4px">
+          <span>CSP: $29.30</span><span>CC: $17.90</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pos-filters">
+    <div class="pills">
+      <button class="pill active">All (8)</button>
+      <button class="pill">CSP (5)</button>
+      <button class="pill">CC (3)</button>
+      <button class="pill">Shares (0)</button>
+      <button class="pill">Assigned (1)</button>
+    </div>
+    <span class="pos-sort">SORT BY: DTE &#9660;</span>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <table class="tbl">
+      <thead><tr>
+        <th>Ticker</th><th>Type</th><th>Strike</th><th>Expiration</th><th>DTE</th><th>Premium</th><th>Contracts</th><th>Collateral</th><th>P&L</th><th>Status</th><th>Actions</th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/AAPL" class="tk-logo" onerror="this.style.display='none'"><span class="tk">AAPL</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$185.00</td><td class="m">2026-03-21</td><td class="m">18</td><td class="m">$3.40</td><td class="m">1</td><td class="m">$18,500</td><td class="m gain">+$240</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>
+        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/MSFT" class="tk-logo" onerror="this.style.display='none'"><span class="tk">MSFT</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$400.00</td><td class="m">2026-03-28</td><td class="m">25</td><td class="m">$5.20</td><td class="m">1</td><td class="m">$40,000</td><td class="m gain">+$380</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>
+        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/TSLA" class="tk-logo" onerror="this.style.display='none'"><span class="tk">TSLA</span></td><td><span class="badge badge-cc">CC</span></td><td class="m">$280.00</td><td class="m">2026-03-21</td><td class="m warn">18 &#9888;</td><td class="m">$4.10</td><td class="m">1</td><td class="m">100 sh</td><td class="m loss">-$180</td><td class="warn">ITM</td><td><button class="btn btn-sm">Manage</button></td></tr>
+        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/NVDA" class="tk-logo" onerror="this.style.display='none'"><span class="tk">NVDA</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$850.00</td><td class="m">2026-04-04</td><td class="m">32</td><td class="m">$8.90</td><td class="m">1</td><td class="m">$85,000</td><td class="m gain">+$640</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>
+        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/AMD" class="tk-logo" onerror="this.style.display='none'"><span class="tk">AMD</span></td><td><span class="badge badge-cc">CC</span></td><td class="m">$175.00</td><td class="m">2026-03-21</td><td class="m">18</td><td class="m">$2.80</td><td class="m">1</td><td class="m">100 sh</td><td class="m gain">+$160</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>
+        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/META" class="tk-logo" onerror="this.style.display='none'"><span class="tk">META</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$500.00</td><td class="m">2026-04-11</td><td class="m">39</td><td class="m">$6.40</td><td class="m">1</td><td class="m">$50,000</td><td class="m gain">+$320</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>
+        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/GOOG" class="tk-logo" onerror="this.style.display='none'"><span class="tk">GOOG</span></td><td><span class="badge badge-cc">CC</span></td><td class="m">$180.00</td><td class="m">2026-03-28</td><td class="m">25</td><td class="m">$3.60</td><td class="m">1</td><td class="m">100 sh</td><td class="m loss">-$90</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>
+        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/AMZN" class="tk-logo" onerror="this.style.display='none'"><span class="tk">AMZN</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$200.00</td><td class="m">2026-04-04</td><td class="m">32</td><td class="m">$4.50</td><td class="m">1</td><td class="m">$20,000</td><td class="m gain">+$290</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ────────── CALCULATOR ────────── -->
+<section id="calculator" class="page">
+  <div class="page-head">
+    <span class="page-label">03 — Calculator</span>
+    <span class="page-line"></span>
+    <div class="pills"><button class="pill active">CSP</button><button class="pill">CC</button></div>
+  </div>
+
+  <div class="calc-search">
+    <input class="inp" placeholder="Enter ticker..." value="AAPL">
+    <button class="btn">Search</button>
+    <div class="calc-quick">
+      <button>AAPL</button><button>NVDA</button><button>TSLA</button><button>SPY</button><button>AMD</button><button>MSFT</button>
+    </div>
+  </div>
+
+  <div class="calc-layout">
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="calc-stock">
+          <div style="display:flex;align-items:center;gap:14px"><img src="https://assets.parqet.com/logos/symbol/AAPL" class="tk-logo-lg" onerror="this.style.display='none'"><div><div class="calc-stock-tk">AAPL</div><div class="calc-stock-nm">Apple Inc.</div></div></div>
+          <div style="margin-left:auto;text-align:right">
+            <div class="calc-stock-pr">$186.40</div>
+            <div style="font-family:var(--fm);font-size:10px" class="gain">&#9650; $1.20 (+0.65%)</div>
+          </div>
+        </div>
+
+        <div class="card-label" style="margin-top:12px">Expiration</div>
+        <div class="pills" style="margin-bottom:16px;flex-wrap:wrap">
+          <button class="pill">03/07</button><button class="pill">03/14</button>
+          <button class="pill active">03/21</button><button class="pill">03/28</button>
+          <button class="pill">04/04</button><button class="pill">04/11</button>
+        </div>
+
+        <div class="card-label">Options Chain — Puts</div>
+        <div class="chain-hdr"><span style="min-width:60px">Strike</span><span style="min-width:60px">Bid</span><span style="min-width:60px">Ask</span><span style="min-width:60px">Delta</span><span style="min-width:60px">IV</span></div>
+        <div class="chain-row"><span class="strike">$175</span><span class="bid">$1.20</span><span class="ask">$1.35</span><span class="delta">0.15</span><span class="delta">28%</span></div>
+        <div class="chain-row"><span class="strike">$180</span><span class="bid">$2.40</span><span class="ask">$2.60</span><span class="delta">0.22</span><span class="delta">30%</span></div>
+        <div class="chain-row selected"><span class="strike">$185</span><span class="bid">$3.40</span><span class="ask">$3.60</span><span class="delta">0.30</span><span class="delta">32%</span></div>
+        <div class="chain-row"><span class="strike">$190</span><span class="bid">$4.80</span><span class="ask">$5.00</span><span class="delta">0.38</span><span class="delta">34%</span></div>
+        <div class="chain-row"><span class="strike">$195</span><span class="bid">$6.40</span><span class="ask">$6.60</span><span class="delta">0.45</span><span class="delta">36%</span></div>
+        <div class="chain-row"><span class="strike">$200</span><span class="bid">$9.20</span><span class="ask">$9.40</span><span class="delta">0.55</span><span class="delta">38%</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-label">Selected Contract</div>
+        <div style="font-family:var(--fd);font-size:22px;letter-spacing:2px;font-weight:600;margin-bottom:4px">AAPL $185 PUT</div>
+        <div style="font-family:var(--fm);font-size:10px;color:var(--t4)">EXP 2026-03-21 · 18 DTE · DELTA 0.30</div>
+        <div class="ct-row" style="margin-top:12px">
+          <span style="font-family:var(--fm);font-size:9px;color:var(--t4);letter-spacing:1px">CONTRACTS</span>
+          <button class="ct-btn" onclick="adj(-1)">-</button>
+          <span class="ct-val" id="ctVal">1</span>
+          <button class="ct-btn" onclick="adj(1)">+</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">Results</div>
+        <div class="result-row"><span class="result-lbl">Max Profit</span><span class="result-val gain" id="rProfit">$340</span></div>
+        <div class="result-row"><span class="result-lbl">Breakeven</span><span class="result-val" id="rBreak">$181.60</span></div>
+        <div class="result-row"><span class="result-lbl">ROI</span><span class="result-val gain">1.84%</span></div>
+        <div class="result-row"><span class="result-lbl">Annualized</span><span class="result-val gain">33.74%</span></div>
+        <div class="result-row"><span class="result-lbl">Prob. of Profit</span><span class="result-val">70%</span></div>
+        <div class="result-row"><span class="result-lbl">Collateral</span><span class="result-val" id="rColl">$18,500</span></div>
+        <div class="result-row" style="border:none"><span class="result-lbl">Net Capital</span><span class="result-val" id="rNet">$18,160</span></div>
+        <button class="btn btn-g" style="width:100%;margin-top:14px;padding:12px">+ Add to Portfolio</button>
+      </div>
+
+      <!-- Payoff Diagram -->
+      <div class="card payoff-card">
+        <div class="card-label">Payoff at Expiration</div>
+        <div class="payoff-chart">
+          <svg viewBox="0 0 400 140" preserveAspectRatio="none" id="payoffChart"></svg>
+        </div>
+        <div class="payoff-labels"><span>$165</span><span>$175</span><span>$185 STRIKE</span><span>$195</span><span>$205</span></div>
+      </div>
+
+      <!-- Scenario Analysis -->
+      <div class="card" style="margin-top:12px">
+        <div class="card-label">Scenario Analysis at Expiration</div>
+        <div class="calc-scenarios">
+          <div class="calc-scenario"><div class="sc-label">Stock -5%</div><div class="sc-val loss">-$1,108</div><div class="sc-sub">AAPL @ $177.08</div></div>
+          <div class="calc-scenario" style="border-color:var(--gbr)"><div class="sc-label">Stock Flat</div><div class="sc-val gain">+$340</div><div class="sc-sub">AAPL @ $186.40</div></div>
+          <div class="calc-scenario"><div class="sc-label">Stock +5%</div><div class="sc-val gain">+$340</div><div class="sc-sub">AAPL @ $195.72</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ────────── WATCHLIST ────────── -->
+<section id="watchlist" class="page">
+  <div class="page-head">
+    <span class="page-label">04 — Watchlist</span>
+    <span class="page-line"></span>
+    <div class="pills"><button class="pill active">All</button><button class="pill">Tech</button><button class="pill">High IV</button><button class="pill">Earnings Soon</button></div>
+    <button class="btn btn-sm" style="margin-left:8px">+ Add Stock</button>
+  </div>
+  <div class="watch-stats">
+    <div class="card"><div class="card-label">Tracking</div><div class="stat-v">6</div><div class="stat-sub">STOCKS WATCHED</div></div>
+    <div class="card"><div class="card-label">Avg IV Rank</div><div class="stat-v warn">37.7%</div><div class="stat-sub">ACROSS WATCHLIST</div></div>
+    <div class="card"><div class="card-label">Nearest Earnings</div><div class="stat-v">TSLA</div><div class="stat-sub">APR 22 · 50 DAYS</div></div>
+    <div class="card"><div class="card-label">Best CSP Target</div><div class="stat-v gain">TSLA</div><div class="stat-sub">55% IV RANK</div></div>
+  </div>
+  <div class="watch-grid" id="watchGrid"></div>
+</section>
+
+<!-- ────────── SIGNALS ────────── -->
+<section id="signals" class="page">
+  <div class="page-head">
+    <span class="page-label">05 — Live Signals</span>
+    <span class="page-line"></span>
+  </div>
+  <div class="sig-stats">
+    <div class="card"><div class="card-label">Active Signals</div><div class="stat-v">6</div><div class="stat-sub">UPDATED LIVE</div></div>
+    <div class="card"><div class="card-label">High Confidence</div><div class="stat-v gain">4</div><div class="stat-sub">OF 6 SIGNALS</div></div>
+    <div class="card"><div class="card-label">Avg Premium</div><div class="stat-v">$4.83</div><div class="stat-sub">PER CONTRACT</div></div>
+    <div class="card"><div class="card-label">Signal Win Rate</div><div class="stat-v gain">82%</div><div class="stat-sub">LAST 30 DAYS</div></div>
+  </div>
+  <div class="pos-filters" style="margin-bottom:16px">
+    <div class="pills">
+      <button class="pill active">All</button><button class="pill">CSP</button><button class="pill">CC</button><button class="pill">High Only</button>
+    </div>
+    <span class="pos-sort">SORT BY: CONFIDENCE &#9660;</span>
+  </div>
+  <div class="sig-grid" id="sigGrid"></div>
+  <!-- Recently Executed -->
+  <div style="margin-top:24px">
+    <div class="page-head" style="margin-bottom:12px">
+      <span class="page-label">Recently Executed</span>
+      <span class="page-line"></span>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="tbl">
+        <thead><tr><th>Signal</th><th>Type</th><th>Entry</th><th>Result</th><th>Confidence</th><th>Executed</th></tr></thead>
+        <tbody>
+          <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/AAPL" class="tk-logo" onerror="this.style.display='none'"><span class="tk">AAPL</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$180 PUT 02/21</td><td class="m gain">+$280 (100%)</td><td class="m" style="color:var(--g)">HIGH</td><td class="m" style="color:var(--t4)">Feb 7</td></tr>
+          <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/SPY" class="tk-logo" onerror="this.style.display='none'"><span class="tk">SPY</span></td><td><span class="badge badge-cc">CC</span></td><td class="m">$490 CALL 02/14</td><td class="m gain">+$150 (100%)</td><td class="m" style="color:var(--g)">HIGH</td><td class="m" style="color:var(--t4)">Feb 3</td></tr>
+          <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/NVDA" class="tk-logo" onerror="this.style.display='none'"><span class="tk">NVDA</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$820 PUT 02/07</td><td class="m gain">+$520 (100%)</td><td class="m" style="color:var(--w)">MEDIUM</td><td class="m" style="color:var(--t4)">Jan 28</td></tr>
+          <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/TSLA" class="tk-logo" onerror="this.style.display='none'"><span class="tk">TSLA</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$240 PUT 01/31</td><td class="m loss">Assigned</td><td class="m" style="color:var(--w)">MEDIUM</td><td class="m" style="color:var(--t4)">Jan 21</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ────────── LEARN ────────── -->
+<section id="learn" class="page">
+  <div class="page-head">
+    <span class="page-label">06 — Elite Trading Academy</span>
+    <span class="page-line"></span>
+  </div>
+
+  <!-- Continue Learning Hero + Achievements -->
+  <div class="learn-hero">
+    <div class="card learn-continue">
+      <div class="lc-label">CONTINUE WHERE YOU LEFT OFF</div>
+      <div class="lc-title">THE WHEEL STRATEGY</div>
+      <div class="lc-meta">Module 3 · Intermediate · 60% Complete</div>
+      <div class="lc-lesson">Next Lesson: <strong style="color:var(--tx)">Why It Works</strong></div>
+      <div class="prog" style="height:5px;margin-bottom:14px"><div class="prog-f gold" style="width:60%"></div></div>
+      <button class="btn btn-g">Resume Module</button>
+    </div>
+    <div class="card" style="padding:20px">
+      <div class="card-label">Achievements</div>
+      <div class="learn-badges">
+        <div class="learn-badge earned"><span class="learn-badge-icon">&#9733;</span><div><div style="color:var(--g)">Options Basics</div><div style="font-size:9px;color:var(--t4);margin-top:2px">Completed Module 1</div></div></div>
+        <div class="learn-badge earned"><span class="learn-badge-icon">&#9733;</span><div><div style="color:var(--g)">Greeks Master</div><div style="font-size:9px;color:var(--t4);margin-top:2px">Completed Module 2</div></div></div>
+        <div class="learn-badge"><span class="learn-badge-icon">&#9675;</span><div><div>Wheel Apprentice</div><div style="font-size:9px;color:var(--t4);margin-top:2px">Complete Module 3</div></div></div>
+        <div class="learn-badge locked"><span class="learn-badge-icon">&#9632;</span><div><div>Elite Strategist</div><div style="font-size:9px;color:var(--t4);margin-top:2px">Complete all modules</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Learning Stats -->
+  <div class="learn-stats">
+    <div class="card"><div class="card-label">Modules Done</div><div class="stat-v gain">2</div><div class="stat-sub">OF 7 MODULES</div></div>
+    <div class="card"><div class="card-label">Lessons Done</div><div class="stat-v">9</div><div class="stat-sub">OF 33 TOTAL</div></div>
+    <div class="card"><div class="card-label">Quizzes Passed</div><div class="stat-v gain">2/2</div><div class="stat-sub">100% SCORE</div></div>
+    <div class="card"><div class="card-label">Est. Remaining</div><div class="stat-v">3.4h</div><div class="stat-sub">TO COMPLETE ALL</div></div>
+  </div>
+
+  <div class="learn-prog">
+    <div class="lp-txt">OVERALL PROGRESS: 42% COMPLETE · 3 OF 7 MODULES</div>
+    <div class="prog" style="height:5px"><div class="prog-f green" style="width:42%"></div></div>
+  </div>
+  <div class="learn-grid" id="learnGrid"></div>
+</section>
+
+<!-- ────────── ANALYTICS ────────── -->
+<section id="analytics" class="page">
+  <div class="page-head">
+    <span class="page-label">07 — Analytics</span>
+    <span class="page-line"></span>
+  </div>
+
+  <div class="ana-stats">
+    <div class="card"><div class="card-label">Total Trades</div><div class="stat-v">156</div><div class="stat-sub">ALL TIME</div></div>
+    <div class="card"><div class="card-label">Win Rate</div><div class="stat-v gain">78.4%</div><div class="stat-sub">122W / 34L</div></div>
+    <div class="card"><div class="card-label">Total P&L</div><div class="stat-v gain">$8,420</div><div class="stat-sub">REALIZED</div></div>
+    <div class="card"><div class="card-label">Avg Premium</div><div class="stat-v">$3.40</div><div class="stat-sub">PER CONTRACT</div></div>
+    <div class="card"><div class="card-label">Win Streak</div><div class="stat-v warn">12</div><div class="stat-sub">CURRENT / BEST: 18</div></div>
+    <div class="card"><div class="card-label">Avg DTE</div><div class="stat-v">24</div><div class="stat-sub">DAYS AT ENTRY</div></div>
+  </div>
+
+  <div class="ana-charts">
+    <div class="card chart-card">
+      <div class="chart-title">P&L Over Time (Cumulative)</div>
+      <svg class="line-chart" viewBox="0 0 500 140" preserveAspectRatio="none" id="plChart"></svg>
+    </div>
+    <div class="card chart-card" style="display:flex;flex-direction:column">
+      <div class="chart-title">Win / Loss Distribution</div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:32px">
+        <div class="donut"><div class="donut-center"><div class="donut-val">78%</div><div class="donut-lbl">WIN RATE</div></div></div>
+        <div style="font-family:var(--fm);font-size:10px;color:var(--t3);line-height:2">
+          <div><span style="display:inline-block;width:8px;height:8px;background:var(--g);border-radius:1px;margin-right:6px"></span>Winners: 122</div>
+          <div><span style="display:inline-block;width:8px;height:8px;background:var(--r);border-radius:1px;margin-right:6px"></span>Losers: 34</div>
+          <div style="margin-top:8px;color:var(--t4)">Best: AAPL (92%)</div>
+          <div style="color:var(--t4)">Worst: TSLA (61%)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ana-bottom">
+    <div class="card" style="overflow:auto">
+      <div class="chart-title" style="margin-bottom:10px">Monthly Breakdown</div>
+      <table class="tbl">
+        <thead><tr><th>Month</th><th>Realized</th><th>Pending</th><th>Trades</th><th>Win%</th></tr></thead>
+        <tbody>
+          <tr><td class="m">Mar '26</td><td class="m gain">$2,840</td><td class="m" style="color:var(--t4)">$1,200</td><td class="m">18</td><td class="m gain">83%</td></tr>
+          <tr><td class="m">Feb '26</td><td class="m gain">$2,120</td><td class="m" style="color:var(--t4)">$0</td><td class="m">22</td><td class="m gain">77%</td></tr>
+          <tr><td class="m">Jan '26</td><td class="m gain">$1,890</td><td class="m" style="color:var(--t4)">$0</td><td class="m">19</td><td class="m gain">74%</td></tr>
+          <tr><td class="m">Dec '25</td><td class="m gain">$2,460</td><td class="m" style="color:var(--t4)">$0</td><td class="m">24</td><td class="m gain">81%</td></tr>
+          <tr><td class="m">Nov '25</td><td class="m gain">$1,650</td><td class="m" style="color:var(--t4)">$0</td><td class="m">16</td><td class="m">69%</td></tr>
+          <tr><td class="m">Oct '25</td><td class="m gain">$1,980</td><td class="m" style="color:var(--t4)">$0</td><td class="m">20</td><td class="m gain">75%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card chart-card">
+      <div class="chart-title">Premium by Month</div>
+      <div class="bar-chart" id="premChart"></div>
+    </div>
+    <div class="card">
+      <div class="chart-title" style="margin-bottom:10px">Top Performers</div>
+      <div id="topTickers"></div>
+      <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--bd)">
+        <div class="chart-title" style="margin-bottom:8px">By Position Type</div>
+        <div style="display:flex;gap:4px">
+          <div style="flex:68;height:6px;background:var(--g);border-radius:2px" title="CSP 68%"></div>
+          <div style="flex:32;height:6px;background:var(--bl);border-radius:2px" title="CC 32%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:8px;color:var(--t4);margin-top:4px">
+          <span>CSP 68%</span><span>CC 32%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ────────── WHEEL TRACKER ────────── -->
+<section id="wheels" class="page">
+  <div class="wt-wrap">
+
+  <!-- Header -->
+  <div class="wt-head">
+    <span class="wt-label">08 &mdash; Wheel Tracker</span>
+    <div class="wt-line"></div>
+    <div class="wt-head-actions">
+      <button class="btn btn-sm" onclick="openWtModal('calendarView')">Calendar</button>
+      <button class="btn btn-g btn-sm" onclick="openWtModal('createWheel')">+ New Wheel</button>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="wt-stats" id="wtStats">
+    <!-- Populated by JS -->
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="wt-filter-bar">
+    <div class="pills" id="wtFilterPills">
+      <button class="pill active" data-filter="all">All</button>
+      <button class="pill" data-filter="active">Active</button>
+      <button class="pill" data-filter="closed">Closed</button>
+      <button class="pill" data-filter="archived">Archived</button>
+    </div>
+    <div class="wt-view-toggles">
+      <button class="wt-view-btn active" data-view="grid" title="Grid view">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="1" y="1" width="5" height="5" rx="1"/><rect x="8" y="1" width="5" height="5" rx="1"/>
+          <rect x="1" y="8" width="5" height="5" rx="1"/><rect x="8" y="8" width="5" height="5" rx="1"/>
+        </svg>
+      </button>
+      <button class="wt-view-btn" data-view="table" title="Table view">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="1" y1="3" x2="13" y2="3"/><line x1="1" y1="7" x2="13" y2="7"/><line x1="1" y1="11" x2="13" y2="11"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Wheel Cards Grid -->
+  <div class="wt-grid" id="wtGrid">
+    <!-- Populated by JS -->
+  </div>
+
+  <!-- Table View (hidden by default) -->
+  <div id="wtTableView" style="display:none">
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="tbl" id="wtTable">
+        <thead>
+          <tr>
+            <th>Ticker</th><th>Status</th><th>Premium</th><th>Yield</th>
+            <th>Discipline</th><th>Cost Basis</th><th>Shares</th><th>Cycle Days</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="wtTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  </div>
+</section>
+
+</main>
+
+<!-- ══════════════════════════════════════════
+     DETAIL OVERLAY
+     ══════════════════════════════════════════ -->
+<div class="wt-overlay" id="wtDetail">
+  <button class="wt-detail-close" onclick="closeWtDetail()">&times;</button>
+  <div class="wt-detail" id="wtDetailContent">
+    <!-- Populated by JS -->
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     CREATE WHEEL MODAL
+     ══════════════════════════════════════════ -->
+<div class="wt-modal-bg" id="createWheel">
+  <div class="wt-modal">
+    <div class="wt-modal-head">
+      <span class="wt-modal-title">New Wheel</span>
+      <button class="wt-modal-close" onclick="closeWtModal('createWheel')">&times;</button>
+    </div>
+    <div class="wt-modal-body">
+      <div class="wt-form-group">
+        <label class="wt-form-label">Ticker Symbol</label>
+        <input class="inp" id="cwTicker" placeholder="e.g. AAPL" style="text-transform:uppercase" maxlength="5">
+      </div>
+      <div class="wt-form-group">
+        <label class="wt-form-label">Company Name (optional)</label>
+        <input class="inp" id="cwName" placeholder="e.g. Apple Inc.">
+      </div>
+      <div class="wt-form-group">
+        <label class="wt-form-label">Initial Capital</label>
+        <input class="inp" id="cwCapital" type="number" placeholder="25000" step="100">
+      </div>
+      <div class="wt-form-group">
+        <label class="wt-form-label">Notes</label>
+        <textarea class="inp" id="cwNotes" rows="3" placeholder="Strategy notes..." style="resize:vertical;font-family:var(--fb)"></textarea>
+      </div>
+    </div>
+    <div class="wt-modal-footer">
+      <button class="btn btn-sm" onclick="closeWtModal('createWheel')">Cancel</button>
+      <button class="btn btn-g btn-sm" onclick="createWheel()">Create Wheel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     NEW TRANSACTION MODAL
+     ══════════════════════════════════════════ -->
+<div class="wt-modal-bg" id="newTransaction">
+  <div class="wt-modal" style="max-width:580px">
+    <div class="wt-modal-head">
+      <span class="wt-modal-title">New Transaction</span>
+      <button class="wt-modal-close" onclick="closeWtModal('newTransaction')">&times;</button>
+    </div>
+    <div class="wt-modal-body">
+      <label class="wt-form-label" style="margin-bottom:8px">Transaction Type</label>
+      <div class="wt-tx-types" id="txTypeSelector">
+        <button class="wt-tx-type-btn active" data-type="sell_csp">Sell CSP</button>
+        <button class="wt-tx-type-btn" data-type="sell_cc">Sell CC</button>
+        <button class="wt-tx-type-btn" data-type="btc_call">BTC Call</button>
+        <button class="wt-tx-type-btn" data-type="btc_put">BTC Put</button>
+        <button class="wt-tx-type-btn" data-type="put_assign">Put Assign</button>
+        <button class="wt-tx-type-btn" data-type="call_assign">Call Assign</button>
+        <button class="wt-tx-type-btn" data-type="shares_buy">Shares Buy</button>
+        <button class="wt-tx-type-btn" data-type="shares_sell">Shares Sell</button>
+        <button class="wt-tx-type-btn" data-type="sell_to_open">Sell to Open</button>
+        <button class="wt-tx-type-btn" data-type="dividend">Dividend</button>
+        <button class="wt-tx-type-btn" data-type="assignment">Assignment</button>
+        <button class="wt-tx-type-btn" data-type="quick_add">Quick Add</button>
+        <button class="wt-tx-type-btn" data-type="other">Other</button>
+      </div>
+
+      <!-- Dynamic Fields Container -->
+      <div id="txFields"></div>
+
+      <!-- Common Fields -->
+      <div class="wt-form-row" style="margin-top:14px">
+        <div class="wt-form-group">
+          <label class="wt-form-label">Date</label>
+          <input class="inp" id="txDate" type="date">
+        </div>
+        <div class="wt-form-group">
+          <label class="wt-form-label">Notes</label>
+          <input class="inp" id="txNotes" placeholder="Optional note...">
+        </div>
+      </div>
+
+      <!-- Calculated Total -->
+      <div class="wt-calc-total" id="txCalcTotal">
+        <span class="wt-calc-label">Total Value</span>
+        <span class="wt-calc-value gain" id="txTotalValue">$0.00</span>
+      </div>
+    </div>
+    <div class="wt-modal-footer">
+      <button class="btn btn-sm" onclick="closeWtModal('newTransaction')">Cancel</button>
+      <button class="btn btn-g btn-sm" onclick="submitTransaction()">Add Transaction</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     CALENDAR VIEW MODAL
+     ══════════════════════════════════════════ -->
+<div class="wt-modal-bg" id="calendarView">
+  <div class="wt-modal" style="max-width:720px">
+    <div class="wt-modal-head">
+      <span class="wt-modal-title">Transaction Calendar</span>
+      <button class="wt-modal-close" onclick="closeWtModal('calendarView')">&times;</button>
+    </div>
+    <div class="wt-modal-body">
+      <div id="wtCalendar"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="wt-toast" id="wtToast"></div>
+
+<!-- ═══════════════ TICKER ═══════════════ -->
+<div class="ticker-wrap" id="tickerWrap"></div>
+
+<!-- ═══════════════ SCRIPTS ═══════════════ -->
+<script>
+// ── Global logo map ──
+function tkLogo(sym, cls='tk-logo') {
+  return `<img src="https://assets.parqet.com/logos/symbol/${sym}" class="${cls}" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/davidepalazzo/ticker-logos/main/ticker_icons/${sym}.png'" alt="">`;
+}
+
+// ── Tab switching ──
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById(item.dataset.tab).classList.add('active');
+    // Lazy load watchlist TradingView widgets
+    if (item.dataset.tab === 'watchlist' && !document.getElementById('watchGrid').dataset.loaded) {
+      loadWatchlistWidgets();
+    }
+  });
+});
+
+// ── Pill filters (generic) ──
+document.querySelectorAll('.pills').forEach(group => {
+  group.querySelectorAll('.pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      group.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+    });
+  });
+});
+
+// ── Chain row selection ──
+document.querySelectorAll('.chain-row').forEach(row => {
+  row.addEventListener('click', () => {
+    document.querySelectorAll('.chain-row').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+  });
+});
+
+// ── Calculator contract stepper ──
+let contracts = 1;
+function adj(d) {
+  contracts = Math.max(1, Math.min(20, contracts + d));
+  document.getElementById('ctVal').textContent = contracts;
+  document.getElementById('rProfit').textContent = '$' + (340 * contracts).toLocaleString();
+  document.getElementById('rColl').textContent = '$' + (18500 * contracts).toLocaleString();
+  document.getElementById('rNet').textContent = '$' + (18160 * contracts).toLocaleString();
+}
+
+// ── TradingView: Ticker Tape ──
+(function loadTicker() {
+  const wrap = document.getElementById('tickerWrap');
+  const d = document.createElement('div');
+  d.className = 'tradingview-widget-container';
+  d.style.cssText = 'width:100%;height:100%';
+  d.innerHTML = '<div class="tradingview-widget-container__widget"></div>';
+  const s = document.createElement('script');
+  s.type = 'text/javascript';
+  s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js';
+  s.async = true;
+  s.textContent = JSON.stringify({
+    symbols: [
+      {description:"SPY",proName:"AMEX:SPY"},{description:"QQQ",proName:"NASDAQ:QQQ"},
+      {description:"AAPL",proName:"NASDAQ:AAPL"},{description:"MSFT",proName:"NASDAQ:MSFT"},
+      {description:"NVDA",proName:"NASDAQ:NVDA"},{description:"AMD",proName:"NASDAQ:AMD"},
+      {description:"TSLA",proName:"NASDAQ:TSLA"},{description:"META",proName:"NASDAQ:META"},
+      {description:"AMZN",proName:"NASDAQ:AMZN"},{description:"GOOGL",proName:"NASDAQ:GOOGL"}
+    ],
+    showSymbolLogo: true, isTransparent: true, displayMode: "regular", colorTheme: "dark", locale: "en"
+  });
+  d.appendChild(s);
+  wrap.appendChild(d);
+})();
+
+// ── TradingView: Advanced Chart (Dashboard) ──
+(function loadChart() {
+  const box = document.getElementById('tvChart');
+  box.innerHTML = '';
+  const d = document.createElement('div');
+  d.className = 'tradingview-widget-container';
+  d.style.cssText = 'width:100%;height:100%';
+  d.innerHTML = '<div class="tradingview-widget-container__widget" style="width:100%;height:100%"></div>';
+  const s = document.createElement('script');
+  s.type = 'text/javascript';
+  s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+  s.async = true;
+  s.textContent = JSON.stringify({
+    autosize: true, symbol: "AMEX:SPY", interval: "D", timezone: "America/New_York",
+    theme: "dark", style: "1", locale: "en", backgroundColor: "#0c0c0e",
+    gridColor: "rgba(232,224,208,0.03)", hide_side_toolbar: true, hide_volume: false,
+    allow_symbol_change: true, calendar: false, details: false, hotlist: false,
+    save_image: false, withdateranges: true
+  });
+  d.appendChild(s);
+  box.appendChild(d);
+})();
+
+// ── (Market Overview removed — used full-width chart instead) ──
+
+// ── Watchlist: TradingView Mini Charts (lazy loaded) ──
+const watchStocks = [
+  {sym:'AAPL',name:'Apple Inc.',exchange:'NASDAQ',price:'$186.40',chg:'+0.65%',dir:'gain',
+   iv:'32%',vol:'58.2M',earn:'Apr 24',sup:'$180',res:'$195',lo:164,hi:199,cur:186,sector:'Tech',
+   note:'Strong support at $180, watching for earnings premium play'},
+  {sym:'NVDA',name:'NVIDIA Corp.',exchange:'NASDAQ',price:'$924.80',chg:'+1.24%',dir:'gain',
+   iv:'48%',vol:'42.1M',earn:'May 28',sup:'$880',res:'$960',lo:550,hi:974,cur:925,sector:'Tech',
+   note:'AI momentum continues, elevated IV ideal for premium selling'},
+  {sym:'TSLA',name:'Tesla Inc.',exchange:'NASDAQ',price:'$271.30',chg:'-0.82%',dir:'loss',
+   iv:'55%',vol:'89.4M',earn:'Apr 22',sup:'$250',res:'$290',lo:152,hi:299,cur:271,sector:'Auto',
+   note:'Highest IV rank on watchlist, range-bound $250-$290'},
+  {sym:'AMD',name:'AMD Inc.',exchange:'NASDAQ',price:'$168.50',chg:'+0.38%',dir:'gain',
+   iv:'35%',vol:'51.8M',earn:'Apr 29',sup:'$160',res:'$180',lo:120,hi:185,cur:169,sector:'Tech',
+   note:'Consolidating nicely, $160 CSP has strong support'},
+  {sym:'META',name:'Meta Platforms',exchange:'NASDAQ',price:'$518.20',chg:'+0.92%',dir:'gain',
+   iv:'30%',vol:'22.6M',earn:'Apr 30',sup:'$500',res:'$540',lo:390,hi:542,cur:518,sector:'Tech',
+   note:'Post-earnings cool down, looking for CC setup near $540'},
+  {sym:'MSFT',name:'Microsoft',exchange:'NASDAQ',price:'$408.60',chg:'+0.44%',dir:'gain',
+   iv:'26%',vol:'24.3M',earn:'Apr 22',sup:'$390',res:'$420',lo:362,hi:432,cur:409,sector:'Tech',
+   note:'Steady premium generator, strong fundamentals'}
+];
+
+// Render enriched watchlist cards
+const wg = document.getElementById('watchGrid');
+watchStocks.forEach(w => {
+  const rangePct = ((w.cur - w.lo) / (w.hi - w.lo) * 100).toFixed(0);
+  wg.innerHTML += `<div class="card watch-card">
+    <div class="w-top">
+      <div style="display:flex;align-items:center;gap:10px">${tkLogo(w.sym)}<div><div class="w-tk">${w.sym}</div><div class="w-nm">${w.name}</div></div></div>
+      <div style="text-align:right;margin-left:auto">
+        <div class="w-pr">${w.price}</div>
+        <div class="w-chg ${w.dir}" style="font-family:var(--fm);font-size:12px;letter-spacing:.5px">${w.dir==='gain'?'&#9650;':'&#9660;'} ${w.chg}</div>
+      </div>
+    </div>
+    <div class="w-range"><div class="w-range-fill"></div><div class="w-range-dot" style="left:${rangePct}%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:8px;color:var(--t5);letter-spacing:1px;margin-top:2px">
+      <span>52W: $${w.lo}</span><span>$${w.hi}</span>
+    </div>
+    <div class="w-metrics">
+      <div><div class="w-met-lbl">IV RANK</div><div class="w-met-val">${w.iv}</div></div>
+      <div><div class="w-met-lbl">AVG VOLUME</div><div class="w-met-val">${w.vol}</div></div>
+      <div><div class="w-met-lbl">NEXT EARNINGS</div><div class="w-met-val">${w.earn}</div></div>
+      <div><div class="w-met-lbl">SUPPORT / RESIST</div><div class="w-met-val">${w.sup} / ${w.res}</div></div>
+    </div>
+    <div class="w-tags"><span class="w-tag">${w.sector}</span><span class="w-tag">WHEEL</span></div>
+    <div class="w-note">"${w.note}"</div>
+    <div class="tv-mini" id="tv-${w.sym}"><div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:2px">CLICK TAB TO LOAD CHART</div></div>
+  </div>`;
+});
+
+function loadWatchlistWidgets() {
+  document.getElementById('watchGrid').dataset.loaded = 'true';
+  watchStocks.forEach(w => {
+    const box = document.getElementById('tv-' + w.sym);
+    box.innerHTML = '';
+    const d = document.createElement('div');
+    d.className = 'tradingview-widget-container';
+    d.style.cssText = 'width:100%;height:100%';
+    d.innerHTML = '<div class="tradingview-widget-container__widget" style="width:100%;height:100%"></div>';
+    const s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js';
+    s.async = true;
+    s.textContent = JSON.stringify({
+      symbol: w.exchange + ':' + w.sym, width: "100%", height: "100%",
+      locale: "en", dateRange: "1M", colorTheme: "dark", isTransparent: true,
+      autosize: true, chartOnly: false,
+      trendLineColor: "rgba(74,222,128,1)", underLineColor: "rgba(74,222,128,0.15)",
+      underLineBottomColor: "rgba(74,222,128,0)"
+    });
+    d.appendChild(s);
+    box.appendChild(d);
+  });
+}
+
+// ── Signals data ──
+const sigData = [
+  {type:'CSP',sym:'AAPL',strike:'$180',exp:'03/21',prem:'$3.40',delta:'0.25',iv:'32%',conf:'high',time:'2h ago',
+   note:'High IV rank, strong support at $180',maxP:'$340',maxL:'$17,660',rr:'1:52',str:88},
+  {type:'CSP',sym:'NVDA',strike:'$850',exp:'04/04',prem:'$8.90',delta:'0.20',iv:'48%',conf:'high',time:'5h ago',
+   note:'Earnings play, elevated IV',maxP:'$890',maxL:'$84,110',rr:'1:95',str:82},
+  {type:'CC',sym:'TSLA',strike:'$290',exp:'03/28',prem:'$4.10',delta:'0.30',iv:'55%',conf:'med',time:'1d ago',
+   note:'Resistance at $290, sell calls',maxP:'$410',maxL:'Unlimited',rr:'—',str:65},
+  {type:'CSP',sym:'AMD',strike:'$160',exp:'03/21',prem:'$2.60',delta:'0.22',iv:'35%',conf:'high',time:'1d ago',
+   note:'Range-bound, good premium',maxP:'$260',maxL:'$15,740',rr:'1:61',str:76},
+  {type:'CC',sym:'META',strike:'$530',exp:'04/04',prem:'$5.80',delta:'0.28',iv:'30%',conf:'med',time:'2d ago',
+   note:'Post-earnings fade expected',maxP:'$580',maxL:'Unlimited',rr:'—',str:60},
+  {type:'CSP',sym:'MSFT',strike:'$390',exp:'03/28',prem:'$4.20',delta:'0.18',iv:'26%',conf:'high',time:'2d ago',
+   note:'Support zone, low delta entry',maxP:'$420',maxL:'$38,580',rr:'1:92',str:79}
+];
+const sg = document.getElementById('sigGrid');
+sigData.forEach(s => {
+  const bc = s.type === 'CSP' ? 'badge-csp' : 'badge-cc';
+  const cc = s.conf === 'high' ? 'conf-high' : 'conf-med';
+  const meterColor = s.str >= 80 ? 'var(--g)' : s.str >= 70 ? 'var(--w)' : 'var(--t3)';
+  sg.innerHTML += `<div class="card sig-card">
+    <div class="sig-top"><span class="badge ${bc}">${s.type}</span>${tkLogo(s.sym)}<span class="sig-tk">${s.sym}</span>
+      <span style="margin-left:auto;font-family:var(--fm);font-size:10px;color:var(--t4)">${s.iv} IV</span></div>
+    <div class="sig-detail">
+      <span>${s.strike} ${s.type==='CSP'?'PUT':'CALL'} · EXP ${s.exp} · DELTA ${s.delta}</span>
+      <span>Premium: ${s.prem} · R:R ${s.rr}</span>
+      <span style="color:var(--t4);font-size:9px;margin-top:2px">${s.note}</span>
+    </div>
+    <div class="sig-rr">
+      <div><div class="sig-rr-lbl">MAX PROFIT</div><div class="sig-rr-val gain">${s.maxP}</div></div>
+      <div><div class="sig-rr-lbl">MAX LOSS</div><div class="sig-rr-val loss">${s.maxL}</div></div>
+      <div><div class="sig-rr-lbl">STRENGTH</div><div class="sig-rr-val">${s.str}/100</div></div>
+    </div>
+    <div class="sig-meter"><div class="sig-meter-fill" style="width:${s.str}%;background:${meterColor}"></div></div>
+    <div class="sig-bottom" style="margin-top:12px">
+      <span class="sig-conf ${cc}">${s.conf.toUpperCase()} CONFIDENCE</span>
+      <span class="sig-time">${s.time}</span>
+      <button class="btn btn-g btn-sm">Copy Trade</button>
+    </div>
+  </div>`;
+});
+
+// ── Learn modules ──
+const modules = [
+  {n:1,t:'OPTIONS FUNDAMENTALS',lvl:'Beginner',time:'45 min',prog:100,lessons:['What Are Options?','Calls vs Puts','Essential Terms','How Options Are Priced','Quiz']},
+  {n:2,t:'UNDERSTANDING GREEKS',lvl:'Beginner',time:'40 min',prog:100,lessons:['Delta: Direction','Theta: Time Decay','IV & Vega','Quiz']},
+  {n:3,t:'THE WHEEL STRATEGY',lvl:'Intermediate',time:'35 min',prog:60,lessons:['What Is The Wheel?','The Full Cycle','Why It Works','Quiz']},
+  {n:4,t:'CASH SECURED PUTS',lvl:'Intermediate',time:'50 min',prog:0,lessons:['CSP Fundamentals','Selecting Stocks','Strike & Expiration','Managing CSPs','Quiz']},
+  {n:5,t:'COVERED CALLS',lvl:'Intermediate',time:'45 min',prog:0,lessons:['CC Fundamentals','When To Sell','Strike Strategy','Managing CCs','Quiz']},
+  {n:6,t:"BEAU'S ELITE STRATEGY",lvl:'Advanced',time:'55 min',prog:0,locked:true,lessons:['Philosophy','Entry Criteria','Position Mgmt','Risk Rules','Common Mistakes','Assessment']},
+  {n:7,t:'USING MARKET ELITES',lvl:'Beginner',time:'20 min',prog:0,lessons:['App Overview','Following Signals','Using Calculator']}
+];
+const lg = document.getElementById('learnGrid');
+modules.forEach(m => {
+  const cls = m.prog === 100 ? 'mod-complete' : m.locked ? 'mod-locked' : '';
+  lg.innerHTML += `<div class="card mod-card ${cls}">
+    <div class="mod-num">0${m.n}</div>
+    <div class="mod-title">${m.t}</div>
+    <div class="mod-meta">${m.lvl} · ${m.time} · ${m.lessons.length} lessons</div>
+    <div class="mod-lessons">${m.lessons.map(l => `<div>${m.prog===100?'&#10003;':'&#9675;'} ${l}</div>`).join('')}</div>
+    <div class="mod-prog"><div class="mod-prog-txt">${m.prog}% COMPLETE</div>
+    <div class="prog"><div class="prog-f ${m.prog===100?'green':'gold'}" style="width:${m.prog}%"></div></div></div>
+  </div>`;
+});
+
+// ── Analytics: P&L line chart ──
+const plData = [0,280,520,840,1100,1350,1680,2100,2450,2800,3200,3600,4100,4500,5200,5800,6400,7100,7600,8000,8420];
+const plSvg = document.getElementById('plChart');
+const pts = plData.map((v,i) => `${(i/(plData.length-1))*500},${140-(v/8420)*130}`).join(' ');
+plSvg.innerHTML = `<polyline class="area" points="0,140 ${pts} 500,140"/><polyline points="${pts}"/>${plData.map((v,i) => `<circle class="dot" cx="${(i/(plData.length-1))*500}" cy="${140-(v/8420)*130}"/>`).join('')}`;
+
+// ── Analytics: Premium bar chart ──
+const premData = [{m:'Oct',v:1980},{m:'Nov',v:1650},{m:'Dec',v:2460},{m:'Jan',v:1890},{m:'Feb',v:2120},{m:'Mar',v:2840}];
+const pc = document.getElementById('premChart');
+const pmax = Math.max(...premData.map(d => d.v));
+premData.forEach(d => {
+  pc.innerHTML += `<div class="bar-col"><div class="bar-val">$${(d.v/1000).toFixed(1)}k</div><div class="bar" style="height:${(d.v/pmax)*100}%"></div><div class="bar-label">${d.m}</div></div>`;
+});
+
+// ── Analytics: Top tickers ──
+const topData = [{sym:'AAPL',val:1240},{sym:'NVDA',val:890},{sym:'TSLA',val:780},{sym:'MSFT',val:720},{sym:'META',val:680},{sym:'AMD',val:540}];
+const tt = document.getElementById('topTickers');
+topData.forEach(d => {
+  tt.innerHTML += `<div class="top-row">${tkLogo(d.sym,'tk-logo-sm')}<span class="tt-sym">${d.sym}</span><div class="tt-bar"><div class="tt-fill" style="width:${(d.val/1240)*100}%"></div></div><span class="tt-val">$${d.val.toLocaleString()}</span></div>`;
+});
+
+// ── Calculator: Payoff diagram ──
+(function drawPayoff() {
+  const svg = document.getElementById('payoffChart');
+  if (!svg) return;
+  const strike = 185, premium = 3.40, w = 400, h = 140, pad = 10;
+  const lo = 165, hi = 205;
+  const pts = [];
+  for (let p = lo; p <= hi; p += 0.5) {
+    const pnl = p < strike ? ((p - strike) + premium) * 100 : premium * 100;
+    const x = ((p - lo) / (hi - lo)) * (w - pad*2) + pad;
+    const y = h/2 - (pnl / 2200) * (h - pad*2);
+    pts.push(`${x},${y}`);
+  }
+  const zeroY = h/2 - (0 / 2200) * (h - pad*2);
+  const breakX = ((strike - premium - lo) / (hi - lo)) * (w - pad*2) + pad;
+  const strikeX = ((strike - lo) / (hi - lo)) * (w - pad*2) + pad;
+  svg.innerHTML = `
+    <line x1="${pad}" y1="${zeroY}" x2="${w-pad}" y2="${zeroY}" stroke="rgba(232,224,208,.12)" stroke-width="1" stroke-dasharray="4"/>
+    <line x1="${strikeX}" y1="${pad}" x2="${strikeX}" y2="${h-pad}" stroke="rgba(201,169,124,.15)" stroke-width="1" stroke-dasharray="4"/>
+    <text x="${strikeX}" y="${h-2}" text-anchor="middle" fill="rgba(232,224,208,.35)" font-size="8" font-family="JetBrains Mono">$185</text>
+    <text x="${breakX}" y="${h-2}" text-anchor="middle" fill="rgba(248,113,113,.5)" font-size="8" font-family="JetBrains Mono">B/E</text>
+    <polyline points="${pts.join(' ')}" fill="none" stroke="rgba(74,222,128,.8)" stroke-width="2"/>
+    <circle cx="${breakX}" cy="${zeroY}" r="4" fill="var(--r)" stroke="var(--bgc)" stroke-width="2"/>
+    <rect x="${pad}" y="${zeroY}" width="${breakX-pad}" height="${h/2-pad}" fill="rgba(248,113,113,.04)"/>
+    <rect x="${breakX}" y="${pad}" width="${w-pad-breakX}" height="${zeroY-pad}" fill="rgba(74,222,128,.04)"/>
+    <text x="${w-pad-4}" y="${pad+14}" text-anchor="end" fill="rgba(74,222,128,.6)" font-size="9" font-family="JetBrains Mono">+$340</text>
+    <text x="${pad+4}" y="${h-pad-4}" text-anchor="start" fill="rgba(248,113,113,.6)" font-size="9" font-family="JetBrains Mono">MAX LOSS</text>
+  `;
+})();
+
+// ═══════════════════════════════════════════
+// WHEEL TRACKER MODULE
+// ═══════════════════════════════════════════
+
+// ── Storage ──
+const WT_KEY = 'wheelTracker';
+function wtLoad() {
+  try { return JSON.parse(localStorage.getItem(WT_KEY)) || { wheels: [] }; }
+  catch { return { wheels: [] }; }
+}
+function wtSave(data) { localStorage.setItem(WT_KEY, JSON.stringify(data)); }
+
+// ── Toast ──
+function wtToast(msg, type = 'success') {
+  const t = document.getElementById('wtToast');
+  t.textContent = msg;
+  t.className = 'wt-toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ── Modals ──
+function openWtModal(id) { document.getElementById(id)?.classList.add('open'); }
+function closeWtModal(id) { document.getElementById(id)?.classList.remove('open'); }
+
+// ── Detail Overlay ──
+let activeWheelId = null;
+function openWtDetail(wheelId) {
+  activeWheelId = wheelId;
+  renderDetail(wheelId);
+  document.getElementById('wtDetail').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeWtDetail() {
+  document.getElementById('wtDetail').classList.remove('open');
+  document.body.style.overflow = '';
+  activeWheelId = null;
+}
+
+// ── Utility ──
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function fmt$(n) { return (n < 0 ? '-' : '') + '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtPct(n) { return n.toFixed(1) + '%'; }
+function daysBetween(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
+function scoreClass(s) { return s >= 80 ? 's-elite' : s >= 60 ? 's-strong' : s >= 40 ? 's-average' : 's-poor'; }
+function scoreTier(s) { return s >= 80 ? 'ELITE' : s >= 60 ? 'STRONG' : s >= 40 ? 'AVERAGE' : 'NEEDS WORK'; }
+function scoreColor(s) { return s >= 80 ? 'var(--g)' : s >= 60 ? 'var(--bl)' : s >= 40 ? 'var(--w)' : 'var(--r)'; }
+function progClass(s) { return s >= 80 ? 'green' : s >= 60 ? 'blue' : s >= 40 ? 'gold' : 'red'; }
+function scoreTip(s) {
+  if (s >= 80) return 'Outstanding discipline. You are executing the wheel like a machine. Keep this consistency.';
+  if (s >= 60) return 'Solid execution. Focus on reducing buybacks and selling calls faster after assignment.';
+  if (s >= 40) return 'Room for improvement. Try to collect premium more consistently and avoid closing positions early.';
+  return 'Review your strategy fundamentals. Focus on one ticker, sell at consistent intervals, and let time decay work.';
+}
+
+// ── Discipline Score Calculation ──
+function calcDiscipline(wheel) {
+  const txs = wheel.transactions || [];
+  if (txs.length < 2) return { consistency: 50, buyback: 100, timeToCall: 50, daysOpen: 50, behavioral: 62, overall: 62 };
+
+  // 1. Premium Consistency: % of weeks with premium when holding shares
+  const sharesTxs = txs.filter(t => ['put_assign', 'shares_buy', 'assignment'].includes(t.type));
+  const premTxs = txs.filter(t => ['sell_cc', 'sell_csp', 'sell_to_open'].includes(t.type));
+  let consistency = premTxs.length > 0 ? Math.min(100, (premTxs.length / Math.max(1, sharesTxs.length)) * 50) : 50;
+
+  // 2. Buyback Rate: % of options bought back (lower = better score)
+  const sells = txs.filter(t => ['sell_cc', 'sell_csp', 'sell_to_open'].includes(t.type)).length;
+  const buybacks = txs.filter(t => ['btc_call', 'btc_put'].includes(t.type)).length;
+  const buybackRate = sells > 0 ? (buybacks / sells) * 100 : 0;
+  const buyback = Math.max(0, 100 - buybackRate);
+
+  // 3. Time to First Call: avg days between assignment and first CC sell
+  let timeToCall = 70;
+  const assigns = txs.filter(t => ['put_assign', 'assignment'].includes(t.type));
+  const ccSells = txs.filter(t => t.type === 'sell_cc');
+  if (assigns.length > 0 && ccSells.length > 0) {
+    let totalDays = 0, count = 0;
+    assigns.forEach(a => {
+      const nextCC = ccSells.find(c => new Date(c.date) > new Date(a.date));
+      if (nextCC) { totalDays += daysBetween(a.date, nextCC.date); count++; }
+    });
+    if (count > 0) {
+      const avgDays = totalDays / count;
+      timeToCall = avgDays <= 3 ? 100 : avgDays <= 7 ? 80 : avgDays <= 14 ? 60 : avgDays <= 30 ? 40 : 20;
+    }
+  }
+
+  // 4. Days Open: average days per cycle
+  const cycles = wheel.cycles || [];
+  let daysOpen = 50;
+  if (cycles.length > 0) {
+    const avgDays = cycles.reduce((s, c) => s + (c.daysOpen || 30), 0) / cycles.length;
+    daysOpen = avgDays <= 30 ? 90 : avgDays <= 45 ? 70 : avgDays <= 60 ? 50 : 30;
+  }
+
+  // 5. Behavioral: weighted composite
+  const behavioral = Math.round(consistency * 0.3 + buyback * 0.25 + timeToCall * 0.25 + daysOpen * 0.2);
+  const overall = Math.round(consistency * 0.25 + buyback * 0.2 + timeToCall * 0.2 + daysOpen * 0.15 + behavioral * 0.2);
+
+  return {
+    consistency: Math.round(consistency),
+    buyback: Math.round(buyback),
+    timeToCall: Math.round(timeToCall),
+    daysOpen: Math.round(daysOpen),
+    behavioral: Math.round(behavioral),
+    overall: Math.round(overall)
+  };
+}
+
+// ── Wheel Calculations ──
+function calcWheel(wheel) {
+  const txs = wheel.transactions || [];
+  let totalPremium = 0, cspPremium = 0, ccPremium = 0, shares = 0, costBasis = 0;
+  let ccContracts = 0;
+
+  txs.forEach(t => {
+    const val = t.totalValue || 0;
+    switch (t.type) {
+      case 'sell_csp': case 'sell_to_open':
+        totalPremium += val; cspPremium += val; break;
+      case 'sell_cc':
+        totalPremium += val; ccPremium += val; ccContracts++; break;
+      case 'btc_call': case 'btc_put':
+        totalPremium -= Math.abs(val); break;
+      case 'put_assign': case 'assignment': case 'shares_buy':
+        shares += (t.shares || 100); costBasis += Math.abs(val); break;
+      case 'call_assign': case 'shares_sell':
+        shares -= (t.shares || 100); break;
+      case 'dividend':
+        totalPremium += val; break;
+    }
+  });
+
+  const capital = wheel.capital || costBasis || 25000;
+  const yieldPct = capital > 0 ? (totalPremium / capital) * 100 : 0;
+  const firstTx = txs.length > 0 ? txs[txs.length - 1].date : new Date().toISOString().slice(0, 10);
+  const daysActive = daysBetween(firstTx, new Date().toISOString().slice(0, 10));
+  const perShare = shares > 0 ? totalPremium / shares : totalPremium / 100;
+  const discipline = calcDiscipline(wheel);
+  const ccAvailable = Math.floor(shares / 100);
+
+  return {
+    totalPremium, cspPremium, ccPremium, shares, costBasis,
+    yieldPct, daysActive, perShare, discipline, ccAvailable,
+    capital, ccContracts
+  };
+}
+
+// ── MOCK DATA ──
+function loadMockData() {
+  const data = wtLoad();
+  if (data.wheels.length > 0) return;
+
+  data.wheels = [
+    {
+      id: uid(), sym: 'AAPL', name: 'Apple Inc.', status: 'active', capital: 19000,
+      createdAt: '2025-10-15', notes: 'Core wheel position. Conservative strikes.',
+      transactions: [
+        { id: uid(), type: 'sell_csp', date: '2025-10-15', strike: 190, expiration: '2025-11-15', premium: 3.20, contracts: 1, totalValue: 320, notes: 'Initial CSP' },
+        { id: uid(), type: 'sell_csp', date: '2025-11-18', strike: 185, expiration: '2025-12-20', premium: 2.85, contracts: 1, totalValue: 285, notes: 'Rolled down' },
+        { id: uid(), type: 'put_assign', date: '2025-12-20', strike: 185, shares: 100, totalValue: -18500, notes: 'Assigned at 185' },
+        { id: uid(), type: 'sell_cc', date: '2025-12-23', strike: 195, expiration: '2026-01-17', premium: 2.40, contracts: 1, totalValue: 240, notes: 'First CC after assign' },
+        { id: uid(), type: 'sell_cc', date: '2026-01-20', strike: 200, expiration: '2026-02-21', premium: 3.10, contracts: 1, totalValue: 310, notes: 'Higher strike' },
+        { id: uid(), type: 'dividend', date: '2026-02-14', totalValue: 25, notes: 'Q1 dividend' },
+        { id: uid(), type: 'sell_cc', date: '2026-02-24', strike: 205, expiration: '2026-03-21', premium: 1.95, contracts: 1, totalValue: 195, notes: 'Current cycle' },
+      ],
+      cycles: [
+        { id: uid(), name: 'Cycle 1', startDate: '2025-10-15', endDate: '2025-12-20', premium: 605, yieldPct: 3.2, daysOpen: 66, status: 'completed' },
+        { id: uid(), name: 'Cycle 2 (Active)', startDate: '2025-12-23', endDate: null, premium: 770, yieldPct: 4.1, daysOpen: 70, status: 'active' }
+      ]
+    },
+    {
+      id: uid(), sym: 'PLTR', name: 'Palantir Technologies', status: 'active', capital: 8500,
+      createdAt: '2025-11-01', notes: 'Higher IV play. Aggressive premiums.',
+      transactions: [
+        { id: uid(), type: 'sell_csp', date: '2025-11-01', strike: 80, expiration: '2025-11-29', premium: 4.50, contracts: 1, totalValue: 450, notes: 'High IV entry' },
+        { id: uid(), type: 'sell_csp', date: '2025-12-02', strike: 82, expiration: '2025-12-27', premium: 5.20, contracts: 1, totalValue: 520, notes: 'IV expansion' },
+        { id: uid(), type: 'btc_put', date: '2025-12-18', strike: 82, premium: 1.10, contracts: 1, totalValue: -110, notes: 'Closed early for profit' },
+        { id: uid(), type: 'sell_csp', date: '2025-12-19', strike: 85, expiration: '2026-01-17', premium: 3.80, contracts: 1, totalValue: 380, notes: 'Re-entered higher' },
+        { id: uid(), type: 'put_assign', date: '2026-01-17', strike: 85, shares: 100, totalValue: -8500, notes: 'Assigned at 85' },
+        { id: uid(), type: 'sell_cc', date: '2026-01-21', strike: 95, expiration: '2026-02-21', premium: 6.20, contracts: 1, totalValue: 620, notes: 'High premium CC' },
+        { id: uid(), type: 'sell_cc', date: '2026-02-24', strike: 100, expiration: '2026-03-21', premium: 4.50, contracts: 1, totalValue: 450, notes: 'Current cycle' },
+      ],
+      cycles: [
+        { id: uid(), name: 'Cycle 1', startDate: '2025-11-01', endDate: '2026-01-17', premium: 1240, yieldPct: 14.6, daysOpen: 77, status: 'completed' },
+        { id: uid(), name: 'Cycle 2 (Active)', startDate: '2026-01-21', endDate: null, premium: 1070, yieldPct: 12.6, daysOpen: 41, status: 'active' }
+      ]
+    },
+    {
+      id: uid(), sym: 'SOFI', name: 'SoFi Technologies', status: 'active', capital: 1800,
+      createdAt: '2026-01-06', notes: 'Small wheel. Testing position sizing.',
+      transactions: [
+        { id: uid(), type: 'sell_csp', date: '2026-01-06', strike: 17, expiration: '2026-02-07', premium: 0.85, contracts: 1, totalValue: 85, notes: 'Initial entry' },
+        { id: uid(), type: 'sell_csp', date: '2026-02-10', strike: 18, expiration: '2026-03-07', premium: 0.72, contracts: 1, totalValue: 72, notes: 'Rolled up' },
+        { id: uid(), type: 'put_assign', date: '2026-03-07', strike: 18, shares: 100, totalValue: -1800, notes: 'Assigned' },
+      ],
+      cycles: [
+        { id: uid(), name: 'Cycle 1 (Active)', startDate: '2026-01-06', endDate: null, premium: 157, yieldPct: 8.7, daysOpen: 56, status: 'active' }
+      ]
+    },
+    {
+      id: uid(), sym: 'NVDA', name: 'NVIDIA Corporation', status: 'closed', capital: 13000,
+      createdAt: '2025-08-01', notes: 'Closed after called away. Great run.',
+      transactions: [
+        { id: uid(), type: 'sell_csp', date: '2025-08-01', strike: 120, expiration: '2025-08-29', premium: 5.40, contracts: 1, totalValue: 540, notes: '' },
+        { id: uid(), type: 'sell_csp', date: '2025-09-02', strike: 125, expiration: '2025-10-03', premium: 4.80, contracts: 1, totalValue: 480, notes: '' },
+        { id: uid(), type: 'put_assign', date: '2025-10-03', strike: 125, shares: 100, totalValue: -12500, notes: '' },
+        { id: uid(), type: 'sell_cc', date: '2025-10-06', strike: 135, expiration: '2025-11-07', premium: 6.50, contracts: 1, totalValue: 650, notes: '' },
+        { id: uid(), type: 'sell_cc', date: '2025-11-10', strike: 140, expiration: '2025-12-05', premium: 5.20, contracts: 1, totalValue: 520, notes: '' },
+        { id: uid(), type: 'call_assign', date: '2025-12-05', strike: 140, shares: 100, totalValue: 14000, notes: 'Called away at 140' },
+      ],
+      cycles: [
+        { id: uid(), name: 'Cycle 1', startDate: '2025-08-01', endDate: '2025-10-03', premium: 1020, yieldPct: 7.8, daysOpen: 63, status: 'completed' },
+        { id: uid(), name: 'Cycle 2', startDate: '2025-10-06', endDate: '2025-12-05', premium: 1170, yieldPct: 9.0, daysOpen: 60, status: 'completed' }
+      ]
+    }
+  ];
+  wtSave(data);
+}
+
+// ── RENDER: Stats Row ──
+function renderWtStats() {
+  const data = wtLoad();
+  const wheels = data.wheels;
+  const activeCount = wheels.filter(w => w.status === 'active').length;
+  let totalPrem = 0, totalYield = 0, totalDisc = 0, count = 0;
+
+  wheels.forEach(w => {
+    const c = calcWheel(w);
+    totalPrem += c.totalPremium;
+    totalYield += c.yieldPct;
+    totalDisc += c.discipline.overall;
+    count++;
+  });
+
+  const avgYield = count > 0 ? totalYield / count : 0;
+  const avgDisc = count > 0 ? totalDisc / count : 0;
+
+  document.getElementById('wtStats').innerHTML = `
+    <div class="card">
+      <div class="wt-stat-icon gold"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M6 12h12"/></svg></div>
+      <div class="stat-v">${activeCount}</div>
+      <div class="stat-sub">Active Wheels</div>
+    </div>
+    <div class="card">
+      <div class="wt-stat-icon green"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="2"><path d="M12 2v20M17 7l-5-5-5 5"/></svg></div>
+      <div class="stat-v gain">${fmt$(totalPrem)}</div>
+      <div class="stat-sub">Total Premium</div>
+    </div>
+    <div class="card">
+      <div class="wt-stat-icon blue"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bl)" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+      <div class="stat-v" style="color:var(--bl)">${fmtPct(avgYield)}</div>
+      <div class="stat-sub">Avg Yield</div>
+    </div>
+    <div class="card">
+      <div class="wt-stat-icon purple"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mg)" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg></div>
+      <div class="stat-v wt-score ${scoreClass(avgDisc)}">${Math.round(avgDisc)}</div>
+      <div class="stat-sub">Discipline Score</div>
+    </div>
+  `;
+}
+
+// ── RENDER: Wheel Cards Grid ──
+function renderWtGrid(filter = 'all') {
+  const data = wtLoad();
+  let wheels = data.wheels;
+  if (filter !== 'all') wheels = wheels.filter(w => w.status === filter);
+
+  if (wheels.length === 0) {
+    document.getElementById('wtGrid').innerHTML = `
+      <div class="wt-empty" style="grid-column:1/-1">
+        <div class="wt-empty-icon">&#9881;</div>
+        <div class="wt-empty-title">No Wheels Yet</div>
+        <div class="wt-empty-sub">Start your first wheel by clicking the "+ New Wheel" button above. Track every CSP, CC, assignment, and dividend.</div>
+        <button class="btn btn-g" onclick="openWtModal('createWheel')">+ Create First Wheel</button>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('wtGrid').innerHTML = wheels.map(w => {
+    const c = calcWheel(w);
+    const d = c.discipline;
+    const statusBadge = w.status === 'active' ? 'badge-csp' : w.status === 'closed' ? 'badge-closed' : 'badge-completed';
+    const statusLabel = w.status.charAt(0).toUpperCase() + w.status.slice(1);
+    const cycleHealth = Math.min(100, Math.max(0, d.overall));
+
+    return `
+    <div class="wt-card" onclick="openWtDetail('${w.id}')">
+      <div class="wt-card-top">
+        ${tkLogo(w.sym, 'tk-logo-lg')}
+        <div>
+          <div class="wt-card-sym">${w.sym}</div>
+          <div class="wt-card-name">${w.name || ''}</div>
+        </div>
+        <span class="badge ${statusBadge} wt-card-badge">${statusLabel}</span>
+      </div>
+      <div class="wt-card-body">
+        <div class="wt-card-row">
+          <span class="wt-card-lbl">Total Premium</span>
+          <span class="wt-card-val gain">${fmt$(c.totalPremium)}</span>
+        </div>
+        <div class="wt-card-row">
+          <span class="wt-card-lbl">Yield</span>
+          <span class="wt-card-val" style="color:var(--bl)">${fmtPct(c.yieldPct)}</span>
+        </div>
+        <div class="wt-card-divider"></div>
+        <div class="wt-card-row">
+          <span class="wt-card-lbl">Cost Basis</span>
+          <span class="wt-card-val m">${fmt$(c.costBasis)}</span>
+        </div>
+        <div class="wt-card-row">
+          <span class="wt-card-lbl">Shares Held</span>
+          <span class="wt-card-val m">${c.shares}</span>
+        </div>
+        <div class="wt-card-row">
+          <span class="wt-card-lbl">CC Available</span>
+          <span class="wt-card-val m">${c.ccAvailable}</span>
+        </div>
+        <div class="wt-card-row">
+          <span class="wt-card-lbl">Days Active</span>
+          <span class="wt-card-val m">${c.daysActive}d</span>
+        </div>
+        <div class="wt-card-row">
+          <span class="wt-card-lbl">Discipline</span>
+          <span class="wt-card-val wt-score ${scoreClass(d.overall)}">${d.overall}</span>
+        </div>
+      </div>
+      <div class="wt-card-cycle-bar">
+        <div class="prog"><div class="prog-f ${progClass(cycleHealth)}" style="width:${cycleHealth}%"></div></div>
+      </div>
+      <div class="wt-card-footer">
+        <button class="btn btn-sm btn-g" onclick="event.stopPropagation();activeWheelId='${w.id}';openNewTx()">+ Quick Add</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();openWtDetail('${w.id}')">View</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER: Table View ──
+function renderWtTable(filter = 'all') {
+  const data = wtLoad();
+  let wheels = data.wheels;
+  if (filter !== 'all') wheels = wheels.filter(w => w.status === filter);
+
+  document.getElementById('wtTableBody').innerHTML = wheels.map(w => {
+    const c = calcWheel(w);
+    const d = c.discipline;
+    const statusBadge = w.status === 'active' ? 'badge-csp' : w.status === 'closed' ? 'badge-closed' : 'badge-completed';
+    return `
+    <tr style="cursor:pointer" onclick="openWtDetail('${w.id}')">
+      <td><div class="tk-cell">${tkLogo(w.sym)}<span style="font-family:var(--fd);font-weight:700;letter-spacing:1px">${w.sym}</span></div></td>
+      <td><span class="badge ${statusBadge}">${w.status}</span></td>
+      <td class="m gain">${fmt$(c.totalPremium)}</td>
+      <td class="m" style="color:var(--bl)">${fmtPct(c.yieldPct)}</td>
+      <td><span class="wt-score ${scoreClass(d.overall)}" style="font-family:var(--fd);font-weight:700">${d.overall}</span></td>
+      <td class="m">${fmt$(c.costBasis)}</td>
+      <td class="m">${c.shares}</td>
+      <td class="m">${c.daysActive}d</td>
+      <td><button class="btn btn-sm" onclick="event.stopPropagation();activeWheelId='${w.id}';openNewTx()">+ Add</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── RENDER: Detail Overlay ──
+function renderDetail(wheelId) {
+  const data = wtLoad();
+  const w = data.wheels.find(x => x.id === wheelId);
+  if (!w) return;
+  const c = calcWheel(w);
+  const d = c.discipline;
+  const statusBadge = w.status === 'active' ? 'badge-csp' : w.status === 'closed' ? 'badge-closed' : 'badge-completed';
+
+  const container = document.getElementById('wtDetailContent');
+  container.innerHTML = `
+    <!-- Header -->
+    <div class="wt-detail-header">
+      <div style="display:flex;align-items:center;gap:14px">
+        ${tkLogo(w.sym, 'tk-logo-lg')}
+        <div class="wt-detail-info">
+          <div class="wt-detail-sym">${w.sym}</div>
+          <div class="wt-detail-meta">${w.name || ''} &middot; Started ${w.createdAt} &middot; <span class="badge ${statusBadge}">${w.status}</span></div>
+        </div>
+      </div>
+      <div class="wt-detail-stats">
+        <div class="wt-detail-stat">
+          <div class="wt-detail-stat-val gain">${fmt$(c.totalPremium)}</div>
+          <div class="wt-detail-stat-lbl">Total Premium</div>
+        </div>
+        <div class="wt-detail-stat">
+          <div class="wt-detail-stat-val" style="color:var(--bl)">${fmtPct(c.yieldPct)}</div>
+          <div class="wt-detail-stat-lbl">Yield</div>
+        </div>
+        <div class="wt-detail-stat">
+          <div class="wt-detail-stat-val wt-score ${scoreClass(d.overall)}">${d.overall}</div>
+          <div class="wt-detail-stat-lbl">Discipline</div>
+        </div>
+        <div class="wt-detail-stat">
+          <div class="wt-detail-stat-val">${c.shares}</div>
+          <div class="wt-detail-stat-lbl">Shares</div>
+        </div>
+      </div>
+    </div>
+    <div class="wt-detail-actions" style="margin-bottom:20px">
+      <button class="btn btn-g btn-sm" onclick="activeWheelId='${w.id}';openNewTx()">+ New Transaction</button>
+      <button class="btn btn-sm" onclick="closeCycle('${w.id}')">Close Cycle</button>
+      <button class="btn btn-sm" onclick="startNewCycle('${w.id}')">New Cycle</button>
+      <button class="btn btn-sm" style="border-color:var(--rbr);color:var(--r)" onclick="archiveWheel('${w.id}')">Archive</button>
+    </div>
+
+    <!-- Sub-tabs -->
+    <div class="wt-detail-tabs">
+      <button class="wt-detail-tab active" data-panel="dtTransactions">Transactions</button>
+      <button class="wt-detail-tab" data-panel="dtCycles">Cycle History</button>
+      <button class="wt-detail-tab" data-panel="dtDiscipline">Discipline</button>
+      <button class="wt-detail-tab" data-panel="dtAnalytics">Analytics</button>
+      <button class="wt-detail-tab" data-panel="dtCalendar">Calendar</button>
+    </div>
+
+    <!-- Transaction Log -->
+    <div class="wt-detail-panel active" id="dtTransactions">
+      ${renderTxTable(w)}
+    </div>
+
+    <!-- Cycle History -->
+    <div class="wt-detail-panel" id="dtCycles">
+      ${renderCycles(w, c)}
+    </div>
+
+    <!-- Discipline -->
+    <div class="wt-detail-panel" id="dtDiscipline">
+      ${renderDisciplinePanel(d)}
+    </div>
+
+    <!-- Analytics -->
+    <div class="wt-detail-panel" id="dtAnalytics">
+      ${renderAnalytics(w, c)}
+    </div>
+
+    <!-- Calendar -->
+    <div class="wt-detail-panel" id="dtCalendar">
+      <div id="wtDetailCalendar"></div>
+    </div>
+  `;
+
+  // Wire sub-tabs
+  container.querySelectorAll('.wt-detail-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      container.querySelectorAll('.wt-detail-tab').forEach(t => t.classList.remove('active'));
+      container.querySelectorAll('.wt-detail-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.panel).classList.add('active');
+      if (tab.dataset.panel === 'dtCalendar') {
+        renderCalendar(document.getElementById('wtDetailCalendar'), w.transactions, new Date().getFullYear(), new Date().getMonth());
+      }
+    });
+  });
+}
+
+// ── RENDER: Transaction Table ──
+function renderTxTable(wheel) {
+  const txs = (wheel.transactions || []).slice().reverse();
+  if (txs.length === 0) return '<div class="wt-empty"><div class="wt-empty-title">No Transactions</div><div class="wt-empty-sub">Add your first transaction to start tracking.</div></div>';
+
+  const typeLabels = {
+    sell_csp: 'Sell CSP', sell_cc: 'Sell CC', btc_call: 'BTC Call', btc_put: 'BTC Put',
+    put_assign: 'Put Assign', call_assign: 'Call Assign', shares_buy: 'Shares Buy',
+    shares_sell: 'Shares Sell', sell_to_open: 'Sell to Open', dividend: 'Dividend',
+    assignment: 'Assignment', quick_add: 'Quick Add', other: 'Other'
+  };
+  const dotClass = (t) => {
+    if (['sell_csp', 'btc_put'].includes(t)) return 'csp';
+    if (['sell_cc', 'btc_call'].includes(t)) return 'cc';
+    if (['put_assign', 'call_assign', 'assignment'].includes(t)) return 'assign';
+    if (['shares_buy', 'shares_sell'].includes(t)) return 'shares';
+    if (t === 'dividend') return 'div';
+    return 'other';
+  };
+
+  return `
+    <div class="card" style="padding:0;overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>Date</th><th>Type</th><th>Strike</th><th>Premium</th><th>Contracts</th><th>Credit/Debit</th><th>Notes</th>
+          <th></th>
+        </tr></thead>
+        <tbody>
+          ${txs.map(t => {
+            const isCredit = t.totalValue >= 0;
+            return `<tr>
+              <td class="m">${t.date}</td>
+              <td><div class="wt-tx-type"><span class="wt-tx-dot ${dotClass(t.type)}"></span>${typeLabels[t.type] || t.type}</div></td>
+              <td class="m">${t.strike ? '$' + t.strike : '\u2014'}</td>
+              <td class="m">${t.premium ? '$' + t.premium.toFixed(2) : '\u2014'}</td>
+              <td class="m">${t.contracts || t.shares || '\u2014'}</td>
+              <td class="m ${isCredit ? 'wt-credit' : 'wt-debit'}">${isCredit ? '+' : ''}${fmt$(t.totalValue)}</td>
+              <td style="color:var(--t4);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.notes || ''}</td>
+              <td><button class="btn btn-sm" style="border-color:var(--rbr);color:var(--r);padding:4px 8px;font-size:9px" onclick="event.stopPropagation();deleteTx('${activeWheelId}','${t.id}')">DEL</button></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ── RENDER: Cycles ──
+function renderCycles(wheel, calc) {
+  const cycles = wheel.cycles || [];
+  if (cycles.length === 0) return '<div class="wt-empty"><div class="wt-empty-title">No Cycles</div></div>';
+
+  return cycles.map((cy, i) => {
+    const isActive = cy.status === 'active';
+    return `
+    <div class="wt-cycle ${i === 0 ? 'open' : ''}" onclick="this.classList.toggle('open')">
+      <div class="wt-cycle-head">
+        <span class="wt-cycle-chevron">&#9654;</span>
+        <span class="wt-cycle-title">${cy.name}</span>
+        <span class="badge ${isActive ? 'badge-csp' : 'badge-completed'}">${cy.status}</span>
+        <div class="wt-cycle-summary">
+          <span>Premium: <span class="gain">${fmt$(cy.premium)}</span></span>
+          <span>Yield: <span style="color:var(--bl)">${fmtPct(cy.yieldPct)}</span></span>
+          <span>${cy.daysOpen}d</span>
+        </div>
+      </div>
+      <div class="wt-cycle-body">
+        <div class="wt-cycle-stats">
+          <div class="wt-cycle-stat">
+            <div class="wt-cycle-stat-val gain">${fmt$(cy.premium)}</div>
+            <div class="wt-cycle-stat-lbl">Premium</div>
+          </div>
+          <div class="wt-cycle-stat">
+            <div class="wt-cycle-stat-val" style="color:var(--bl)">${fmtPct(cy.yieldPct)}</div>
+            <div class="wt-cycle-stat-lbl">Yield</div>
+          </div>
+          <div class="wt-cycle-stat">
+            <div class="wt-cycle-stat-val">${cy.daysOpen}</div>
+            <div class="wt-cycle-stat-lbl">Days</div>
+          </div>
+          <div class="wt-cycle-stat">
+            <div class="wt-cycle-stat-val">${cy.startDate} &rarr; ${cy.endDate || 'Now'}</div>
+            <div class="wt-cycle-stat-lbl">Period</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER: Discipline Panel ──
+function renderDisciplinePanel(d) {
+  const metrics = [
+    { label: 'Premium Consistency', value: d.consistency, desc: 'How regularly you collect premium when holding shares' },
+    { label: 'Buyback Rate', value: d.buyback, desc: 'Lower buyback rate = higher score (let options expire)' },
+    { label: 'Time to First Call', value: d.timeToCall, desc: 'Speed of selling first CC after assignment' },
+    { label: 'Days Open', value: d.daysOpen, desc: 'Average cycle duration efficiency' },
+    { label: 'Behavioral Score', value: d.behavioral, desc: 'Composite of all metrics above' },
+  ];
+
+  const circumference = 2 * Math.PI * 54;
+  const offset = circumference - (d.overall / 100) * circumference;
+
+  return `
+    <div class="wt-disc-panel">
+      <div class="wt-disc-bars">
+        ${metrics.map(m => `
+          <div class="wt-disc-metric">
+            <div class="wt-disc-metric-lbl">${m.label}</div>
+            <div class="wt-disc-metric-bar">
+              <div class="wt-disc-metric-fill ${progClass(m.value)}" style="width:${m.value}%"></div>
+            </div>
+            <div class="wt-disc-metric-val" style="color:${scoreColor(m.value)}">${m.value}</div>
+          </div>
+          <div style="font-size:11px;color:var(--t5);margin-left:152px;margin-top:-8px;margin-bottom:4px">${m.desc}</div>
+        `).join('')}
+      </div>
+      <div class="wt-disc-summary">
+        <div class="wt-disc-ring">
+          <svg viewBox="0 0 120 120">
+            <circle class="ring-bg" cx="60" cy="60" r="54" stroke-dasharray="${circumference}" stroke-dashoffset="0"/>
+            <circle class="ring-fill" cx="60" cy="60" r="54" stroke="${scoreColor(d.overall)}"
+              stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
+              style="filter:drop-shadow(0 0 6px ${scoreColor(d.overall)})"/>
+          </svg>
+          <span class="wt-disc-score wt-score ${scoreClass(d.overall)}">${d.overall}</span>
+        </div>
+        <div class="wt-disc-tier" style="color:${scoreColor(d.overall)}">${scoreTier(d.overall)}</div>
+        <div class="wt-disc-tip">${scoreTip(d.overall)}</div>
+      </div>
+    </div>`;
+}
+
+// ── RENDER: Analytics ──
+function renderAnalytics(wheel, calc) {
+  const c = calc;
+  const cspPct = c.totalPremium > 0 ? (c.cspPremium / c.totalPremium) * 100 : 50;
+  const ccPct = 100 - cspPct;
+  const cycles = wheel.cycles || [];
+
+  // Cycle comparison bars
+  const maxYield = Math.max(...cycles.map(cy => cy.yieldPct), 1);
+  const barColors = ['green', 'blue', 'gold', 'red', 'purple'];
+
+  return `
+    <div class="wt-ana-grid">
+      <div class="card">
+        <div class="card-label">Total Premium Collected</div>
+        <div class="stat-v gain" style="font-size:28px;margin-bottom:8px">${fmt$(c.totalPremium)}</div>
+        <div style="display:flex;gap:20px;font-family:var(--fm);font-size:11px;color:var(--t4)">
+          <span>CSP: <span class="gain">${fmt$(c.cspPremium)}</span></span>
+          <span>CC: <span style="color:var(--bl)">${fmt$(c.ccPremium)}</span></span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">Premium Per Share</div>
+        <div class="stat-v" style="font-size:28px;color:var(--ac)">${fmt$(c.perShare)}</div>
+        <div class="stat-sub" style="margin-top:6px">${c.shares} shares held</div>
+      </div>
+      <div class="card wt-ana-full">
+        <div class="card-label">CSP vs CC Premium Mix</div>
+        <div class="wt-ana-bar">
+          <div class="wt-ana-bar-seg csp" style="width:${cspPct}%">CSP ${cspPct.toFixed(0)}%</div>
+          <div class="wt-ana-bar-seg cc" style="width:${ccPct}%">CC ${ccPct.toFixed(0)}%</div>
+        </div>
+      </div>
+      <div class="card wt-ana-full">
+        <div class="card-label">Yield by Cycle</div>
+        <div class="wt-chart-bars">
+          ${cycles.map((cy, i) => `
+            <div class="wt-chart-col">
+              <div class="wt-chart-bar ${barColors[i % barColors.length]}" style="height:${(cy.yieldPct / maxYield) * 100}%">
+                <span class="wt-chart-val">${fmtPct(cy.yieldPct)}</span>
+              </div>
+              <span class="wt-chart-lbl">${cy.name.replace(/\\s*\\(.*\\)/, '').replace('Cycle ', 'C')}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="wt-export-row">
+      <button class="btn btn-sm" onclick="exportCSV('${wheel.id}')">Export CSV</button>
+      <button class="btn btn-sm" onclick="exportPDF()">Export PDF</button>
+    </div>`;
+}
+
+// ── RENDER: Calendar ──
+function renderCalendar(container, transactions, year, month) {
+  const txs = transactions || [];
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  // Group transactions by date
+  const txByDate = {};
+  txs.forEach(t => {
+    const d = t.date;
+    if (!txByDate[d]) txByDate[d] = [];
+    txByDate[d].push(t);
+  });
+
+  const dotType = (t) => {
+    if (['sell_csp', 'btc_put'].includes(t)) return 'csp';
+    if (['sell_cc', 'btc_call'].includes(t)) return 'cc';
+    if (['put_assign', 'call_assign', 'assignment'].includes(t)) return 'assign';
+    if (t === 'dividend') return 'div';
+    return 'loss';
+  };
+
+  let html = `
+    <div class="wt-cal">
+      <div class="wt-cal-head">
+        <button class="wt-cal-nav-btn" onclick="calNav(this,-1)">&lt;</button>
+        <span class="wt-cal-month">${monthNames[month]} ${year}</span>
+        <button class="wt-cal-nav-btn" onclick="calNav(this,1)">&gt;</button>
+      </div>
+      <div class="wt-cal-grid">
+        <div class="wt-cal-dow">Sun</div><div class="wt-cal-dow">Mon</div><div class="wt-cal-dow">Tue</div>
+        <div class="wt-cal-dow">Wed</div><div class="wt-cal-dow">Thu</div><div class="wt-cal-dow">Fri</div><div class="wt-cal-dow">Sat</div>`;
+
+  // Empty cells before first day
+  for (let i = 0; i < firstDay; i++) html += '<div class="wt-cal-day empty"></div>';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
+    const dayTxs = txByDate[dateStr] || [];
+    const dots = dayTxs.map(t => `<span class="wt-cal-dot ${dotType(t.type)}"></span>`).join('');
+
+    html += `<div class="wt-cal-day ${isToday ? 'today' : ''}" data-date="${dateStr}" onclick="toggleCalPopup(this)">
+      <span class="wt-cal-num">${d}</span>
+      <div class="wt-cal-dots">${dots}</div>
+      ${dayTxs.length > 0 ? `<div class="wt-cal-popup">
+        <div class="wt-cal-popup-title">${dateStr}</div>
+        ${dayTxs.map(t => `<div class="wt-cal-popup-item">
+          <span class="wt-tx-dot ${dotType(t.type)}"></span>
+          <span>${t.type.replace(/_/g,' ')}</span>
+          <span style="margin-left:auto;font-family:var(--fm);font-size:11px" class="${t.totalValue>=0?'wt-credit':'wt-debit'}">${fmt$(t.totalValue)}</span>
+        </div>`).join('')}
+      </div>` : ''}
+    </div>`;
+  }
+
+  html += `</div>
+    <div class="wt-cal-legend">
+      <div class="wt-cal-legend-item"><span class="wt-cal-legend-dot" style="background:var(--g)"></span>CSP</div>
+      <div class="wt-cal-legend-item"><span class="wt-cal-legend-dot" style="background:var(--bl)"></span>CC</div>
+      <div class="wt-cal-legend-item"><span class="wt-cal-legend-dot" style="background:var(--ac)"></span>Assignment</div>
+      <div class="wt-cal-legend-item"><span class="wt-cal-legend-dot" style="background:var(--r)"></span>Loss/Other</div>
+      <div class="wt-cal-legend-item"><span class="wt-cal-legend-dot" style="background:var(--mg)"></span>Dividend</div>
+    </div>
+  </div>`;
+
+  container.innerHTML = html;
+  // Store state for nav
+  container.dataset.year = year;
+  container.dataset.month = month;
+}
+
+function calNav(btn, dir) {
+  const container = btn.closest('.wt-cal') ? btn.closest('.wt-cal').parentElement : btn.closest('.wt-modal-body')?.querySelector('#wtCalendar') || document.getElementById('wtDetailCalendar');
+  let y = parseInt(container.dataset.year);
+  let m = parseInt(container.dataset.month) + dir;
+  if (m < 0) { m = 11; y--; }
+  if (m > 11) { m = 0; y++; }
+  // Get transactions from active wheel or all
+  let txs = [];
+  if (activeWheelId) {
+    const w = wtLoad().wheels.find(x => x.id === activeWheelId);
+    if (w) txs = w.transactions || [];
+  } else {
+    wtLoad().wheels.forEach(w => txs.push(...(w.transactions || [])));
+  }
+  renderCalendar(container, txs, y, m);
+}
+
+function toggleCalPopup(dayEl) {
+  const popup = dayEl.querySelector('.wt-cal-popup');
+  if (!popup) return;
+  // Close all others
+  document.querySelectorAll('.wt-cal-popup.open').forEach(p => { if (p !== popup) p.classList.remove('open'); });
+  popup.classList.toggle('open');
+}
+
+// ── CREATE WHEEL ──
+function createWheel() {
+  const sym = document.getElementById('cwTicker').value.trim().toUpperCase();
+  if (!sym) { wtToast('Enter a ticker symbol', 'error'); return; }
+  const data = wtLoad();
+  if (data.wheels.find(w => w.sym === sym && w.status === 'active')) {
+    wtToast('Active wheel for ' + sym + ' already exists', 'error'); return;
+  }
+  data.wheels.unshift({
+    id: uid(), sym, name: document.getElementById('cwName').value.trim(),
+    status: 'active', capital: parseFloat(document.getElementById('cwCapital').value) || 0,
+    createdAt: new Date().toISOString().slice(0, 10),
+    notes: document.getElementById('cwNotes').value.trim(),
+    transactions: [], cycles: [{ id: uid(), name: 'Cycle 1', startDate: new Date().toISOString().slice(0, 10), endDate: null, premium: 0, yieldPct: 0, daysOpen: 0, status: 'active' }]
+  });
+  wtSave(data);
+  closeWtModal('createWheel');
+  document.getElementById('cwTicker').value = '';
+  document.getElementById('cwName').value = '';
+  document.getElementById('cwCapital').value = '';
+  document.getElementById('cwNotes').value = '';
+  renderAll();
+  wtToast('Wheel created for ' + sym);
+}
+
+// ── TRANSACTION FORM ──
+let selectedTxType = 'sell_csp';
+
+function openNewTx() {
+  selectedTxType = 'sell_csp';
+  document.querySelectorAll('#txTypeSelector .wt-tx-type-btn').forEach(b => {
+    b.classList.remove('active', 'csp', 'cc');
+    if (b.dataset.type === 'sell_csp') b.classList.add('active', 'csp');
+  });
+  document.getElementById('txDate').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('txNotes').value = '';
+  renderTxFields();
+  updateTxTotal();
+  openWtModal('newTransaction');
+}
+
+// Wire tx type buttons
+document.getElementById('txTypeSelector').addEventListener('click', e => {
+  const btn = e.target.closest('.wt-tx-type-btn');
+  if (!btn) return;
+  document.querySelectorAll('#txTypeSelector .wt-tx-type-btn').forEach(b => b.classList.remove('active', 'csp', 'cc'));
+  btn.classList.add('active');
+  selectedTxType = btn.dataset.type;
+  // Color coding
+  if (['sell_csp', 'btc_put', 'put_assign'].includes(selectedTxType)) btn.classList.add('csp');
+  else if (['sell_cc', 'btc_call', 'call_assign'].includes(selectedTxType)) btn.classList.add('cc');
+  renderTxFields();
+  updateTxTotal();
+});
+
+function renderTxFields() {
+  const c = document.getElementById('txFields');
+  const isOption = ['sell_csp', 'sell_cc', 'btc_call', 'btc_put', 'sell_to_open'].includes(selectedTxType);
+  const isAssign = ['put_assign', 'call_assign', 'assignment'].includes(selectedTxType);
+  const isShares = ['shares_buy', 'shares_sell'].includes(selectedTxType);
+  const isDiv = selectedTxType === 'dividend';
+  const isOther = selectedTxType === 'other' || selectedTxType === 'quick_add';
+
+  if (isOption) {
+    c.innerHTML = `
+      <div class="wt-form-row">
+        <div class="wt-form-group"><label class="wt-form-label">Strike Price</label><input class="inp" id="txStrike" type="number" step="0.5" placeholder="185.00" oninput="updateTxTotal()"></div>
+        <div class="wt-form-group"><label class="wt-form-label">Expiration</label><input class="inp" id="txExp" type="date" value="${getFriday()}"></div>
+      </div>
+      <div class="wt-form-row">
+        <div class="wt-form-group"><label class="wt-form-label">Premium (per share)</label><input class="inp" id="txPremium" type="number" step="0.01" placeholder="3.20" oninput="updateTxTotal()"></div>
+        <div class="wt-form-group"><label class="wt-form-label">Contracts</label><input class="inp" id="txContracts" type="number" value="1" min="1" oninput="updateTxTotal()"></div>
+      </div>`;
+  } else if (isAssign) {
+    c.innerHTML = `
+      <div class="wt-form-row">
+        <div class="wt-form-group"><label class="wt-form-label">Strike / Price</label><input class="inp" id="txStrike" type="number" step="0.5" placeholder="185.00" oninput="updateTxTotal()"></div>
+        <div class="wt-form-group"><label class="wt-form-label">Shares</label><input class="inp" id="txShares" type="number" value="100" step="100" oninput="updateTxTotal()"></div>
+      </div>`;
+  } else if (isShares) {
+    c.innerHTML = `
+      <div class="wt-form-row">
+        <div class="wt-form-group"><label class="wt-form-label">Price Per Share</label><input class="inp" id="txStrike" type="number" step="0.01" placeholder="185.00" oninput="updateTxTotal()"></div>
+        <div class="wt-form-group"><label class="wt-form-label">Number of Shares</label><input class="inp" id="txShares" type="number" value="100" step="1" oninput="updateTxTotal()"></div>
+      </div>`;
+  } else if (isDiv) {
+    c.innerHTML = `
+      <div class="wt-form-group"><label class="wt-form-label">Dividend Amount ($)</label><input class="inp" id="txDivAmount" type="number" step="0.01" placeholder="25.00" oninput="updateTxTotal()"></div>`;
+  } else {
+    c.innerHTML = `
+      <div class="wt-form-row">
+        <div class="wt-form-group"><label class="wt-form-label">Amount ($)</label><input class="inp" id="txOtherAmount" type="number" step="0.01" placeholder="100.00" oninput="updateTxTotal()"></div>
+        <div class="wt-form-group"><label class="wt-form-label">Credit or Debit</label>
+          <select class="inp" id="txOtherDir"><option value="credit">Credit (+)</option><option value="debit">Debit (-)</option></select></div>
+      </div>`;
+  }
+}
+
+function getFriday() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = (5 - day + 7) % 7 || 7;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().slice(0, 10);
+}
+
+function updateTxTotal() {
+  const isOption = ['sell_csp', 'sell_cc', 'btc_call', 'btc_put', 'sell_to_open'].includes(selectedTxType);
+  const isAssign = ['put_assign', 'call_assign', 'assignment'].includes(selectedTxType);
+  const isShares = ['shares_buy', 'shares_sell'].includes(selectedTxType);
+  const isDiv = selectedTxType === 'dividend';
+
+  let total = 0;
+  if (isOption) {
+    const prem = parseFloat(document.getElementById('txPremium')?.value) || 0;
+    const contracts = parseInt(document.getElementById('txContracts')?.value) || 1;
+    total = prem * contracts * 100;
+    if (['btc_call', 'btc_put'].includes(selectedTxType)) total = -total;
+  } else if (isAssign || isShares) {
+    const price = parseFloat(document.getElementById('txStrike')?.value) || 0;
+    const shares = parseInt(document.getElementById('txShares')?.value) || 100;
+    total = price * shares;
+    if (['put_assign', 'assignment', 'shares_buy'].includes(selectedTxType)) total = -total;
+  } else if (isDiv) {
+    total = parseFloat(document.getElementById('txDivAmount')?.value) || 0;
+  } else {
+    const amt = parseFloat(document.getElementById('txOtherAmount')?.value) || 0;
+    const dir = document.getElementById('txOtherDir')?.value;
+    total = dir === 'debit' ? -amt : amt;
+  }
+
+  const el = document.getElementById('txTotalValue');
+  el.textContent = (total >= 0 ? '+' : '') + fmt$(total);
+  el.className = 'wt-calc-value ' + (total >= 0 ? 'gain' : 'loss');
+}
+
+function submitTransaction() {
+  if (!activeWheelId) { wtToast('No wheel selected', 'error'); return; }
+  const data = wtLoad();
+  const w = data.wheels.find(x => x.id === activeWheelId);
+  if (!w) return;
+
+  const isOption = ['sell_csp', 'sell_cc', 'btc_call', 'btc_put', 'sell_to_open'].includes(selectedTxType);
+  const isAssign = ['put_assign', 'call_assign', 'assignment'].includes(selectedTxType);
+  const isShares = ['shares_buy', 'shares_sell'].includes(selectedTxType);
+  const isDiv = selectedTxType === 'dividend';
+
+  const tx = {
+    id: uid(),
+    type: selectedTxType,
+    date: document.getElementById('txDate').value || new Date().toISOString().slice(0, 10),
+    notes: document.getElementById('txNotes').value.trim(),
+    totalValue: 0
+  };
+
+  if (isOption) {
+    tx.strike = parseFloat(document.getElementById('txStrike')?.value) || 0;
+    tx.expiration = document.getElementById('txExp')?.value || '';
+    tx.premium = parseFloat(document.getElementById('txPremium')?.value) || 0;
+    tx.contracts = parseInt(document.getElementById('txContracts')?.value) || 1;
+    tx.totalValue = tx.premium * tx.contracts * 100;
+    if (['btc_call', 'btc_put'].includes(selectedTxType)) tx.totalValue = -tx.totalValue;
+  } else if (isAssign || isShares) {
+    tx.strike = parseFloat(document.getElementById('txStrike')?.value) || 0;
+    tx.shares = parseInt(document.getElementById('txShares')?.value) || 100;
+    tx.totalValue = tx.strike * tx.shares;
+    if (['put_assign', 'assignment', 'shares_buy'].includes(selectedTxType)) tx.totalValue = -tx.totalValue;
+  } else if (isDiv) {
+    tx.totalValue = parseFloat(document.getElementById('txDivAmount')?.value) || 0;
+  } else {
+    const amt = parseFloat(document.getElementById('txOtherAmount')?.value) || 0;
+    const dir = document.getElementById('txOtherDir')?.value;
+    tx.totalValue = dir === 'debit' ? -amt : amt;
+  }
+
+  w.transactions.push(tx);
+
+  // Update active cycle premium
+  const activeCycle = (w.cycles || []).find(c => c.status === 'active');
+  if (activeCycle && tx.totalValue > 0) {
+    activeCycle.premium += tx.totalValue;
+    const capital = w.capital || 25000;
+    activeCycle.yieldPct = (activeCycle.premium / capital) * 100;
+    activeCycle.daysOpen = daysBetween(activeCycle.startDate, new Date().toISOString().slice(0, 10));
+  }
+
+  wtSave(data);
+  closeWtModal('newTransaction');
+  renderAll();
+  if (activeWheelId && document.getElementById('wtDetail').classList.contains('open')) {
+    renderDetail(activeWheelId);
+  }
+  wtToast('Transaction added to ' + w.sym);
+}
+
+// ── Delete Transaction ──
+function deleteTx(wheelId, txId) {
+  const data = wtLoad();
+  const w = data.wheels.find(x => x.id === wheelId);
+  if (!w) return;
+  w.transactions = w.transactions.filter(t => t.id !== txId);
+  wtSave(data);
+  renderAll();
+  if (activeWheelId) renderDetail(activeWheelId);
+  wtToast('Transaction deleted');
+}
+
+// ── Cycle Management ──
+function closeCycle(wheelId) {
+  const data = wtLoad();
+  const w = data.wheels.find(x => x.id === wheelId);
+  if (!w) return;
+  const active = (w.cycles || []).find(c => c.status === 'active');
+  if (active) {
+    active.status = 'completed';
+    active.endDate = new Date().toISOString().slice(0, 10);
+    active.daysOpen = daysBetween(active.startDate, active.endDate);
+  }
+  wtSave(data);
+  renderAll();
+  renderDetail(wheelId);
+  wtToast('Cycle closed');
+}
+
+function startNewCycle(wheelId) {
+  const data = wtLoad();
+  const w = data.wheels.find(x => x.id === wheelId);
+  if (!w) return;
+  // Close active cycle first
+  const active = (w.cycles || []).find(c => c.status === 'active');
+  if (active) {
+    active.status = 'completed';
+    active.endDate = new Date().toISOString().slice(0, 10);
+    active.daysOpen = daysBetween(active.startDate, active.endDate);
+  }
+  const num = (w.cycles || []).length + 1;
+  if (!w.cycles) w.cycles = [];
+  w.cycles.unshift({ id: uid(), name: 'Cycle ' + num, startDate: new Date().toISOString().slice(0, 10), endDate: null, premium: 0, yieldPct: 0, daysOpen: 0, status: 'active' });
+  wtSave(data);
+  renderAll();
+  renderDetail(wheelId);
+  wtToast('New cycle started');
+}
+
+function archiveWheel(wheelId) {
+  const data = wtLoad();
+  const w = data.wheels.find(x => x.id === wheelId);
+  if (!w) return;
+  w.status = 'archived';
+  wtSave(data);
+  closeWtDetail();
+  renderAll();
+  wtToast(w.sym + ' archived');
+}
+
+// ── Export ──
+function exportCSV(wheelId) {
+  const data = wtLoad();
+  const w = data.wheels.find(x => x.id === wheelId);
+  if (!w) return;
+  const rows = [['Date', 'Type', 'Strike', 'Premium', 'Contracts/Shares', 'Total Value', 'Notes']];
+  (w.transactions || []).forEach(t => {
+    rows.push([t.date, t.type, t.strike || '', t.premium || '', t.contracts || t.shares || '', t.totalValue, t.notes || '']);
+  });
+  const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = w.sym + '-wheel-tracker.csv';
+  a.click();
+  wtToast('CSV exported');
+}
+
+function exportPDF() {
+  window.print();
+}
+
+// ── View Toggle ──
+document.querySelectorAll('.wt-view-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.wt-view-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const view = btn.dataset.view;
+    document.getElementById('wtGrid').style.display = view === 'grid' ? 'grid' : 'none';
+    document.getElementById('wtTableView').style.display = view === 'table' ? 'block' : 'none';
+  });
+});
+
+// ── Filter Pills ──
+document.getElementById('wtFilterPills').addEventListener('click', e => {
+  const pill = e.target.closest('.pill');
+  if (!pill) return;
+  document.querySelectorAll('#wtFilterPills .pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  const filter = pill.dataset.filter;
+  renderWtGrid(filter);
+  renderWtTable(filter);
+});
+
+// ── Global Calendar Modal ──
+document.querySelector('[onclick="openWtModal(\'calendarView\')"]')?.addEventListener('click', () => {
+  setTimeout(() => {
+    const allTxs = [];
+    wtLoad().wheels.forEach(w => allTxs.push(...(w.transactions || [])));
+    renderCalendar(document.getElementById('wtCalendar'), allTxs, new Date().getFullYear(), new Date().getMonth());
+  }, 50);
+});
+
+// ── Close overlay on Escape ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('wtDetail').classList.contains('open')) closeWtDetail();
+    document.querySelectorAll('.wt-modal-bg.open').forEach(m => m.classList.remove('open'));
+  }
+});
+
+// ── Close modals on backdrop click ──
+document.querySelectorAll('.wt-modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => {
+    if (e.target === bg) bg.classList.remove('open');
+  });
+});
+
+// ── MASTER RENDER ──
+function renderAll() {
+  renderWtStats();
+  const activeFilter = document.querySelector('#wtFilterPills .pill.active')?.dataset.filter || 'all';
+  renderWtGrid(activeFilter);
+  renderWtTable(activeFilter);
+}
+
+// ── INIT ──
+loadMockData();
+renderAll();
+
+// ═══════════════════════════════════════════
+// INTERACTIVE EFFECTS
+// ═══════════════════════════════════════════
+(function initEffects() {
+  // ── Cursor Glow Trail ──
+  const cc = document.createElement('canvas');
+  cc.id = 'cursorCanvas';
+  document.body.appendChild(cc);
+  const cctx = cc.getContext('2d');
+  let particles = [];
+  function resizeCursor() { cc.width = window.innerWidth; cc.height = window.innerHeight; }
+  resizeCursor();
+  window.addEventListener('resize', resizeCursor);
+  document.addEventListener('mousemove', e => {
+    for (let i = 0; i < 2; i++) {
+      particles.push({ x: e.clientX, y: e.clientY, vx: (Math.random() - .5) * 2, vy: (Math.random() - .5) * 2, life: 1, size: Math.random() * 3 + 1, hue: Math.random() > .5 ? '201,169,124' : '176,124,200' });
+    }
+    if (particles.length > 60) particles = particles.slice(-60);
+  });
+  (function animCursor() {
+    cctx.clearRect(0, 0, cc.width, cc.height);
+    particles = particles.filter(p => {
+      p.x += p.vx; p.y += p.vy; p.life -= .025;
+      if (p.life <= 0) return false;
+      cctx.beginPath();
+      cctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      cctx.fillStyle = `rgba(${p.hue},${p.life * .6})`;
+      cctx.fill();
+      return true;
+    });
+    requestAnimationFrame(animCursor);
+  })();
+
+  // ── 3D Card Tilt ──
+  document.querySelectorAll('.card, .wt-card, .sig-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - .5;
+      const y = (e.clientY - r.top) / r.height - .5;
+      card.style.transform = `perspective(800px) rotateY(${x*5}deg) rotateX(${-y*5}deg) translateY(-2px)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+      card.style.transition = 'transform .4s cubic-bezier(.34,1.56,.64,1)';
+      setTimeout(() => card.style.transition = '', 400);
+    });
+  });
+
+  // ── Count-Up Animation ──
+  const countObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const text = el.textContent;
+      const match = text.match(/([\$]?)([\d,]+\.?\d*)/);
+      if (!match) return;
+      const prefix = text.slice(0, text.indexOf(match[0]));
+      const suffix = text.slice(text.indexOf(match[0]) + match[0].length);
+      const target = parseFloat(match[2].replace(/,/g, ''));
+      const decimals = match[2].includes('.') ? match[2].split('.')[1].length : 0;
+      const start = performance.now();
+      const duration = 1200;
+      function tick(now) {
+        const t = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - t, 3);
+        const current = target * ease;
+        el.textContent = prefix + current.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + suffix;
+        if (t < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+      countObserver.unobserve(el);
+    });
+  }, { threshold: .3 });
+  document.querySelectorAll('.stat-v, .hero-val').forEach(el => countObserver.observe(el));
+
+  // ── Button Ripple ──
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.btn');
+    if (!btn) return;
+    const r = btn.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple-wave';
+    ripple.style.left = (e.clientX - r.left) + 'px';
+    ripple.style.top = (e.clientY - r.top) + 'px';
+    ripple.style.width = ripple.style.height = Math.max(r.width, r.height) + 'px';
+    btn.style.position = 'relative';
+    btn.style.overflow = 'hidden';
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 500);
+  });
+
+  // ── Floating Particles ──
+  const pc = document.createElement('canvas');
+  pc.id = 'particleCanvas';
+  document.body.insertBefore(pc, document.body.firstChild);
+  const pctx = pc.getContext('2d');
+  function resizeParticles() { pc.width = window.innerWidth; pc.height = window.innerHeight; }
+  resizeParticles();
+  window.addEventListener('resize', resizeParticles);
+  const dots = Array.from({ length: 30 }, () => ({
+    x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
+    vx: (Math.random() - .5) * .3, vy: (Math.random() - .5) * .3,
+    size: Math.random() * 2 + .5, hue: Math.random() > .5 ? '201,169,124' : '176,124,200',
+    alpha: Math.random() * .15 + .05
+  }));
+  (function animDots() {
+    pctx.clearRect(0, 0, pc.width, pc.height);
+    dots.forEach(d => {
+      d.x += d.vx; d.y += d.vy;
+      if (d.x < 0) d.x = pc.width; if (d.x > pc.width) d.x = 0;
+      if (d.y < 0) d.y = pc.height; if (d.y > pc.height) d.y = 0;
+      pctx.beginPath(); pctx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
+      pctx.fillStyle = `rgba(${d.hue},${d.alpha})`; pctx.fill();
+    });
+    requestAnimationFrame(animDots);
+  })();
+
+  // ── Scroll Progress Bar ──
+  const sp = document.createElement('div');
+  sp.id = 'scrollProgress';
+  document.body.appendChild(sp);
+  document.querySelector('.main')?.addEventListener('scroll', function() {
+    const pct = this.scrollTop / (this.scrollHeight - this.clientHeight);
+    sp.style.transform = `scaleX(${Math.min(1, pct)})`;
+  });
+
+  // ── Magnetic Buttons (subtle) ──
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('mousemove', e => {
+      const r = btn.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const dx = e.clientX - cx;
+      const dy = e.clientY - cy;
+      btn.style.transform = `translate(${dx * .15}px, ${dy * .15}px)`;
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn.style.transform = '';
+    });
+  });
+})();
+</script>
+</body>
+</html>
