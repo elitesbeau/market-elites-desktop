@@ -2286,14 +2286,11 @@ async function handleAppleSignIn(){
 }
 
 async function completeAuth(user){
-  S.firebaseUid=user.uid;S.isGuest=false;
-  localStorage.setItem('meDesktop',JSON.stringify(S)); // save locally without triggering sync
-  hideAuthScreen();checkLegal();
-  await loadUserData(user.uid);
-  await loadFromFirebase(user.uid);
-  renderProfile();
+  S.firebaseUid=user.uid;S.isGuest=false;save();
+  hideAuthScreen();checkLegal();renderProfile();listenToFirebasePosts();
+  try{await loadUserData(user.uid)}catch(e){console.warn('loadUserData:',e)}
+  try{await loadFromFirebase(user.uid);save();renderProfile()}catch(e){console.warn('loadFromFirebase:',e)}
   firebase.database().ref('users/'+user.uid).update({lastLogin:Date.now()}).catch(()=>{});
-  listenToFirebasePosts();
 }
 
 async function loadUserData(uid){
@@ -2329,7 +2326,7 @@ function checkAuthState(){
   initFirebase().then(ok=>{
     if(ok&&firebase.auth){
       firebase.auth().onAuthStateChanged(async user=>{
-        if(user){S.firebaseUid=user.uid;await loadUserData(user.uid);await loadFromFirebase(user.uid);save();hideAuthScreen();checkLegal();renderProfile();listenToFirebasePosts();firebase.database().ref('users/'+user.uid).update({lastLogin:Date.now()}).catch(()=>{})}
+        if(user){S.firebaseUid=user.uid;save();hideAuthScreen();checkLegal();renderProfile();listenToFirebasePosts();try{await loadUserData(user.uid)}catch(e){}try{await loadFromFirebase(user.uid);save();renderProfile()}catch(e){}firebase.database().ref('users/'+user.uid).update({lastLogin:Date.now()}).catch(()=>{})}
         else if(S.firebaseUid&&!S.isGuest){showAuthScreen()}
       });
     }
@@ -4383,7 +4380,7 @@ function renderAll() {
 }
 
 // ── INIT ──
-loadMockData();
+// loadMockData(); // Disabled — was syncing fake positions to Firebase
 renderAll();
 
 // ═══════════════════════════════════════════
