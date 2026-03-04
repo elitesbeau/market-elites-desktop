@@ -2089,7 +2089,61 @@ const S={theme:'dark',apiKey:'',secretKey:'',accSize:25000,feePerContract:0.65,
   adminAuthenticated:false,adminPosts:[]};
 
 function loadState(){try{const d=localStorage.getItem('meDesktop');if(d)Object.assign(S,JSON.parse(d))}catch(e){}}
-function save(){try{localStorage.setItem('meDesktop',JSON.stringify(S))}catch(e){}}
+function save(){try{localStorage.setItem('meDesktop',JSON.stringify(S))}catch(e){}_debouncedSync()}
+
+// ── Firebase Trading Data Sync ──
+let _syncTimer=null;
+function _debouncedSync(){if(_syncTimer)clearTimeout(_syncTimer);_syncTimer=setTimeout(()=>{_syncTimer=null;syncToFirebase()},2000)}
+
+function syncToFirebase(){
+  if(!S.firebaseUid||S.isGuest||!firebaseReady)return;
+  const wt=(() => {try{return localStorage.getItem('wheelTracker')||'{"wheels":[]}'} catch{return '{"wheels":[]}'}})();
+  const data={
+    positions:JSON.stringify(S.positions||[]),
+    history:JSON.stringify(S.history||[]),
+    wheelPositions:wt,
+    watchlist:JSON.stringify(S.watchlist||[]),
+    incomeGoal:S.incomeGoal||0,
+    incomeGoalHistory:JSON.stringify(S.incomeGoalHistory||[]),
+    accSize:S.accSize||0,
+    feePerContract:S.feePerContract||0,
+    achievements:JSON.stringify(S.achievements||[]),
+    leaderboardOptIn:S.leaderboardOptIn||false,
+    leaderboardName:S.leaderboardName||'',
+    lastSyncAt:Date.now()
+  };
+  firebase.database().ref('users/'+S.firebaseUid+'/tradingData').update(data).catch(e=>console.warn('Sync to Firebase:',e));
+}
+
+async function loadFromFirebase(uid){
+  try{
+    const snap=await firebase.database().ref('users/'+uid+'/tradingData').once('value');
+    const fb=snap.val();
+    if(!fb){syncToFirebase();return}
+    const localSync=S._lastSyncAt||0;
+    const fbSync=fb.lastSyncAt||0;
+    const localHasData=(S.positions&&S.positions.length>0)||(S.history&&S.history.length>0);
+    if(localHasData&&localSync>fbSync){syncToFirebase();return}
+    // Firebase wins
+    if(fb.positions)S.positions=JSON.parse(fb.positions);
+    if(fb.history)S.history=JSON.parse(fb.history);
+    if(fb.watchlist)S.watchlist=JSON.parse(fb.watchlist);
+    if(fb.incomeGoal!=null)S.incomeGoal=fb.incomeGoal;
+    if(fb.incomeGoalHistory)S.incomeGoalHistory=JSON.parse(fb.incomeGoalHistory);
+    if(fb.accSize!=null)S.accSize=fb.accSize;
+    if(fb.feePerContract!=null)S.feePerContract=fb.feePerContract;
+    if(fb.achievements)S.achievements=JSON.parse(fb.achievements);
+    if(fb.leaderboardOptIn!=null)S.leaderboardOptIn=fb.leaderboardOptIn;
+    if(fb.leaderboardName!=null)S.leaderboardName=fb.leaderboardName;
+    S._lastSyncAt=fbSync;
+    localStorage.setItem('meDesktop',JSON.stringify(S));
+    // Also load wheel tracker data
+    if(fb.wheelPositions){
+      try{localStorage.setItem('wheelTracker',fb.wheelPositions)}catch(e){}
+    }
+    console.log('[Sync] Loaded trading data from Firebase');
+  }catch(e){console.warn('Load from Firebase:',e)}
+}
 loadState();
 
 // ── Firebase Config ──
@@ -2229,8 +2283,13 @@ async function handleAppleSignIn(){
   }catch(e){if(e.code==='auth/popup-closed-by-user')return;showToast(e.message||'Apple sign-in failed','error')}
 }
 
-function completeAuth(user){
-  S.firebaseUid=user.uid;S.isGuest=false;save();hideAuthScreen();checkLegal();renderProfile();
+async function completeAuth(user){
+  S.firebaseUid=user.uid;S.isGuest=false;
+  localStorage.setItem('meDesktop',JSON.stringify(S)); // save locally without triggering sync
+  hideAuthScreen();checkLegal();
+  await loadUserData(user.uid);
+  await loadFromFirebase(user.uid);
+  renderProfile();
   firebase.database().ref('users/'+user.uid).update({lastLogin:Date.now()}).catch(()=>{});
   listenToFirebasePosts();
 }
@@ -2267,8 +2326,8 @@ function confirmSignOut(){showConfirm('Sign Out','Are you sure you want to sign 
 function checkAuthState(){
   initFirebase().then(ok=>{
     if(ok&&firebase.auth){
-      firebase.auth().onAuthStateChanged(user=>{
-        if(user){S.firebaseUid=user.uid;loadUserData(user.uid);save();hideAuthScreen();checkLegal();renderProfile();listenToFirebasePosts();firebase.database().ref('users/'+user.uid).update({lastLogin:Date.now()}).catch(()=>{})}
+      firebase.auth().onAuthStateChanged(async user=>{
+        if(user){S.firebaseUid=user.uid;await loadUserData(user.uid);await loadFromFirebase(user.uid);save();hideAuthScreen();checkLegal();renderProfile();listenToFirebasePosts();firebase.database().ref('users/'+user.uid).update({lastLogin:Date.now()}).catch(()=>{})}
         else if(S.firebaseUid&&!S.isGuest){showAuthScreen()}
       });
     }
@@ -3259,7 +3318,7 @@ function wtLoad() {
   try { return JSON.parse(localStorage.getItem(WT_KEY)) || { wheels: [] }; }
   catch { return { wheels: [] }; }
 }
-function wtSave(data) { localStorage.setItem(WT_KEY, JSON.stringify(data)); }
+function wtSave(data) { localStorage.setItem(WT_KEY, JSON.stringify(data)); _debouncedSync(); }
 
 // ── Toast ──
 function wtToast(msg, type = 'success') {
