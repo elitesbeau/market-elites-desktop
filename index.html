@@ -2895,13 +2895,15 @@ function renderDashboard(){
   const goalPct=Math.min(100,Math.round(monthPrem/goal*100));
   const logo=t=>'https://assets.parqet.com/logos/symbol/'+t;
 
-  // Hero section
+  // Hero section — match main site's getComputedBalance() logic
+  const base=S.startingBalance||S.accSize||25000;
+  const computedBal=base+lifetimePnl;
+  const totalChange=totalPrem+lifetimePnl;
+  const pct=base>0?(totalChange/base*100).toFixed(1):'0';
   const heroVal=document.querySelector('.hero-val');
-  if(heroVal)heroVal.innerHTML='$'+Math.round(totalPrem+lifetimePnl).toLocaleString()+'<span>.00</span>';
-  const heroLbl=document.querySelector('.hero-lbl');
-  if(heroLbl)heroLbl.textContent='Portfolio Value — USD';
+  if(heroVal)heroVal.innerHTML='$'+Math.round(computedBal).toLocaleString()+'<span>.00</span>';
   const heroChg=document.querySelector('.hero-chg');
-  if(heroChg){heroChg.className='hero-chg '+(lifetimePnl>=0?'gain':'loss');heroChg.innerHTML=(lifetimePnl>=0?'\u25B2':'\u25BC')+' $'+Math.abs(Math.round(lifetimePnl)).toLocaleString()+' lifetime &nbsp;<span style="opacity:.6;font-size:11px">$'+Math.round(totalPrem).toLocaleString()+' pending</span>'}
+  if(heroChg){heroChg.className='hero-chg '+(totalChange>=0?'gain':'loss');heroChg.innerHTML=(totalChange>=0?'&#9650; +':'&#9660; -')+'$'+Math.abs(Math.round(totalChange)).toLocaleString()+' ('+pct+'%) &nbsp;<span style="opacity:.6;font-size:11px">$'+Math.round(lifetimePnl).toLocaleString()+' realized · $'+Math.round(totalPrem).toLocaleString()+' pending</span>'}
   const heroMeta=document.querySelector('.hero-meta');
   if(heroMeta){const t=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true,timeZone:'America/New_York'});heroMeta.innerHTML=pos.length+' active positions · '+cspCount+' CSP / '+ccCount+' CC · <span class="live-clock"><span class="pulse-dot"></span>'+t+' ET</span>'}
   const hgVal=document.querySelector('.hg-val');
@@ -2914,7 +2916,7 @@ function renderDashboard(){
   if(statCards[0]){statCards[0].querySelector('.stat-v').textContent=pos.length;statCards[0].querySelector('.stat-sub').textContent=cspCount+' CSP / '+ccCount+' CC'}
   if(statCards[1]){statCards[1].querySelector('.card-label').textContent='Lifetime P&L';const sv=statCards[1].querySelector('.stat-v');sv.textContent=(lifetimePnl>=0?'+':'-')+'$'+Math.abs(Math.round(lifetimePnl)).toLocaleString();sv.className='stat-v '+(lifetimePnl>=0?'gain':'loss');statCards[1].querySelector('.stat-sub').textContent='ALL REALIZED'}
   if(statCards[2]){const sv=statCards[2].querySelector('.stat-v');sv.textContent=winRate+'%';sv.className='stat-v '+(parseFloat(winRate)>=50?'gain':'loss');statCards[2].querySelector('.stat-sub').textContent=wins+'W / '+(hist.length-wins)+'L'}
-  if(statCards[3]){statCards[3].querySelector('.card-label').textContent='Portfolio Value';const pv=Math.round(totalPrem+lifetimePnl);const sv=statCards[3].querySelector('.stat-v');sv.textContent='$'+pv.toLocaleString();sv.className='stat-v';statCards[3].querySelector('.stat-sub').textContent='$'+Math.round(totalPrem).toLocaleString()+' PENDING · $'+Math.abs(Math.round(lifetimePnl)).toLocaleString()+' REALIZED';const pf=statCards[3].querySelector('.prog-f');if(pf)pf.parentElement.style.display='none'}
+  if(statCards[3]){statCards[3].querySelector('.card-label').textContent='Portfolio Value';const sv=statCards[3].querySelector('.stat-v');sv.textContent='$'+Math.round(computedBal).toLocaleString();sv.className='stat-v';statCards[3].querySelector('.stat-sub').textContent='BASE $'+Math.round(base).toLocaleString()+' + $'+Math.round(lifetimePnl).toLocaleString()+' P&L';const pf=statCards[3].querySelector('.prog-f');if(pf)pf.parentElement.style.display='none'}
 
   // Recent trades panel
   const tpList=document.querySelector('.tp-list');
