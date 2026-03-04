@@ -4322,7 +4322,17 @@ function renderAll() {
 }
 
 // ── INIT ──
-loadMockData();
+// Mock data disabled — was causing sync corruption
+// Clear any existing mock data from localStorage
+(function(){
+  try{
+    const d=JSON.parse(localStorage.getItem('wheelTracker')||'{}');
+    if(d.wheels&&d.wheels.length>0&&d.wheels.some(w=>w.notes&&w.notes.includes('Core wheel position'))){
+      localStorage.removeItem('wheelTracker');
+      console.log('[Cleanup] Removed mock wheel data from localStorage');
+    }
+  }catch(e){}
+})();
 renderAll();
 
 // ═══════════════════════════════════════════
