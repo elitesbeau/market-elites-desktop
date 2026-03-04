@@ -2123,9 +2123,19 @@ function scheduleSyncToFirebase(){
 async function syncToFirebase(){
   if(!S.firebaseUid||S.isGuest||!firebaseReady)return;
   try{
+    // HARD SAFETY: Never overwrite Firebase data with empty local data
+    const localPos=(S.positions||[]).length;
+    const localHist=(S.history||[]).length;
+    if(localPos===0&&localHist===0){
+      const check=await firebase.database().ref('users/'+S.firebaseUid+'/tradingData/positions').once('value');
+      const fbPos=check.val();
+      if(fbPos&&Array.isArray(fbPos)&&fbPos.length>0){
+        console.warn('[Sync] BLOCKED — refusing to overwrite '+fbPos.length+' Firebase positions with empty local data');
+        return;
+      }
+    }
     const td={_meta:{lastWriteAt:Date.now(),lastWriteBy:SITE_ID,schemaVersion:2},settings:{}};
     FB_SYNC_FIELDS.forEach(k=>{td[k]=S[k]||[]});
-    // Include wheelPositions from main site if present in Firebase (don't overwrite)
     FB_SETTINGS_FIELDS.forEach(k=>{if(S[k]!==undefined){td[k]=S[k];td.settings[k]=S[k]}});
     // Preserve wheelPositions from main site — read-merge-write
     const snap=await firebase.database().ref('users/'+S.firebaseUid+'/tradingData/wheelPositions').once('value');
