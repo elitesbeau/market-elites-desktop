@@ -2113,7 +2113,9 @@ function sanitizeArrayField(val){
   return val||[];
 }
 
+let _initialLoadDone=false;
 function scheduleSyncToFirebase(){
+  if(!_initialLoadDone)return; // Don't sync until initial Firebase load completes
   if(_fbSyncTimer)clearTimeout(_fbSyncTimer);
   _fbSyncTimer=setTimeout(syncToFirebase,3000);
 }
@@ -2152,19 +2154,29 @@ async function loadFromFirebase(){
       td._meta={lastWriteAt:Date.now(),lastWriteBy:SITE_ID,schemaVersion:2};
       await firebase.database().ref('users/'+S.firebaseUid+'/tradingData').set(td);
     }
+    // Compare by data volume first, then timestamp — prevents empty local overwriting Firebase
+    const fbCount=FB_SYNC_FIELDS.reduce((s,k)=>{const v=sanitizeArrayField(td[k]);return s+v.length},0);
+    const localCount=FB_SYNC_FIELDS.reduce((s,k)=>s+(Array.isArray(S[k])?S[k].length:0),0);
     const fbTime=td._meta?td._meta.lastWriteAt:0;
     const localTime=S._localSaveAt||0;
-    if(fbTime>localTime){
-      console.log('[Sync] Firebase is newer — applying');
+    if(fbCount>localCount){
+      console.log('[Sync] Firebase has more data ('+fbCount+' vs '+localCount+') — applying');
+      applyFirebaseData(td);
+    }else if(localCount>fbCount){
+      console.log('[Sync] localStorage has more data ('+localCount+' vs '+fbCount+') — pushing to Firebase');
+      syncToFirebase();
+    }else if(fbTime>localTime){
+      console.log('[Sync] Same data volume, Firebase is newer — applying');
       applyFirebaseData(td);
     }else if(localTime>fbTime){
-      console.log('[Sync] localStorage is newer — pushing to Firebase');
+      console.log('[Sync] Same data volume, localStorage is newer — pushing');
       syncToFirebase();
     }else{
       console.log('[Sync] Data in sync');
     }
     S._firebaseSynced=true;
-  }catch(e){console.warn('[Sync] loadFromFirebase failed:',e)}
+    _initialLoadDone=true;
+  }catch(e){console.warn('[Sync] loadFromFirebase failed:',e);_initialLoadDone=true}
 }
 
 function applyFirebaseData(td){
