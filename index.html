@@ -2124,7 +2124,7 @@ loadState();
 
 // ── Firebase Sync — READ-ONLY for trading data (main site is the writer) ──
 const FB_READ_FIELDS=['positions','history','wheelPositions','watchlist','achievements','incomeGoalHistory'];
-const FB_SETTINGS_FIELDS=['incomeGoal','accSize','feePerContract','dteThreshold','leaderboardOptIn','leaderboardName'];
+const FB_SETTINGS_FIELDS=['incomeGoal','accSize','feePerContract','dteThreshold','leaderboardOptIn','leaderboardName','startingBalance'];
 
 function sanitizeArrayField(val){
   if(val&&typeof val==='string'){try{return JSON.parse(val)}catch(e){return[]}}
