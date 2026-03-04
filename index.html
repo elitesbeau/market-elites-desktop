@@ -2119,12 +2119,17 @@ async function loadFromFirebase(uid){
   try{
     const snap=await firebase.database().ref('users/'+uid+'/tradingData').once('value');
     const fb=snap.val();
-    if(!fb){syncToFirebase();return}
-    const localSync=S._lastSyncAt||0;
-    const fbSync=fb.lastSyncAt||0;
+    if(!fb){
+      if(S.positions&&S.positions.length>0){syncToFirebase();console.log('[Sync] First sync: uploaded local data')}
+      return;
+    }
     const localHasData=(S.positions&&S.positions.length>0)||(S.history&&S.history.length>0);
-    if(localHasData&&localSync>fbSync){syncToFirebase();return}
-    // Firebase wins
+    const fbPositions=fb.positions?JSON.parse(fb.positions):[];
+    const fbHasData=fbPositions.length>0;
+    const neverSynced=!S._lastSyncAt;
+    if(neverSynced&&localHasData){console.log('[Sync] First sync: local wins');syncToFirebase();return}
+    if(localHasData&&S._lastSyncAt>(fb.lastSyncAt||0)){syncToFirebase();return}
+    if(!fbHasData){console.log('[Sync] Firebase empty, keeping local');return}
     if(fb.positions)S.positions=JSON.parse(fb.positions);
     if(fb.history)S.history=JSON.parse(fb.history);
     if(fb.watchlist)S.watchlist=JSON.parse(fb.watchlist);
@@ -2135,13 +2140,10 @@ async function loadFromFirebase(uid){
     if(fb.achievements)S.achievements=JSON.parse(fb.achievements);
     if(fb.leaderboardOptIn!=null)S.leaderboardOptIn=fb.leaderboardOptIn;
     if(fb.leaderboardName!=null)S.leaderboardName=fb.leaderboardName;
-    S._lastSyncAt=fbSync;
+    S._lastSyncAt=fb.lastSyncAt;
     localStorage.setItem('meDesktop',JSON.stringify(S));
-    // Also load wheel tracker data
-    if(fb.wheelPositions){
-      try{localStorage.setItem('wheelTracker',fb.wheelPositions)}catch(e){}
-    }
-    console.log('[Sync] Loaded trading data from Firebase');
+    if(fb.wheelPositions){try{localStorage.setItem('wheelTracker',fb.wheelPositions)}catch(e){}}
+    console.log('[Sync] Loaded from Firebase (%d positions)',S.positions.length);
   }catch(e){console.warn('Load from Firebase:',e)}
 }
 loadState();
