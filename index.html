@@ -296,6 +296,56 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 .pos-filters{display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
 .pos-sort{margin-left:auto;font-family:var(--fm);font-size:10px;color:var(--t5);letter-spacing:1px}
 
+/* ── POSITIONS PAGE — ALIVE ── */
+#positions{position:relative;overflow:hidden}
+#positions::before{content:'02';position:absolute;top:-40px;right:-20px;
+  font-family:var(--fd);font-size:320px;font-weight:700;letter-spacing:-15px;
+  color:var(--ac);opacity:.018;pointer-events:none;line-height:1;z-index:0}
+#positions::after{content:'ポジション';position:absolute;top:90px;right:14px;
+  font-size:11px;letter-spacing:8px;writing-mode:vertical-rl;
+  color:var(--ac);opacity:.05;pointer-events:none;z-index:0}
+.pos-summary .card::after{content:'✦';position:absolute;top:8px;right:10px;
+  font-size:7px;color:var(--ac);opacity:.12}
+.pos-summary .card:nth-child(3)::after{content:'✦✦';letter-spacing:4px}
+.pos-summary .card:nth-child(4)::after,.pos-summary .card:nth-child(5)::after{content:''}
+.page-head .sparkle-deco{color:var(--ac);opacity:.2;font-size:7px;margin:0 8px;letter-spacing:6px}
+/* Status pill badges */
+.status-pill{font-family:var(--fm);font-size:9px;letter-spacing:1px;padding:3px 10px;border-radius:2px;
+  display:inline-flex;align-items:center;gap:4px;position:relative;cursor:default;white-space:nowrap;
+  transition:all .2s}
+.status-pill.s-open{color:var(--t4);border:1px solid var(--bd)}
+.status-pill.s-open:hover{border-color:var(--bd2);color:var(--t3)}
+.status-pill.s-tomorrow{color:var(--r);border:1px solid var(--rbr);background:var(--rbg)}
+.status-pill.s-urgent{color:var(--r);border:1px solid var(--rbr);background:var(--rbg)}
+.status-pill.s-soon{color:var(--w);border:1px solid rgba(251,191,36,.2);background:rgba(251,191,36,.06)}
+.status-pill.s-today{color:var(--w);border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.1)}
+.status-pill.s-today,.status-pill.s-tomorrow{animation:statusBreathe 2s ease-in-out infinite}
+.status-pill.s-expired{color:var(--r);border:1px solid var(--rbr);background:var(--rbg);opacity:.6}
+.status-pill.s-assigned{color:var(--bl);border:1px solid var(--blbr);background:var(--blbg)}
+@keyframes statusBreathe{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 8px 1px currentColor}}
+/* Glassmorphism tooltips */
+.status-pill[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;
+  transform:translateX(-50%);background:rgba(8,8,10,.92);backdrop-filter:blur(16px);
+  border:1px solid var(--bd2);padding:6px 12px;border-radius:3px;font-size:10px;letter-spacing:.3px;
+  color:var(--t2);white-space:nowrap;z-index:200;pointer-events:none;
+  animation:tipFade .15s cubic-bezier(.16,1,.3,1)}
+.status-pill[data-tip]:hover::before{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;
+  transform:translateX(-50%);border:5px solid transparent;border-top-color:rgba(8,8,10,.92);z-index:200;
+  animation:tipFade .15s cubic-bezier(.16,1,.3,1)}
+@keyframes tipFade{from{opacity:0;transform:translateX(-50%) translateY(4px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+/* Focus by Negation — dim siblings, highlight hovered row */
+#positions .tbl tbody tr{transition:opacity .2s,filter .2s,transform .15s}
+#positions .tbl tbody:hover tr{opacity:.35;filter:saturate(.4)}
+#positions .tbl tbody:hover tr:hover{opacity:1;filter:saturate(1);transform:translateX(3px)}
+#positions .tbl tr{position:relative}
+#positions .tbl tr:hover{z-index:5}
+/* Premium gold shimmer sweep */
+.prem-shimmer{position:relative;display:inline-block}
+.prem-shimmer::after{content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(201,169,124,.2),transparent);
+  animation:shimSweep 5s ease-in-out infinite 1s}
+@keyframes shimSweep{0%,75%,100%{left:-100%}35%{left:150%}}
+
 /* ── CALCULATOR ── */
 .calc-search{display:flex;gap:10px;margin-bottom:20px;align-items:center;flex-wrap:wrap}
 .calc-search .inp{max-width:220px;font-size:16px;text-transform:uppercase}
@@ -1282,7 +1332,9 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 <section id="positions" class="page">
   <div class="page-head">
     <span class="page-label">02 — Positions</span>
+    <span class="sparkle-deco">✦ ✦ ✦</span>
     <span class="page-line"></span>
+    <span style="font-family:var(--fm);font-size:8px;letter-spacing:4px;color:var(--t6)">精鋭 ELITE</span>
     <button class="btn">+ Add Position</button>
   </div>
 
@@ -1322,7 +1374,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
     <span class="pos-sort">SORT BY: DTE &#9660;</span>
   </div>
 
-  <div class="card" style="padding:0;overflow:hidden">
+  <div class="card" style="padding:0;overflow:visible">
     <table class="tbl">
       <thead><tr>
         <th>Ticker</th><th>Type</th><th>Strike</th><th>Expiration</th><th>DTE</th><th>Premium</th><th>Contracts</th><th>Collateral</th><th>P&L</th><th>Status</th><th>Actions</th>
@@ -3238,16 +3290,16 @@ function renderDashboard(){
         const type=(p.type||'csp').toUpperCase();const badge='badge-'+(p.type||'csp');
         const prem=(p.premium||0)*(p.contracts||1)*100;
         const collateral=type==='CSP'?'$'+(p.strike*(p.contracts||1)*100).toLocaleString():(p.contracts||1)*100+' sh';
-        // Status: check expiration + assigned
-        let status='Open',statusCls='color:var(--t4)';
-        if(p.status==='assigned'||p.type==='assigned'){status='Assigned';statusCls='color:var(--w)'}
-        else if(dte<0){status='EXPIRED';statusCls='color:var(--r)'}
-        else if(dte===0){status='Exp Today';statusCls='color:var(--w)'}
-        else if(dte===1){status='Tomorrow';statusCls='color:var(--r)'}
-        else if(dte<=7){status=dte+'d left';statusCls=dte<=3?'color:var(--r)':'color:var(--w)'}
-        return '<tr class="pos-glow-'+dc+'" data-type="'+(p.type||'csp')+'" data-status="'+(p.status||'open')+'"><td class="tk-cell">'+tkLogo(p.symbol,28)+'<span class="tk">'+p.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+Number(p.strike).toFixed(2)+'</td><td class="m">'+(p.expiration||'-')+'</td><td class="m"><div class="dte-live"><span class="dot '+dc+'"></span><span class="dte-live-val" data-exp="'+(parseExpDate(p.expiration)?parseExpDate(p.expiration).getTime():'')+'">'+fmtDte(p.expiration)+'</span></div></td><td class="m">$'+(p.premium||0).toFixed(2)+'</td><td class="m">'+(p.contracts||1)+'</td><td class="m">'+collateral+'</td><td class="m gain">+$'+Math.round(prem).toLocaleString()+'</td><td style="'+statusCls+'">'+status+'</td><td><button class="btn btn-sm" onclick="event.stopPropagation();viewPos(\''+p.id+'\')">Manage</button></td></tr>';
+        // Status: pill badges with tooltips
+        let status='Open',sCls='s-open',sTip='Theta is working — plenty of time';
+        if(p.status==='assigned'||p.type==='assigned'){status='Assigned';sCls='s-assigned';sTip='Shares assigned — wheel continues'}
+        else if(dte<0){status='EXPIRED';sCls='s-expired';sTip='Past expiration — needs action'}
+        else if(dte===0){status='Exp Today';sCls='s-today';sTip='Expires today — close or let expire'}
+        else if(dte===1){status='Tomorrow';sCls='s-tomorrow';sTip='Expiring tomorrow — decision time'}
+        else if(dte<=7){status=dte+'d left';sCls=dte<=3?'s-urgent':'s-soon';sTip=dte<=3?'Approaching fast — monitor closely':'Getting close — stay alert'}
+        return '<tr class="pos-glow-'+dc+'" data-type="'+(p.type||'csp')+'" data-status="'+(p.status||'open')+'"><td class="tk-cell">'+tkLogo(p.symbol,28)+'<span class="tk">'+p.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+Number(p.strike).toFixed(2)+'</td><td class="m">'+(p.expiration||'-')+'</td><td class="m"><div class="dte-live"><span class="dot '+dc+'"></span><span class="dte-live-val" data-exp="'+(parseExpDate(p.expiration)?parseExpDate(p.expiration).getTime():'')+'">'+fmtDte(p.expiration)+'</span></div></td><td class="m">$'+(p.premium||0).toFixed(2)+'</td><td class="m">'+(p.contracts||1)+'</td><td class="m">'+collateral+'</td><td class="m"><span class="prem-shimmer gain">+$'+Math.round(prem).toLocaleString()+'</span></td><td><span class="status-pill '+sCls+'" data-tip="'+sTip+'">'+status+'</span></td><td><button class="btn btn-sm" onclick="event.stopPropagation();viewPos(\''+p.id+'\')">Manage</button></td></tr>';
       }).join('');
-    }else{posTbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--t4);padding:20px">No open positions</td></tr>'}
+    }else{posTbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:48px 20px"><div style="font-size:36px;opacity:.08;margin-bottom:8px">✦</div><div style="font-family:var(--fd);font-size:16px;color:var(--t5);letter-spacing:3px">NO OPEN POSITIONS</div><div style="font-family:var(--fm);font-size:9px;color:var(--t5);margin-top:6px;letter-spacing:1px;opacity:.5">Add from signals or manually</div></td></tr>'}
   }
 
   // Positions page summary cards — all 5
