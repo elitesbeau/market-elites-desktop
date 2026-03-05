@@ -1121,13 +1121,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
     <div class="trades-panel">
       <div class="tp-head">Recent Trades</div>
       <div class="tp-list">
-        <div class="tp-item"><img src="https://assets.parqet.com/logos/symbol/AAPL" class="tk-logo-sm" onerror="this.style.display='none'"><span class="tp-tk">AAPL</span><div class="tp-info">CSP $180<br>Closed 02/28</div><span class="tp-result gain">+$280</span></div>
-        <div class="tp-item"><img src="https://assets.parqet.com/logos/symbol/SPY" class="tk-logo-sm" onerror="this.style.display='none'"><span class="tp-tk">SPY</span><div class="tp-info">CC $490<br>Closed 02/21</div><span class="tp-result gain">+$150</span></div>
-        <div class="tp-item"><img src="https://assets.parqet.com/logos/symbol/TSLA" class="tk-logo-sm" onerror="this.style.display='none'"><span class="tp-tk">TSLA</span><div class="tp-info">CSP $240<br>Assigned</div><span class="tp-result warn">Wheeling</span></div>
-        <div class="tp-item"><img src="https://assets.parqet.com/logos/symbol/NVDA" class="tk-logo-sm" onerror="this.style.display='none'"><span class="tp-tk">NVDA</span><div class="tp-info">CSP $820<br>Closed 02/07</div><span class="tp-result gain">+$520</span></div>
-        <div class="tp-item"><img src="https://assets.parqet.com/logos/symbol/AMD" class="tk-logo-sm" onerror="this.style.display='none'"><span class="tp-tk">AMD</span><div class="tp-info">CC $170<br>Called Away</div><span class="tp-result gain">+$680</span></div>
-        <div class="tp-item"><img src="https://assets.parqet.com/logos/symbol/GOOG" class="tk-logo-sm" onerror="this.style.display='none'"><span class="tp-tk">GOOG</span><div class="tp-info">CSP $165<br>Closed 01/31</div><span class="tp-result gain">+$340</span></div>
-        <div class="tp-item"><img src="https://assets.parqet.com/logos/symbol/META" class="tk-logo-sm" onerror="this.style.display='none'"><span class="tp-tk">META</span><div class="tp-info">CSP $480<br>Closed 01/24</div><span class="tp-result gain">+$410</span></div>
+        <!-- Populated dynamically by renderDashboard -->
       </div>
     </div>
   </div>
@@ -1143,11 +1137,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
       <table class="tbl">
         <thead><tr><th>Ticker</th><th>Type</th><th>Strike</th><th>Exp</th><th>DTE</th><th>Premium</th><th>P&L</th><th>Status</th></tr></thead>
         <tbody>
-          <tr><td style="display:flex;align-items:center;gap:8px"><img src="https://assets.parqet.com/logos/symbol/AAPL" width="22" height="22" style="border-radius:4px;background:var(--bge)" onerror="this.style.display='none'"><span class="tk">AAPL</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$185</td><td class="m">03/21</td><td class="m">18</td><td class="m">$3.40</td><td class="m gain">+$240</td><td style="color:var(--t4)">Open</td></tr>
-          <tr><td style="display:flex;align-items:center;gap:8px"><img src="https://assets.parqet.com/logos/symbol/MSFT" width="22" height="22" style="border-radius:4px;background:var(--bge)" onerror="this.style.display='none'"><span class="tk">MSFT</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$400</td><td class="m">03/28</td><td class="m">25</td><td class="m">$5.20</td><td class="m gain">+$380</td><td style="color:var(--t4)">Open</td></tr>
-          <tr><td style="display:flex;align-items:center;gap:8px"><img src="https://assets.parqet.com/logos/symbol/TSLA" width="22" height="22" style="border-radius:4px;background:var(--bge)" onerror="this.style.display='none'"><span class="tk">TSLA</span></td><td><span class="badge badge-cc">CC</span></td><td class="m">$280</td><td class="m">03/21</td><td class="m">18</td><td class="m">$4.10</td><td class="m loss">-$180</td><td class="warn">ITM</td></tr>
-          <tr><td style="display:flex;align-items:center;gap:8px"><img src="https://assets.parqet.com/logos/symbol/NVDA" width="22" height="22" style="border-radius:4px;background:var(--bge)" onerror="this.style.display='none'"><span class="tk">NVDA</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$850</td><td class="m">04/04</td><td class="m">32</td><td class="m">$8.90</td><td class="m gain">+$640</td><td style="color:var(--t4)">Open</td></tr>
-          <tr><td style="display:flex;align-items:center;gap:8px"><img src="https://assets.parqet.com/logos/symbol/AMD" width="22" height="22" style="border-radius:4px;background:var(--bge)" onerror="this.style.display='none'"><span class="tk">AMD</span></td><td><span class="badge badge-cc">CC</span></td><td class="m">$175</td><td class="m">03/21</td><td class="m">18</td><td class="m">$2.80</td><td class="m gain">+$160</td><td style="color:var(--t4)">Open</td></tr>
+          <!-- Populated dynamically by renderDashboard -->
         </tbody>
       </table>
     </div>
@@ -1173,42 +1163,17 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
     </div>
   </div>
 
-  <!-- DTE Timeline + Exposure -->
+  <!-- DTE Timeline + Exposure — populated dynamically by renderDashboard -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
     <div class="card dte-timeline">
       <div class="card-label">Expiration Timeline</div>
-      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/AAPL" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">AAPL</span><span class="dte-type"><span class="badge badge-csp" style="font-size:8px;padding:2px 6px">CSP</span></span><div class="dte-track"><div class="dte-fill" style="width:36%;background:var(--g)"></div></div><span class="dte-days">18 DTE</span></div>
-      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/TSLA" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">TSLA</span><span class="dte-type"><span class="badge badge-cc" style="font-size:8px;padding:2px 6px">CC</span></span><div class="dte-track"><div class="dte-fill" style="width:36%;background:var(--w)"></div></div><span class="dte-days warn">18 DTE</span></div>
-      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/AMD" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">AMD</span><span class="dte-type"><span class="badge badge-cc" style="font-size:8px;padding:2px 6px">CC</span></span><div class="dte-track"><div class="dte-fill" style="width:36%;background:var(--g)"></div></div><span class="dte-days">18 DTE</span></div>
-      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/MSFT" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">MSFT</span><span class="dte-type"><span class="badge badge-csp" style="font-size:8px;padding:2px 6px">CSP</span></span><div class="dte-track"><div class="dte-fill" style="width:50%;background:var(--g)"></div></div><span class="dte-days">25 DTE</span></div>
-      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/GOOG" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">GOOG</span><span class="dte-type"><span class="badge badge-cc" style="font-size:8px;padding:2px 6px">CC</span></span><div class="dte-track"><div class="dte-fill" style="width:50%;background:var(--g)"></div></div><span class="dte-days">25 DTE</span></div>
-      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/NVDA" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">NVDA</span><span class="dte-type"><span class="badge badge-csp" style="font-size:8px;padding:2px 6px">CSP</span></span><div class="dte-track"><div class="dte-fill" style="width:64%;background:var(--g)"></div></div><span class="dte-days">32 DTE</span></div>
-      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/AMZN" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">AMZN</span><span class="dte-type"><span class="badge badge-csp" style="font-size:8px;padding:2px 6px">CSP</span></span><div class="dte-track"><div class="dte-fill" style="width:64%;background:var(--g)"></div></div><span class="dte-days">32 DTE</span></div>
-      <div class="dte-bar"><img src="https://assets.parqet.com/logos/symbol/META" class="tk-logo-sm" onerror="this.style.display='none'"><span class="dte-tk">META</span><span class="dte-type"><span class="badge badge-csp" style="font-size:8px;padding:2px 6px">CSP</span></span><div class="dte-track"><div class="dte-fill" style="width:78%;background:var(--g)"></div></div><span class="dte-days">39 DTE</span></div>
     </div>
     <div>
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-label">Sector Exposure</div>
-        <div class="exp-bar-row"><span class="exp-bar-lbl">Technology</span><div class="exp-bar-track"><div class="exp-bar-fill" style="width:75%;background:var(--ac)"></div></div><span class="exp-bar-val">$213.5k</span></div>
-        <div class="exp-bar-row"><span class="exp-bar-lbl">Consumer</span><div class="exp-bar-track"><div class="exp-bar-fill" style="width:20%;background:var(--bl)"></div></div><span class="exp-bar-val">$58.5k</span></div>
-        <div class="exp-bar-row"><span class="exp-bar-lbl">Auto</span><div class="exp-bar-track"><div class="exp-bar-fill" style="width:5%;background:var(--pr)"></div></div><span class="exp-bar-val">$28.0k</span></div>
+      <div class="card pos-exposure" style="margin-bottom:14px">
+        <div class="card-label">Ticker Exposure</div>
       </div>
-      <div class="card">
-        <div class="card-label">Daily Theta Decay</div>
-        <div style="display:flex;align-items:baseline;gap:10px;margin-top:4px">
-          <span class="stat-v gain" style="font-size:28px">+$47.20</span>
-          <span style="font-family:var(--fm);font-size:10px;color:var(--t4)">/ DAY</span>
-        </div>
-        <div style="font-family:var(--fm);font-size:10px;color:var(--t4);margin-top:6px;letter-spacing:.5px">
-          $330.40 / week · $1,416 / month (est.)
-        </div>
-        <div style="display:flex;gap:4px;margin-top:10px">
-          <div style="flex:62;height:5px;background:var(--g);border-radius:2px" title="CSP theta"></div>
-          <div style="flex:38;height:5px;background:var(--bl);border-radius:2px" title="CC theta"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:8px;color:var(--t4);margin-top:4px">
-          <span>CSP: $29.30</span><span>CC: $17.90</span>
-        </div>
+      <div class="card pos-theta">
+        <div class="card-label">Position Summary</div>
       </div>
     </div>
   </div>
@@ -1230,14 +1195,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
         <th>Ticker</th><th>Type</th><th>Strike</th><th>Expiration</th><th>DTE</th><th>Premium</th><th>Contracts</th><th>Collateral</th><th>P&L</th><th>Status</th><th>Actions</th>
       </tr></thead>
       <tbody>
-        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/AAPL" class="tk-logo" onerror="this.style.display='none'"><span class="tk">AAPL</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$185.00</td><td class="m">2026-03-21</td><td class="m">18</td><td class="m">$3.40</td><td class="m">1</td><td class="m">$18,500</td><td class="m gain">+$240</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>
-        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/MSFT" class="tk-logo" onerror="this.style.display='none'"><span class="tk">MSFT</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$400.00</td><td class="m">2026-03-28</td><td class="m">25</td><td class="m">$5.20</td><td class="m">1</td><td class="m">$40,000</td><td class="m gain">+$380</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>
-        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/TSLA" class="tk-logo" onerror="this.style.display='none'"><span class="tk">TSLA</span></td><td><span class="badge badge-cc">CC</span></td><td class="m">$280.00</td><td class="m">2026-03-21</td><td class="m warn">18 &#9888;</td><td class="m">$4.10</td><td class="m">1</td><td class="m">100 sh</td><td class="m loss">-$180</td><td class="warn">ITM</td><td><button class="btn btn-sm">Manage</button></td></tr>
-        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/NVDA" class="tk-logo" onerror="this.style.display='none'"><span class="tk">NVDA</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$850.00</td><td class="m">2026-04-04</td><td class="m">32</td><td class="m">$8.90</td><td class="m">1</td><td class="m">$85,000</td><td class="m gain">+$640</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>
-        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/AMD" class="tk-logo" onerror="this.style.display='none'"><span class="tk">AMD</span></td><td><span class="badge badge-cc">CC</span></td><td class="m">$175.00</td><td class="m">2026-03-21</td><td class="m">18</td><td class="m">$2.80</td><td class="m">1</td><td class="m">100 sh</td><td class="m gain">+$160</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>
-        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/META" class="tk-logo" onerror="this.style.display='none'"><span class="tk">META</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$500.00</td><td class="m">2026-04-11</td><td class="m">39</td><td class="m">$6.40</td><td class="m">1</td><td class="m">$50,000</td><td class="m gain">+$320</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>
-        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/GOOG" class="tk-logo" onerror="this.style.display='none'"><span class="tk">GOOG</span></td><td><span class="badge badge-cc">CC</span></td><td class="m">$180.00</td><td class="m">2026-03-28</td><td class="m">25</td><td class="m">$3.60</td><td class="m">1</td><td class="m">100 sh</td><td class="m loss">-$90</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>
-        <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/AMZN" class="tk-logo" onerror="this.style.display='none'"><span class="tk">AMZN</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$200.00</td><td class="m">2026-04-04</td><td class="m">32</td><td class="m">$4.50</td><td class="m">1</td><td class="m">$20,000</td><td class="m gain">+$290</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>
+        <!-- Populated dynamically by renderDashboard -->
       </tbody>
     </table>
   </div>
@@ -1378,12 +1336,9 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
     </div>
     <div class="card" style="padding:0;overflow:hidden">
       <table class="tbl">
-        <thead><tr><th>Signal</th><th>Type</th><th>Entry</th><th>Result</th><th>Confidence</th><th>Executed</th></tr></thead>
+        <thead><tr><th>Signal</th><th>Type</th><th>Entry</th><th>Result</th><th>Outcome</th><th>Closed</th></tr></thead>
         <tbody>
-          <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/AAPL" class="tk-logo" onerror="this.style.display='none'"><span class="tk">AAPL</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$180 PUT 02/21</td><td class="m gain">+$280 (100%)</td><td class="m" style="color:var(--g)">HIGH</td><td class="m" style="color:var(--t4)">Feb 7</td></tr>
-          <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/SPY" class="tk-logo" onerror="this.style.display='none'"><span class="tk">SPY</span></td><td><span class="badge badge-cc">CC</span></td><td class="m">$490 CALL 02/14</td><td class="m gain">+$150 (100%)</td><td class="m" style="color:var(--g)">HIGH</td><td class="m" style="color:var(--t4)">Feb 3</td></tr>
-          <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/NVDA" class="tk-logo" onerror="this.style.display='none'"><span class="tk">NVDA</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$820 PUT 02/07</td><td class="m gain">+$520 (100%)</td><td class="m" style="color:var(--w)">MEDIUM</td><td class="m" style="color:var(--t4)">Jan 28</td></tr>
-          <tr><td class="tk-cell"><img src="https://assets.parqet.com/logos/symbol/TSLA" class="tk-logo" onerror="this.style.display='none'"><span class="tk">TSLA</span></td><td><span class="badge badge-csp">CSP</span></td><td class="m">$240 PUT 01/31</td><td class="m loss">Assigned</td><td class="m" style="color:var(--w)">MEDIUM</td><td class="m" style="color:var(--t4)">Jan 21</td></tr>
+          <!-- Populated dynamically by renderSignalsRecent -->
         </tbody>
       </table>
     </div>
@@ -1474,12 +1429,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
       <table class="tbl">
         <thead><tr><th>Month</th><th>Realized</th><th>Pending</th><th>Trades</th><th>Win%</th></tr></thead>
         <tbody>
-          <tr><td class="m">Mar '26</td><td class="m gain">$2,840</td><td class="m" style="color:var(--t4)">$1,200</td><td class="m">18</td><td class="m gain">83%</td></tr>
-          <tr><td class="m">Feb '26</td><td class="m gain">$2,120</td><td class="m" style="color:var(--t4)">$0</td><td class="m">22</td><td class="m gain">77%</td></tr>
-          <tr><td class="m">Jan '26</td><td class="m gain">$1,890</td><td class="m" style="color:var(--t4)">$0</td><td class="m">19</td><td class="m gain">74%</td></tr>
-          <tr><td class="m">Dec '25</td><td class="m gain">$2,460</td><td class="m" style="color:var(--t4)">$0</td><td class="m">24</td><td class="m gain">81%</td></tr>
-          <tr><td class="m">Nov '25</td><td class="m gain">$1,650</td><td class="m" style="color:var(--t4)">$0</td><td class="m">16</td><td class="m">69%</td></tr>
-          <tr><td class="m">Oct '25</td><td class="m gain">$1,980</td><td class="m" style="color:var(--t4)">$0</td><td class="m">20</td><td class="m gain">75%</td></tr>
+          <!-- Populated dynamically by renderAnalyticsPage -->
         </tbody>
       </table>
     </div>
@@ -2728,6 +2678,54 @@ function renderLearnGrid(){
       <div style="font-family:var(--fm);font-size:9px;color:var(--t4);margin-top:6px">${done}/${total} chapters · ${pct}%</div>
     </div>`;
   }).join('');
+
+  // Update learn stats cards dynamically
+  let totalDone=0,totalChapters=0,quizzesPassed=0;
+  MODULES.forEach(m=>{const d=(prog[m.id]||[]).length;totalDone+=d;totalChapters+=m.chapters.length;if(d===m.chapters.length)quizzesPassed++});
+  const modulesDone=MODULES.filter(m=>(prog[m.id]||[]).length===m.chapters.length).length;
+  const overallPct=totalChapters>0?Math.round(totalDone/totalChapters*100):0;
+  const estHrs=((totalChapters-totalDone)*3/60).toFixed(1);
+
+  // Stats cards
+  const lstats=document.querySelectorAll('.learn-stats .card');
+  if(lstats[0]){lstats[0].querySelector('.stat-v').textContent=modulesDone;lstats[0].querySelector('.stat-v').className='stat-v'+(modulesDone>0?' gain':'');lstats[0].querySelector('.stat-sub').textContent='OF '+MODULES.length+' MODULES'}
+  if(lstats[1]){lstats[1].querySelector('.stat-v').textContent=totalDone;lstats[1].querySelector('.stat-sub').textContent='OF '+totalChapters+' TOTAL'}
+  if(lstats[2]){lstats[2].querySelector('.stat-v').textContent=quizzesPassed+'/'+modulesDone;lstats[2].querySelector('.stat-v').className='stat-v'+(quizzesPassed>0?' gain':'');lstats[2].querySelector('.stat-sub').textContent=modulesDone>0?Math.round(quizzesPassed/modulesDone*100)+'% SCORE':'NO QUIZZES YET'}
+  if(lstats[3]){lstats[3].querySelector('.stat-v').textContent=estHrs+'h';lstats[3].querySelector('.stat-sub').textContent='TO COMPLETE ALL'}
+
+  // Overall progress bar
+  const lpTxt=document.querySelector('.lp-txt');if(lpTxt)lpTxt.textContent='OVERALL PROGRESS: '+overallPct+'% COMPLETE · '+modulesDone+' OF '+MODULES.length+' MODULES';
+  const lpFill=document.querySelector('.learn-prog .prog-f');if(lpFill)lpFill.style.width=overallPct+'%';
+
+  // Continue learning card
+  const nextMod=MODULES.find(m=>(prog[m.id]||[]).length>0&&(prog[m.id]||[]).length<m.chapters.length)||MODULES.find(m=>(prog[m.id]||[]).length===0);
+  if(nextMod){
+    const nm=document.querySelector('.learn-continue');
+    if(nm){
+      const nd=(prog[nextMod.id]||[]).length;const np=Math.round(nd/nextMod.chapters.length*100);
+      const nextLesson=nextMod.chapters[nd]||nextMod.chapters[0];
+      nm.querySelector('.lc-title').textContent=nextMod.title.toUpperCase();
+      nm.querySelector('.lc-meta').textContent='Module '+(MODULES.indexOf(nextMod)+1)+' · '+nextMod.level+' · '+np+'% Complete';
+      nm.querySelector('.lc-lesson').innerHTML='Next Lesson: <strong style="color:var(--tx)">'+nextLesson+'</strong>';
+      const pf=nm.querySelector('.prog-f');if(pf)pf.style.width=np+'%';
+    }
+  }
+
+  // Achievements
+  const badges=document.querySelectorAll('.learn-badge');
+  if(badges.length>0){
+    MODULES.forEach((m,i)=>{
+      if(i<badges.length-1){
+        const done=(prog[m.id]||[]).length===m.chapters.length;
+        const inProg=(prog[m.id]||[]).length>0;
+        badges[i].className='learn-badge'+(done?' earned':inProg?' in-progress':'');
+      }
+    });
+    // Last badge = all modules complete
+    if(badges[badges.length-1]){
+      badges[badges.length-1].className='learn-badge'+(modulesDone===MODULES.length?' earned':' locked');
+    }
+  }
 }
 
 function openModule(moduleId){
@@ -2958,41 +2956,93 @@ function renderDashboard(){
         const type=(p.type||'csp').toUpperCase();const badge='badge-'+(p.type||'csp');
         const prem=(p.premium||0)*(p.contracts||1)*100;
         const collateral=type==='CSP'?'$'+(p.strike*(p.contracts||1)*100).toLocaleString():(p.contracts||1)*100+' sh';
-        return '<tr class="pos-glow-'+dc+'"><td class="tk-cell">'+tkLogo(p.symbol,28)+'<span class="tk">'+p.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+Number(p.strike).toFixed(2)+'</td><td class="m">'+(p.expiration||'-')+'</td><td class="m"><div class="dte-live"><span class="dot '+dc+'"></span><span class="dte-live-val" data-exp="'+(parseExpDate(p.expiration)?parseExpDate(p.expiration).getTime():'')+'">'+fmtDte(p.expiration)+'</span></div></td><td class="m">$'+(p.premium||0).toFixed(2)+'</td><td class="m">'+(p.contracts||1)+'</td><td class="m">'+collateral+'</td><td class="m gain">+$'+Math.round(prem).toLocaleString()+'</td><td style="color:var(--t4)">Open</td><td><button class="btn btn-sm">Manage</button></td></tr>';
+        // Status: check expiration + assigned
+        let status='Open',statusCls='color:var(--t4)';
+        if(p.status==='assigned'||p.type==='assigned'){status='Assigned';statusCls='color:var(--w)'}
+        else if(dte<=0){status='EXPIRED';statusCls='color:var(--r)'}
+        else if(dte<=7){status='Expiring';statusCls='color:var(--w)'}
+        return '<tr class="pos-glow-'+dc+'" data-type="'+(p.type||'csp')+'" data-status="'+(p.status||'open')+'"><td class="tk-cell">'+tkLogo(p.symbol,28)+'<span class="tk">'+p.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+Number(p.strike).toFixed(2)+'</td><td class="m">'+(p.expiration||'-')+'</td><td class="m"><div class="dte-live"><span class="dot '+dc+'"></span><span class="dte-live-val" data-exp="'+(parseExpDate(p.expiration)?parseExpDate(p.expiration).getTime():'')+'">'+fmtDte(p.expiration)+'</span></div></td><td class="m">$'+(p.premium||0).toFixed(2)+'</td><td class="m">'+(p.contracts||1)+'</td><td class="m">'+collateral+'</td><td class="m gain">+$'+Math.round(prem).toLocaleString()+'</td><td style="'+statusCls+'">'+status+'</td><td><button class="btn btn-sm">Manage</button></td></tr>';
       }).join('');
     }else{posTbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--t4);padding:20px">No open positions</td></tr>'}
   }
 
-  // Positions page summary cards
+  // Positions page summary cards — all 5
   const posSummary=document.querySelector('.pos-summary');
   if(posSummary){
     const cards=posSummary.querySelectorAll('.card');
+    // Card 0: Open positions count
     if(cards[0]){cards[0].querySelector('.stat-v').textContent=pos.length;cards[0].querySelector('.stat-sub').textContent=cspCount+' CSP / '+ccCount+' CC'}
-    if(cards[1]){cards[1].querySelector('.stat-v').textContent='$'+totalPrem.toFixed(2)}
+    // Card 1: Total Premium collected (open)
+    if(cards[1]){cards[1].querySelector('.stat-v').textContent='$'+totalPrem.toFixed(2);cards[1].querySelector('.stat-sub').textContent='COLLECTED'}
+    // Card 2: Unrealized P&L (premium on open = unrealized gain)
+    if(cards[2]){const sv=cards[2].querySelector('.stat-v');sv.textContent=(totalPrem>=0?'+':'')+' $'+Math.round(totalPrem).toLocaleString();sv.className='stat-v '+(totalPrem>=0?'gain':'loss');cards[2].querySelector('.stat-sub').textContent='ALL POSITIONS'}
+    // Card 3: Avg DTE
+    if(cards[3]){const ad=pos.length>0?Math.round(pos.reduce((s,p)=>s+getDte(p.expiration),0)/pos.length):0;cards[3].querySelector('.stat-v').textContent=ad;cards[3].querySelector('.stat-sub').textContent='DAYS TO EXPIRY'}
+    // Card 4: Capital Deployed
+    if(cards[4]){
+      const deployed=pos.reduce((s,p)=>{const t=(p.type||'csp').toLowerCase();return s+(t==='csp'?(p.strike||0)*(p.contracts||1)*100:0)},0);
+      const base=S.startingBalance||S.accSize||25000;
+      const pct=base>0?Math.min(100,Math.round(deployed/base*100)):0;
+      cards[4].querySelector('.stat-v').textContent='$'+(deployed>=1000?(deployed/1000).toFixed(1)+'k':Math.round(deployed).toLocaleString());
+      cards[4].querySelector('.stat-sub').textContent='OF $'+Math.round(base).toLocaleString();
+      const pf=cards[4].querySelector('.prog-f');if(pf)pf.style.width=pct+'%';
+    }
   }
 
-  // Positions filter pills
+  // Positions filter pills — with click handlers
+  let _posFilter='all';
   const pills=document.querySelector('.pos-filters .pills');
   if(pills){
     const shareCount=pos.filter(p=>p.type==='shares').length;
     const assignedCount=pos.filter(p=>p.type==='assigned'||p.status==='assigned').length;
-    pills.innerHTML='<button class="pill active">All ('+pos.length+')</button><button class="pill">CSP ('+cspCount+')</button><button class="pill">CC ('+ccCount+')</button><button class="pill">Shares ('+shareCount+')</button><button class="pill">Assigned ('+assignedCount+')</button>';
+    pills.innerHTML='<button class="pill active" data-pf="all">All ('+pos.length+')</button><button class="pill" data-pf="csp">CSP ('+cspCount+')</button><button class="pill" data-pf="cc">CC ('+ccCount+')</button><button class="pill" data-pf="shares">Shares ('+shareCount+')</button><button class="pill" data-pf="assigned">Assigned ('+assignedCount+')</button>';
+    pills.querySelectorAll('.pill').forEach(btn=>{
+      btn.onclick=function(){
+        pills.querySelectorAll('.pill').forEach(b=>b.classList.remove('active'));this.classList.add('active');
+        _posFilter=this.dataset.pf;
+        const rows=document.querySelectorAll('#positions .tbl tbody tr');
+        rows.forEach(r=>{
+          if(_posFilter==='all'){r.style.display=''}
+          else if(_posFilter==='assigned'){r.style.display=(r.dataset.type==='assigned'||r.dataset.status==='assigned')?'':'none'}
+          else{r.style.display=(r.dataset.type===_posFilter)?'':'none'}
+        });
+      };
+    });
   }
 
-  // DTE timeline
+  // DTE timeline — uses parseExpDate
   const dteTl=document.querySelector('.dte-timeline');
   if(dteTl&&pos.length>0){
-    const lbl=dteTl.querySelector('.card-label');
-    const bars=pos.slice(0,8).map(p=>{
-      const dte=p.expiration?Math.max(0,Math.ceil((new Date(p.expiration)-now)/(864e5))):0;
+    const sorted=[...pos].sort((a,b)=>getDte(a.expiration)-getDte(b.expiration));
+    const bars=sorted.slice(0,8).map(p=>{
+      const dte=getDte(p.expiration);
       const pct=Math.min(100,Math.round(dte/50*100));
       const type=(p.type||'csp').toUpperCase();
       const badge='badge-'+(p.type||'csp');
       const warnCls=dte<=7?'warn':'';
-      const barColor=dte<=7?'var(--w)':'var(--g)';
-      return '<div class="dte-bar"><img src="'+logo(p.symbol)+'" class="tk-logo-sm" onerror="this.style.display=\'none\'"><span class="dte-tk">'+p.symbol+'</span><span class="dte-type"><span class="badge '+badge+'" style="font-size:8px;padding:2px 6px">'+type+'</span></span><div class="dte-track"><div class="dte-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div><span class="dte-days '+warnCls+'">'+dte+' DTE</span></div>';
+      const barColor=dte<=7?'var(--w)':dte<=14?'var(--ac)':'var(--g)';
+      return '<div class="dte-bar">'+tkLogo(p.symbol,18)+'<span class="dte-tk">'+p.symbol+'</span><span class="dte-type"><span class="badge '+badge+'" style="font-size:8px;padding:2px 6px">'+type+'</span></span><div class="dte-track"><div class="dte-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div><span class="dte-days '+warnCls+'">'+dte+' DTE</span></div>';
     }).join('');
-    dteTl.innerHTML=(lbl?'<div class="card-label">Expiration Timeline</div>':'')+bars;
+    dteTl.innerHTML='<div class="card-label">Expiration Timeline</div>'+bars;
+  }else if(dteTl){dteTl.innerHTML='<div class="card-label">Expiration Timeline</div><div style="color:var(--t4);padding:12px;text-align:center;font-size:11px">No open positions</div>'}
+
+  // Ticker Exposure — dynamic from positions
+  const expEl=document.querySelector('.pos-exposure');
+  if(expEl){
+    const byTicker={};pos.forEach(p=>{const col=(p.type||'csp')==='csp'?(p.strike||0)*(p.contracts||1)*100:0;byTicker[p.symbol]=(byTicker[p.symbol]||0)+col});
+    const sorted=Object.entries(byTicker).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const maxV=sorted.length>0?sorted[0][1]:1;
+    const colors=['var(--ac)','var(--bl)','var(--pr)','var(--g)','var(--w)'];
+    expEl.innerHTML='<div class="card-label">Ticker Exposure</div>'+(sorted.length>0?sorted.map(([sym,v],i)=>'<div class="exp-bar-row"><span class="exp-bar-lbl">'+sym+'</span><div class="exp-bar-track"><div class="exp-bar-fill" style="width:'+Math.round(v/maxV*100)+'%;background:'+colors[i%5]+'"></div></div><span class="exp-bar-val">$'+(v>=1000?(v/1000).toFixed(1)+'k':v)+'</span></div>').join(''):'<div style="color:var(--t4);padding:12px;text-align:center;font-size:11px">No positions</div>');
+  }
+
+  // Position Summary — CSP/CC breakdown with premium totals
+  const thetaEl=document.querySelector('.pos-theta');
+  if(thetaEl){
+    const cspPrem=pos.filter(p=>(p.type||'csp')==='csp').reduce((s,p)=>s+(p.premium||0)*(p.contracts||1)*100,0);
+    const ccPrem=pos.filter(p=>p.type==='cc').reduce((s,p)=>s+(p.premium||0)*(p.contracts||1)*100,0);
+    const total=cspPrem+ccPrem;const cspPct=total>0?Math.round(cspPrem/total*100):0;
+    thetaEl.innerHTML='<div class="card-label">Position Summary</div><div style="display:flex;align-items:baseline;gap:10px;margin-top:4px"><span class="stat-v gain" style="font-size:28px">$'+Math.round(total).toLocaleString()+'</span><span style="font-family:var(--fm);font-size:10px;color:var(--t4)">TOTAL PREMIUM</span></div><div style="display:flex;gap:4px;margin-top:10px"><div style="flex:'+cspPct+';height:5px;background:var(--g);border-radius:2px" title="CSP"></div><div style="flex:'+(100-cspPct)+';height:5px;background:var(--bl);border-radius:2px" title="CC"></div></div><div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:8px;color:var(--t4);margin-top:4px"><span>CSP: $'+Math.round(cspPrem).toLocaleString()+' ('+cspCount+')</span><span>CC: $'+Math.round(ccPrem).toLocaleString()+' ('+ccCount+')</span></div>';
   }
 
   // Analytics page
@@ -3005,49 +3055,50 @@ function renderDashboard(){
 
 function renderAnalyticsPage(){
   const pos=S.positions||[];const hist=S.history||[];
-  const all=[...pos,...hist];
-  const wins=hist.filter(h=>(h.pnl||0)>=0).length;
-  const losses=hist.length-wins;
-  const winRate=hist.length>0?(wins/hist.length*100).toFixed(1):'0';
-  const totalPnl=hist.reduce((s,h)=>s+(h.pnl||0),0);
-  const avgPrem=all.length>0?(all.reduce((s,t)=>s+(t.premium||0),0)/all.length).toFixed(2):'0';
-  // Win streak
+  // Match main site: exclude rolled trades from win/loss calculations
+  const closedTrades=hist.filter(h=>h.outcome!=='rolled');
+  const rolls=hist.filter(h=>h.outcome==='rolled');
+  const wins=closedTrades.filter(h=>(h.pnl||0)>=0).length;
+  const losses=closedTrades.length-wins;
+  const winRate=closedTrades.length>0?(wins/closedTrades.length*100).toFixed(1):'0';
+  const totalPnl=closedTrades.reduce((s,h)=>s+(h.pnl||0),0);
+  // Avg premium per contract from closed trades only
+  const avgPrem=closedTrades.length>0?(closedTrades.reduce((s,t)=>s+(t.premium||0),0)/closedTrades.length).toFixed(2):'0';
+  // Win streak — iterate oldest to newest (reverse of default newest-first)
   let streak=0,bestStreak=0;
-  for(const h of hist){if((h.pnl||0)>=0){streak++;bestStreak=Math.max(bestStreak,streak)}else{streak=0}}
-  // Avg DTE at entry
+  const ordered=closedTrades.slice().reverse();
+  for(const h of ordered){if((h.pnl||0)>=0){streak++;bestStreak=Math.max(bestStreak,streak)}else{streak=0}}
+  // Avg DTE of current open positions
   const now=new Date();
-  const avgDte=pos.length>0?Math.round(pos.reduce((s,p)=>{const dte=p.expiration?Math.max(0,Math.ceil((new Date(p.expiration)-now)/(864e5))):0;return s+dte},0)/pos.length):0;
+  const avgDte=pos.length>0?Math.round(pos.reduce((s,p)=>{return s+getDte(p.expiration)},0)/pos.length):0;
 
+  // Stats cards — Total Trades = closed only (not open positions)
   const anaStats=document.querySelectorAll('.ana-stats .card');
-  if(anaStats[0]){anaStats[0].querySelector('.stat-v').textContent=all.length;anaStats[0].querySelector('.stat-sub').textContent='ALL TIME'}
+  if(anaStats[0]){anaStats[0].querySelector('.stat-v').textContent=closedTrades.length+(rolls.length>0?' (+'+rolls.length+' rolls)':'');anaStats[0].querySelector('.stat-sub').textContent='CLOSED TRADES'}
   if(anaStats[1]){const sv=anaStats[1].querySelector('.stat-v');sv.textContent=winRate+'%';sv.className='stat-v '+(parseFloat(winRate)>=50?'gain':'loss');anaStats[1].querySelector('.stat-sub').textContent=wins+'W / '+losses+'L'}
   if(anaStats[2]){const sv=anaStats[2].querySelector('.stat-v');sv.textContent=(totalPnl>=0?'+':'-')+'$'+Math.abs(Math.round(totalPnl)).toLocaleString();sv.className='stat-v '+(totalPnl>=0?'gain':'loss');anaStats[2].querySelector('.stat-sub').textContent='REALIZED'}
   if(anaStats[3]){anaStats[3].querySelector('.stat-v').textContent='$'+avgPrem}
   if(anaStats[4]){anaStats[4].querySelector('.stat-v').textContent=streak;anaStats[4].querySelector('.stat-sub').textContent='CURRENT / BEST: '+bestStreak}
   if(anaStats[5]){anaStats[5].querySelector('.stat-v').textContent=avgDte}
 
-  // Win/loss donut — update both text AND conic-gradient
+  // Win/loss donut
   const donutEl=document.querySelector('.donut');
   const donutVal=document.querySelector('.donut-val');
   if(donutVal)donutVal.textContent=Math.round(parseFloat(winRate))+'%';
   if(donutEl){const deg=Math.round(parseFloat(winRate)/100*360);donutEl.style.background='conic-gradient(var(--g) 0deg '+deg+'deg,var(--r) '+deg+'deg 360deg)'}
   const donutParent=document.querySelector('.donut')?.parentElement?.nextElementSibling;
   if(donutParent){
-    // Find top/worst tickers
-    const byTicker={};hist.forEach(h=>{if(!byTicker[h.symbol])byTicker[h.symbol]={w:0,l:0};if((h.pnl||0)>=0)byTicker[h.symbol].w++;else byTicker[h.symbol].l++});
+    const byTicker={};closedTrades.forEach(h=>{if(!byTicker[h.symbol])byTicker[h.symbol]={w:0,l:0};if((h.pnl||0)>=0)byTicker[h.symbol].w++;else byTicker[h.symbol].l++});
     const sorted=Object.entries(byTicker).map(([t,v])=>({t,rate:v.w/(v.w+v.l)*100})).sort((a,b)=>b.rate-a.rate);
     const best=sorted[0];const worst=sorted[sorted.length-1];
-    donutParent.innerHTML='<div><span style="display:inline-block;width:8px;height:8px;background:var(--g);border-radius:1px;margin-right:6px"></span>Winners: '+wins+'</div>'+
-      '<div><span style="display:inline-block;width:8px;height:8px;background:var(--r);border-radius:1px;margin-right:6px"></span>Losers: '+losses+'</div>'+
-      (best?'<div style="margin-top:8px;color:var(--t4)">Best: '+best.t+' ('+Math.round(best.rate)+'%)</div>':'')+
-      (worst&&sorted.length>1?'<div style="color:var(--t4)">Worst: '+worst.t+' ('+Math.round(worst.rate)+'%)</div>':'');
+    donutParent.innerHTML='<div><span style="display:inline-block;width:8px;height:8px;background:var(--g);border-radius:1px;margin-right:6px"></span>Winners: '+wins+'</div><div><span style="display:inline-block;width:8px;height:8px;background:var(--r);border-radius:1px;margin-right:6px"></span>Losers: '+losses+'</div>'+(best?'<div style="margin-top:8px;color:var(--t4)">Best: '+best.t+' ('+Math.round(best.rate)+'%)</div>':'')+(worst&&sorted.length>1?'<div style="color:var(--t4)">Worst: '+worst.t+' ('+Math.round(worst.rate)+'%)</div>':'');
   }
 
   // Monthly breakdown table
   const anaTbody=document.querySelector('.ana-bottom .tbl tbody');
   if(anaTbody){
     const months={};
-    hist.forEach(h=>{const d=new Date(h.closeDate||h.openDate||0);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!months[k])months[k]={realized:0,trades:0,wins:0};months[k].realized+=(h.pnl||0);months[k].trades++;if((h.pnl||0)>=0)months[k].wins++});
+    hist.forEach(h=>{const d=new Date(h.closeDate||h.openDate||0);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!months[k])months[k]={realized:0,trades:0,wins:0};months[k].realized+=(h.pnl||0);months[k].trades++;if(h.outcome!=='rolled'&&(h.pnl||0)>=0)months[k].wins++});
     pos.forEach(p=>{const d=new Date(p.openDate||0);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!months[k])months[k]={realized:0,trades:0,wins:0};months[k].pending=(months[k].pending||0)+(p.premium||0)*(p.contracts||1)*100});
     const sorted=Object.entries(months).sort((a,b)=>b[0].localeCompare(a[0]));
     if(sorted.length>0){
@@ -3062,7 +3113,7 @@ function renderAnalyticsPage(){
   // Top performers
   const topEl=$('topTickers');
   if(topEl){
-    const byTicker={};hist.forEach(h=>{if(!byTicker[h.symbol])byTicker[h.symbol]=0;byTicker[h.symbol]+=(h.pnl||0)});
+    const byTicker={};closedTrades.forEach(h=>{if(!byTicker[h.symbol])byTicker[h.symbol]=0;byTicker[h.symbol]+=(h.pnl||0)});
     const sorted=Object.entries(byTicker).sort((a,b)=>b[1]-a[1]).slice(0,5);
     if(sorted.length>0){
       topEl.innerHTML=sorted.map(([t,pnl])=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-family:var(--fm);font-size:11px"><span class="tk">'+t+'</span><span class="'+(pnl>=0?'gain':'loss')+'">'+(pnl>=0?'+':'')+' $'+Math.round(Math.abs(pnl)).toLocaleString()+'</span></div>').join('');
@@ -3070,10 +3121,10 @@ function renderAnalyticsPage(){
   }
 
   // CSP vs CC type split
-  const cspPnl=hist.filter(h=>(h.type||'csp')==='csp').reduce((s,h)=>s+(h.pnl||0),0);
-  const ccPnl=hist.filter(h=>h.type==='cc').reduce((s,h)=>s+(h.pnl||0),0);
-  const totalTypePnl=Math.abs(cspPnl)+Math.abs(ccPnl)||1;
-  const cspPct=Math.round(Math.abs(cspPnl)/totalTypePnl*100);
+  const cspCount=closedTrades.filter(h=>(h.type||'csp')==='csp').length;
+  const ccCount=closedTrades.filter(h=>h.type==='cc').length;
+  const totalCount=cspCount+ccCount||1;
+  const cspPct=Math.round(cspCount/totalCount*100);
   const typeSplit=document.querySelector('.ana-bottom .card:last-child');
   if(typeSplit){
     const bars=typeSplit.querySelectorAll('div[style*="flex:"]');
@@ -3082,33 +3133,26 @@ function renderAnalyticsPage(){
     if(labels.length>=2){labels[labels.length-2].textContent='CSP '+cspPct+'%';labels[labels.length-1].textContent='CC '+(100-cspPct)+'%'}
   }
 
-  // P&L cumulative chart
+  // P&L cumulative chart — oldest to newest
   const plChart=$('plChart');
-  if(plChart&&hist.length>1){
-    let cum=0;const pts=hist.slice().reverse().map((h,i)=>{cum+=(h.pnl||0);return{x:i,y:cum}});
+  if(plChart&&closedTrades.length>1){
+    let cum=0;const pts=closedTrades.slice().reverse().map((h,i)=>{cum+=(h.pnl||0);return{x:i,y:cum}});
     const maxY=Math.max(...pts.map(p=>p.y),1);const minY=Math.min(...pts.map(p=>p.y),0);
     const range=maxY-minY||1;
-    const path=pts.map((p,i)=>{const x=p.x/(pts.length-1)*500;const y=140-(p.y-minY)/range*130;return(i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)}).join(' ');
     plChart.innerHTML='<polyline points="'+pts.map((p,i)=>{const x=p.x/(pts.length-1)*500;const y=140-(p.y-minY)/range*130;return x.toFixed(1)+','+y.toFixed(1)}).join(' ')+'" fill="none" stroke="var(--g)" stroke-width="2"/>';
-  }
-}
+  }else if(plChart){plChart.innerHTML=''}
 
-function renderSignalsRecent(){
-  const hist=S.history||[];
-  const tbody=document.querySelector('#signals .tbl tbody');
-  if(!tbody)return;
-  const recent=hist.slice(0,6);
-  if(recent.length>0){
-    const logo=t=>'https://assets.parqet.com/logos/symbol/'+t;
-    tbody.innerHTML=recent.map(h=>{
-      const type=(h.type||'csp').toUpperCase();const badge='badge-'+(h.type||'csp');
-      const pnl=h.pnl||0;const pnlCls=pnl>=0?'gain':'loss';
-      const conf=pnl>200?'HIGH':pnl>0?'MEDIUM':'LOW';const confCls=conf==='HIGH'?'var(--g)':'var(--w)';
-      const dt=h.closeDate?new Date(h.closeDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
-      const result=h.outcome==='assigned'?'Assigned':(pnl>=0?'+':'')+'$'+Math.round(Math.abs(pnl)).toLocaleString();
-      return '<tr><td class="tk-cell"><img src="'+logo(h.symbol)+'" class="tk-logo" onerror="this.style.display=\'none\'"><span class="tk">'+h.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+h.strike+' '+(type==='CSP'?'PUT':'CALL')+' '+(h.expiration||'')+'</td><td class="m '+pnlCls+'">'+result+'</td><td class="m" style="color:'+confCls+'">'+conf+'</td><td class="m" style="color:var(--t4)">'+dt+'</td></tr>';
-    }).join('');
-  }else{tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--t4);padding:20px">No executed trades yet</td></tr>'}
+  // Premium by month bar chart — DYNAMIC (replaces static)
+  const premChart=$('premChart');
+  if(premChart){
+    const months={};
+    hist.forEach(h=>{const d=new Date(h.closeDate||h.openDate||0);const k=d.toLocaleDateString('en-US',{month:'short'});const sk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!months[sk])months[sk]={label:k,prem:0};months[sk].prem+=(h.premium||0)*(h.contracts||1)*100});
+    const sorted=Object.entries(months).sort((a,b)=>a[0].localeCompare(b[0])).slice(-6);
+    if(sorted.length>0){
+      const pmax=Math.max(...sorted.map(([,v])=>v.prem),1);
+      premChart.innerHTML=sorted.map(([,v])=>'<div class="bar-col"><div class="bar-val">$'+(v.prem>=1000?(v.prem/1000).toFixed(1)+'k':Math.round(v.prem))+'</div><div class="bar" style="height:'+Math.round(v.prem/pmax*100)+'%"></div><div class="bar-label">'+v.label+'</div></div>').join('');
+    }else{premChart.innerHTML='<div style="color:var(--t4);font-size:11px;text-align:center;padding:20px">No data yet</div>'}
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -3168,49 +3212,72 @@ function showConfetti(){
 // ═══════════════════════════════════════════
 // SIGNALS RENDERER
 // ═══════════════════════════════════════════
+// Signal filter state
+let _sigFilter='all';
+
 function renderSignals(){
   const el=$('sigGrid');if(!el)return;
-  const posts=(S.adminPosts||[]).filter(p=>p.type==='signal'||p.ticker);
+  // Use correct Firebase post fields: kind, type, ticker, strike, exp, prem, status
+  const allPosts=(S.adminPosts||[]).filter(p=>p.kind==='signal'||p.ticker);
+  const openPosts=allPosts.filter(p=>!p.status||p.status==='open');
+  const closedPosts=allPosts.filter(p=>p.status&&p.status!=='open');
+
+  // Update signal stats cards dynamically
+  const sigStats=document.querySelectorAll('.sig-stats .card');
+  if(sigStats[0]){sigStats[0].querySelector('.stat-v').textContent=openPosts.length;sigStats[0].querySelector('.stat-sub').textContent='UPDATED LIVE'}
+  if(sigStats[1]){const low=openPosts.filter(p=>parseFloat(String(p.delta||'').replace('-',''))<0.25).length;sigStats[1].querySelector('.stat-v').textContent=low;sigStats[1].querySelector('.stat-sub').textContent='OF '+openPosts.length+' SIGNALS'}
+  if(sigStats[2]){const avg=openPosts.length>0?(openPosts.reduce((s,p)=>s+parseFloat(String(p.prem||'0').replace(/[$,]/g,'')),0)/openPosts.length).toFixed(2):'0';sigStats[2].querySelector('.stat-v').textContent='$'+avg}
+  if(sigStats[3]){const winners=closedPosts.filter(p=>p.status==='winner').length;const closed=closedPosts.filter(p=>p.status==='winner'||p.status==='called').length;const wr=closed>0?Math.round(winners/closed*100):0;const sv=sigStats[3].querySelector('.stat-v');sv.textContent=wr+'%';sv.className='stat-v '+(wr>=60?'gain':'');sigStats[3].querySelector('.stat-sub').textContent=winners+'W / '+(closed-winners)+'L'}
+
+  // Apply filter
+  let posts=openPosts;
+  if(_sigFilter==='csp')posts=openPosts.filter(p=>(p.type||'csp')==='csp');
+  else if(_sigFilter==='cc')posts=openPosts.filter(p=>p.type==='cc');
+
   if(posts.length===0){
-    el.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--t4)">
-      <div style="font-size:32px;margin-bottom:8px">&#9889;</div>
-      <div style="font-family:var(--fd);font-size:16px;letter-spacing:2px;margin-bottom:4px">No Active Signals</div>
-      <div style="font-family:var(--fm);font-size:11px;letter-spacing:1px">Signals from admin will appear here in real-time.</div>
-    </div>`;
+    el.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--t4)"><div style="font-size:32px;margin-bottom:8px">&#9889;</div><div style="font-family:var(--fd);font-size:16px;letter-spacing:2px;margin-bottom:4px">No Active Signals</div><div style="font-family:var(--fm);font-size:11px;letter-spacing:1px">Signals will appear here in real-time.</div></div>';
     return;
   }
   el.innerHTML=posts.slice(0,12).map(p=>{
     const ticker=p.ticker||'???';
-    const type=p.positionType||p.mode||'CSP';
+    const type=(p.type||'csp').toUpperCase();
     const strike=p.strike||'—';
-    const exp=p.expiration||'—';
-    const premium=p.premium||p.bid||'—';
-    const confidence=p.confidence||'MEDIUM';
-    const confColor=confidence==='HIGH'?'var(--g)':confidence==='LOW'?'var(--r)':'var(--w)';
+    const exp=p.exp||'—';
+    const premium=String(p.prem||'—').replace('$','');
+    const statusClr=p.status==='assigned'?'var(--w)':p.status==='rolled'?'var(--pr)':'var(--g)';
+    const statusTxt=(p.status||'open').toUpperCase();
     const badgeClass=type==='CC'?'badge-cc':'badge-csp';
     const age=p.timestamp?timeAgo(p.timestamp):'—';
-    return `
-    <div class="sig-card card">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        ${tkLogo(ticker)}
-        <div>
-          <div style="font-family:var(--fd);font-size:16px;font-weight:700;letter-spacing:1px">${ticker}</div>
-          <span class="badge ${badgeClass}">${type}</span>
-        </div>
-        <div style="margin-left:auto;text-align:right">
-          <div style="font-family:var(--fm);font-size:9px;color:${confColor};letter-spacing:1px">${confidence}</div>
-          <div style="font-family:var(--fm);font-size:9px;color:var(--t5)">${age}</div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:var(--fm);font-size:11px;color:var(--t3)">
-        <div>Strike: <span style="color:var(--tx)">${strike}</span></div>
-        <div>Exp: <span style="color:var(--tx)">${exp}</span></div>
-        <div>Premium: <span class="gain">${premium!=='—'?'$'+premium:premium}</span></div>
-        <div>Status: <span style="color:var(--g)">${p.status||'OPEN'}</span></div>
-      </div>
-      ${p.notes?'<div style="font-size:11px;color:var(--t4);margin-top:8px;border-top:1px solid var(--bd);padding-top:6px">'+escapeHtml(p.notes)+'</div>':''}
-    </div>`;
+    return '<div class="sig-card card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'+tkLogo(ticker)+'<div><div style="font-family:var(--fd);font-size:16px;font-weight:700;letter-spacing:1px">'+ticker+'</div><span class="badge '+badgeClass+'">'+type+'</span></div><div style="margin-left:auto;text-align:right"><div style="font-family:var(--fm);font-size:9px;color:var(--t5)">'+age+'</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:var(--fm);font-size:11px;color:var(--t3)"><div>Strike: <span style="color:var(--tx)">$'+strike+'</span></div><div>Exp: <span style="color:var(--tx)">'+exp+'</span></div><div>Premium: <span class="gain">$'+premium+'</span></div><div>Status: <span style="color:'+statusClr+'">'+statusTxt+'</span></div></div>'+(p.notes?'<div style="font-size:11px;color:var(--t4);margin-top:8px;border-top:1px solid var(--bd);padding-top:6px">'+escapeHtml(p.notes)+'</div>':'')+'</div>';
   }).join('');
+
+  // Wire up filter pills
+  const pills=document.querySelectorAll('#signals .pos-filters .pill');
+  pills.forEach(pill=>{
+    pill.onclick=function(){
+      pills.forEach(p=>p.classList.remove('active'));this.classList.add('active');
+      const txt=this.textContent.toLowerCase();
+      _sigFilter=txt.includes('csp')?'csp':txt.includes('cc')?'cc':'all';
+      renderSignals();
+    };
+  });
+}
+
+function renderSignalsRecent(){
+  const hist=S.history||[];
+  const tbody=document.querySelector('#signals .tbl tbody');
+  if(!tbody)return;
+  const recent=hist.filter(h=>h.outcome!=='rolled').slice(0,6);
+  if(recent.length>0){
+    tbody.innerHTML=recent.map(h=>{
+      const type=(h.type||'csp').toUpperCase();const badge='badge-'+(h.type||'csp');
+      const pnl=h.pnl||0;const pnlCls=pnl>=0?'gain':'loss';
+      const outcome=h.outcome==='assigned'?'Assigned':h.outcome==='called_away'?'Called Away':(pnl>=0?'Expired Worthless':'Loss');
+      const dt=h.closeDate?new Date(h.closeDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+      const result=h.outcome==='assigned'?'Assigned':(pnl>=0?'+':'')+' $'+Math.round(Math.abs(pnl)).toLocaleString();
+      return '<tr><td class="tk-cell">'+tkLogo(h.symbol)+'<span class="tk">'+h.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+h.strike+' '+(type==='CSP'?'PUT':'CALL')+' '+(h.expiration||'')+'</td><td class="m '+pnlCls+'">'+result+'</td><td class="m" style="color:var(--t4)">'+outcome+'</td><td class="m" style="color:var(--t4)">'+dt+'</td></tr>';
+    }).join('');
+  }else{tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--t4);padding:20px">No executed trades yet</td></tr>'}
 }
 
 // ═══════════════════════════════════════════
@@ -3653,27 +3720,6 @@ modules.forEach(m => {
     <div class="mod-prog"><div class="mod-prog-txt">${m.prog}% COMPLETE</div>
     <div class="prog"><div class="prog-f ${m.prog===100?'green':'gold'}" style="width:${m.prog}%"></div></div></div>
   </div>`;
-});
-
-// ── Analytics: P&L line chart ──
-const plData = [0,280,520,840,1100,1350,1680,2100,2450,2800,3200,3600,4100,4500,5200,5800,6400,7100,7600,8000,8420];
-const plSvg = document.getElementById('plChart');
-const pts = plData.map((v,i) => `${(i/(plData.length-1))*500},${140-(v/8420)*130}`).join(' ');
-plSvg.innerHTML = `<polyline class="area" points="0,140 ${pts} 500,140"/><polyline points="${pts}"/>${plData.map((v,i) => `<circle class="dot" cx="${(i/(plData.length-1))*500}" cy="${140-(v/8420)*130}"/>`).join('')}`;
-
-// ── Analytics: Premium bar chart ──
-const premData = [{m:'Oct',v:1980},{m:'Nov',v:1650},{m:'Dec',v:2460},{m:'Jan',v:1890},{m:'Feb',v:2120},{m:'Mar',v:2840}];
-const pc = document.getElementById('premChart');
-const pmax = Math.max(...premData.map(d => d.v));
-premData.forEach(d => {
-  pc.innerHTML += `<div class="bar-col"><div class="bar-val">$${(d.v/1000).toFixed(1)}k</div><div class="bar" style="height:${(d.v/pmax)*100}%"></div><div class="bar-label">${d.m}</div></div>`;
-});
-
-// ── Analytics: Top tickers ──
-const topData = [{sym:'AAPL',val:1240},{sym:'NVDA',val:890},{sym:'TSLA',val:780},{sym:'MSFT',val:720},{sym:'META',val:680},{sym:'AMD',val:540}];
-const tt = document.getElementById('topTickers');
-topData.forEach(d => {
-  tt.innerHTML += `<div class="top-row">${tkLogo(d.sym,'tk-logo-sm')}<span class="tt-sym">${d.sym}</span><div class="tt-bar"><div class="tt-fill" style="width:${(d.val/1240)*100}%"></div></div><span class="tt-val">$${d.val.toLocaleString()}</span></div>`;
 });
 
 // ── Calculator: Payoff diagram ──
