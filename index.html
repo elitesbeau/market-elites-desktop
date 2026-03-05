@@ -2149,6 +2149,21 @@ function loadState(){try{const d=localStorage.getItem('meDesktop');if(d)Object.a
   if(S[k]&&!Array.isArray(S[k]))S[k]=[];
 });}catch(e){}}
 function save(){try{localStorage.setItem('meDesktop',JSON.stringify(S))}catch(e){}}
+function scheduleSettingsSync(){
+  if(_settingsSyncTimer)clearTimeout(_settingsSyncTimer);
+  _settingsSyncTimer=setTimeout(syncSettingsToFirebase,2000);
+}
+let _settingsSyncTimer=null;
+async function syncSettingsToFirebase(){
+  if(!S.firebaseUid||S.isGuest||!firebaseReady)return;
+  try{
+    const updates={};
+    FB_SETTINGS_FIELDS.forEach(k=>{if(S[k]!==undefined){updates[k]=S[k];updates['settings/'+k]=S[k]}});
+    updates['_meta/lastWriteAt']=Date.now();updates['_meta/lastWriteBy']='desktop';
+    await firebase.database().ref('users/'+S.firebaseUid+'/tradingData').update(updates);
+    console.log('[Sync] Settings pushed to Firebase');
+  }catch(e){console.warn('[Sync] Settings sync failed:',e)}
+}
 loadState();
 
 // ── Firebase Sync — READ-ONLY for trading data (main site is the writer) ──
@@ -2519,7 +2534,7 @@ function savePortfolioSettings(){
   S.feePerContract=parseFloat($('feeInput')?.value)||0.65;
   S.incomeGoal=parseFloat($('incomeGoalInput')?.value)||500;
   S.dteThreshold=parseInt($('dteThresholdInput')?.value)||7;
-  save();renderDashboard();showToast('Portfolio settings saved','success');
+  save();scheduleSettingsSync();renderDashboard();showToast('Portfolio settings saved','success');
 }
 
 function openQuickSettings(){
@@ -2536,7 +2551,7 @@ function openQuickSettings(){
 function qsSaveBalance(){
   const v=parseFloat($('qsBalance')?.value);
   if(!v||v<=0){showToast('Enter a valid amount','error');return}
-  S.startingBalance=v;S.accSize=v;save();renderDashboard();
+  S.startingBalance=v;S.accSize=v;save();scheduleSettingsSync();renderDashboard();
   showToast('Balance set to $'+v.toLocaleString(),'success');
 }
 
@@ -2545,7 +2560,7 @@ function qsSaveGoal(){
   if(!v||v<=0){showToast('Enter a positive amount','error');return}
   S.incomeGoal=v;S.feePerContract=parseFloat($('qsFee')?.value)||0.65;
   S.dteThreshold=parseInt($('qsDte')?.value)||7;
-  save();renderDashboard();
+  save();scheduleSettingsSync();renderDashboard();
   showToast('Goal set to $'+v+'/month!','success');
 }
 
@@ -2644,7 +2659,7 @@ async function sendChat(){
 // INCOME GOALS
 // ═══════════════════════════════════════════
 function openGoals(){$('goalInput').value=S.incomeGoal||'';renderGoalsContent();openModal('goalsModal')}
-function saveGoal(){const v=parseInt($('goalInput').value)||0;if(v<=0){showToast('Enter a positive amount','error');return}S.incomeGoal=v;save();renderGoalsContent();showToast('Goal set to $'+v+'/month!','success')}
+function saveGoal(){const v=parseInt($('goalInput').value)||0;if(v<=0){showToast('Enter a positive amount','error');return}S.incomeGoal=v;save();scheduleSettingsSync();renderGoalsContent();renderDashboard();showToast('Goal set to $'+v+'/month!','success')}
 
 function getMonthlyPremium(ym){return(S.history||[]).reduce((s,t)=>{const d=new Date(t.closeDate||t.openDate);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');return k===ym?s+(t.premium||0)*(t.contracts||1)*100:s},0)}
 function getMonthlyPending(ym){return(S.positions||[]).reduce((s,p)=>{const d=new Date(p.openDate||Date.now());const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');return k===ym?s+(p.premium||0)*(p.contracts||1)*100:s},0)}
