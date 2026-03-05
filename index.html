@@ -2582,6 +2582,41 @@ function sanitizeArrayField(val){
   return val||[];
 }
 
+// ── Position-level merge: preserve locally edited positions ──
+function mergePositions(local, fb){
+  if(!fb||fb.length===0)return local||[];
+  if(!local||local.length===0)return fb;
+  // Index locally edited positions by stable key (ticker+openDate+signalId)
+  const posKey=p=>(p.ticker||'')+'|'+(p.openDate||'')+'|'+(p.signalId||'');
+  const editedMap={};
+  let hasEdits=false;
+  local.forEach(p=>{
+    if(p.lastEditedAt){
+      const k=posKey(p);
+      if(!editedMap[k])editedMap[k]=[];
+      editedMap[k].push(p);
+      hasEdits=true;
+    }
+  });
+  if(!hasEdits)return fb; // no local edits, use Firebase as-is
+  // Use Firebase as base, swap in locally edited positions where newer
+  const merged=fb.map(fp=>{
+    const k=posKey(fp);
+    const locals=editedMap[k];
+    if(locals&&locals.length>0){
+      const lp=locals[0];
+      if(lp.lastEditedAt>(fp.lastEditedAt||0)){
+        locals.shift(); // consume match
+        console.log('[Merge] Keeping local edit for',fp.ticker,'(edited',new Date(lp.lastEditedAt).toLocaleString(),')');
+        return lp;
+      }
+      locals.shift();
+    }
+    return fp;
+  });
+  return merged;
+}
+
 async function loadFromFirebase(){
   if(!S.firebaseUid||S.isGuest||!firebaseReady)return;
   try{
@@ -2592,11 +2627,19 @@ async function loadFromFirebase(){
     if(!td._meta||!td._meta.schemaVersion){
       FB_READ_FIELDS.forEach(k=>{if(td[k]&&typeof td[k]==='string'){try{td[k]=JSON.parse(td[k])}catch(e){td[k]=[]}}});
     }
-    // Apply Firebase trading data — main site is source of truth for positions/history
+    // Apply Firebase trading data — smart merge for positions
     let applied=0;
+    let positionsMerged=false;
     FB_READ_FIELDS.forEach(k=>{
       const fbVal=sanitizeArrayField(td[k]);
-      if(fbVal.length>0||(S[k]||[]).length===0){S[k]=fbVal;applied+=fbVal.length}
+      if(k==='positions'){
+        const before=S[k]||[];
+        S[k]=mergePositions(before,fbVal);
+        if(before.some(p=>p.lastEditedAt))positionsMerged=true;
+        applied+=S[k].length;
+      }else{
+        if(fbVal.length>0||(S[k]||[]).length===0){S[k]=fbVal;applied+=fbVal.length}
+      }
     });
     // Settings: only apply if Firebase is newer than local settings write
     const fbWriteAt=(td._meta&&td._meta.lastWriteAt)||0;
@@ -2611,7 +2654,12 @@ async function loadFromFirebase(){
       console.log('[Sync] Skipping Firebase settings — local is newer (',localSettingsAt,'vs',fbWriteAt,')');
     }
     save();
-    console.log('[Sync] Loaded from Firebase (READ-ONLY) — positions:',S.positions.length,'history:',S.history.length,'items:',applied);
+    // If we kept local edits, push merged result back to Firebase so other site gets it
+    if(positionsMerged){
+      console.log('[Sync] Local edits preserved — pushing merged positions back to Firebase');
+      syncPositionsToFirebase();
+    }
+    console.log('[Sync] Loaded from Firebase — positions:',S.positions.length,'history:',S.history.length,'items:',applied);
   }catch(e){console.warn('[Sync] loadFromFirebase failed:',e)}
 }
 
