@@ -380,6 +380,45 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 .ct-btn:hover{border-color:var(--acbr);background:var(--bgch)}
 .ct-val{font-family:var(--fd);font-size:38px;letter-spacing:2px;min-width:50px;text-align:center;font-weight:700}
 
+/* ── CALCULATOR PAGE — ALIVE ── */
+#calculator{position:relative}
+#calculator .calc-watermark{position:absolute;top:-20px;right:20px;
+  font-family:var(--fd);font-size:260px;font-weight:700;letter-spacing:-12px;
+  color:var(--mg);opacity:.035;pointer-events:none;line-height:1;z-index:1;user-select:none;
+  text-shadow:0 0 60px rgba(176,124,200,.06)}
+#calculator .calc-jp{position:absolute;top:70px;right:22px;
+  font-size:12px;letter-spacing:10px;writing-mode:vertical-rl;
+  color:var(--mg);opacity:.12;pointer-events:none;z-index:2;user-select:none;
+  text-shadow:0 0 20px rgba(176,124,200,.15)}
+/* Spec label accents */
+.calc-spec{font-family:var(--fm);font-size:7px;letter-spacing:3px;color:var(--mg);opacity:.2;
+  text-transform:uppercase;user-select:none;pointer-events:none}
+/* Chain row focus-by-negation */
+.chain-rows:hover .chain-row:not(:hover):not(.selected){opacity:.35;filter:saturate(.4)}
+.chain-row{transition:all .15s ease}
+/* Selected row animated border */
+.chain-row.selected{position:relative;background:var(--acbg);border-color:var(--acbr);
+  box-shadow:0 0 12px rgba(201,169,124,.08)}
+/* Result value subtle glow on gain */
+.result-val.gain{text-shadow:0 0 20px rgba(74,222,128,.15)}
+.result-val.loss{text-shadow:0 0 20px rgba(248,113,113,.15)}
+/* Scenario cards hover */
+.calc-scenario{transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+.calc-scenario:hover{transform:translateY(-2px);border-color:var(--bd2)!important;
+  box-shadow:0 4px 16px rgba(0,0,0,.3)}
+/* Quick ticker buttons glow on hover */
+.calc-quick button:hover{box-shadow:0 0 10px rgba(201,169,124,.1);transform:translateY(-1px)}
+.calc-quick button{transition:all .15s cubic-bezier(.34,1.56,.64,1)}
+/* Contract +/- spring */
+.ct-btn:active{transform:scale(.9)}
+.ct-btn{transition:all .15s cubic-bezier(.34,1.56,.64,1)}
+/* Payoff chart card accent */
+.payoff-card{position:relative;overflow:hidden}
+.payoff-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--mg),transparent);opacity:.3}
+/* Search input focus glow */
+.calc-search .inp:focus{border-color:var(--mgbr);box-shadow:0 0 16px rgba(176,124,200,.1);outline:none}
+
 /* ── WATCHLIST ── */
 .watch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .watch-card{min-height:240px;overflow:hidden}
@@ -1393,9 +1432,13 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 
 <!-- ────────── CALCULATOR ────────── -->
 <section id="calculator" class="page">
+  <div class="calc-watermark">03</div>
+  <div class="calc-jp">計算</div>
   <div class="page-head">
     <span class="page-label">03 — Calculator</span>
+    <span class="sparkle-deco" style="color:var(--mg)">◆ ◆</span>
     <span class="page-line"></span>
+    <span class="calc-spec">PROTOCOL // OPTIONS_ENGINE v2.0</span>
     <div class="pills"><button class="pill active">CSP</button><button class="pill">CC</button></div>
   </div>
 
@@ -1425,14 +1468,16 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
           <button class="pill">04/04</button><button class="pill">04/11</button>
         </div>
 
-        <div class="card-label">Options Chain — Puts</div>
+        <div style="display:flex;align-items:baseline;gap:10px"><div class="card-label" style="margin-bottom:0">Options Chain — Puts</div><span class="calc-spec" style="opacity:.15">SN-48 // LIVE_FEED</span></div>
         <div class="chain-hdr"><span style="min-width:60px">Strike</span><span style="min-width:60px">Bid</span><span style="min-width:60px">Ask</span><span style="min-width:60px">Delta</span><span style="min-width:60px">IV</span></div>
+        <div class="chain-rows">
         <div class="chain-row"><span class="strike">$175</span><span class="bid">$1.20</span><span class="ask">$1.35</span><span class="delta">0.15</span><span class="delta">28%</span></div>
         <div class="chain-row"><span class="strike">$180</span><span class="bid">$2.40</span><span class="ask">$2.60</span><span class="delta">0.22</span><span class="delta">30%</span></div>
         <div class="chain-row selected"><span class="strike">$185</span><span class="bid">$3.40</span><span class="ask">$3.60</span><span class="delta">0.30</span><span class="delta">32%</span></div>
         <div class="chain-row"><span class="strike">$190</span><span class="bid">$4.80</span><span class="ask">$5.00</span><span class="delta">0.38</span><span class="delta">34%</span></div>
         <div class="chain-row"><span class="strike">$195</span><span class="bid">$6.40</span><span class="ask">$6.60</span><span class="delta">0.45</span><span class="delta">36%</span></div>
         <div class="chain-row"><span class="strike">$200</span><span class="bid">$9.20</span><span class="ask">$9.40</span><span class="delta">0.55</span><span class="delta">38%</span></div>
+        </div>
       </div>
     </div>
 
