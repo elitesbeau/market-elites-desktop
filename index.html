@@ -3403,7 +3403,10 @@ function renderSignals(){
     const statusTxt=(p.status||'open').toUpperCase();
     const badgeClass=type==='CC'?'badge-cc':'badge-csp';
     const age=p.timestamp?timeAgo(p.timestamp):'—';
-    return '<div class="sig-card card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'+tkLogo(ticker)+'<div><div style="font-family:var(--fd);font-size:16px;font-weight:700;letter-spacing:1px">'+ticker+'</div><span class="badge '+badgeClass+'">'+type+'</span></div><div style="margin-left:auto;text-align:right"><div style="font-family:var(--fm);font-size:9px;color:var(--t5)">'+age+'</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:var(--fm);font-size:11px;color:var(--t3)"><div>Strike: <span style="color:var(--tx)">$'+strike+'</span></div><div>Exp: <span style="color:var(--tx)">'+exp+'</span></div><div>Premium: <span class="gain">$'+premium+'</span></div><div>Status: <span style="color:'+statusClr+'">'+statusTxt+'</span></div></div>'+(p.notes?'<div style="font-size:11px;color:var(--t4);margin-top:8px;border-top:1px solid var(--bd);padding-top:6px">'+escapeHtml(p.notes)+'</div>':'')+'</div>';
+    const sid=p.id?",'"+p.id+"'":'';
+    const copied=(S.positions||[]).find(pos=>p.id?pos.signalId===p.id:(pos.symbol===ticker&&pos.strike==strike&&pos.type===(p.type||'csp')));
+    const copyBtn=copied?'<div style="width:100%;margin-top:10px;padding:8px;border-radius:6px;text-align:center;background:var(--gbg);color:var(--g);font-size:11px;font-weight:700;letter-spacing:.5px">COPIED TO PORTFOLIO</div>':'<button onclick="event.stopPropagation();copyTradeFromSignal(\''+ticker+'\',\''+(p.type||'csp')+'\',\''+strike+'\',\''+exp+'\',\''+premium+'\''+sid+')" style="width:100%;margin-top:10px;padding:8px;border-radius:6px;background:var(--g);color:#fff;border:none;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:opacity .15s" onmouseenter="this.style.opacity=\'.85\'" onmouseleave="this.style.opacity=\'1\'">+ COPY TRADE</button>';
+    return '<div class="sig-card card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'+tkLogo(ticker)+'<div><div style="font-family:var(--fd);font-size:16px;font-weight:700;letter-spacing:1px">'+ticker+'</div><span class="badge '+badgeClass+'">'+type+'</span></div><div style="margin-left:auto;text-align:right"><div style="font-family:var(--fm);font-size:9px;color:var(--t5)">'+age+'</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:var(--fm);font-size:11px;color:var(--t3)"><div>Strike: <span style="color:var(--tx)">$'+strike+'</span></div><div>Exp: <span style="color:var(--tx)">'+exp+'</span></div><div>Premium: <span class="gain">$'+premium+'</span></div><div>Delta: <span style="color:var(--tx)">'+(p.delta||'—')+'</span></div></div>'+(p.notes?'<div style="font-size:11px;color:var(--t4);margin-top:8px;border-top:1px solid var(--bd);padding-top:6px">'+escapeHtml(p.notes)+'</div>':'')+copyBtn+'</div>';
   }).join('');
 
   // Wire up filter pills
@@ -3427,12 +3430,45 @@ function renderSignalsRecent(){
     tbody.innerHTML=recent.map(h=>{
       const type=(h.type||'csp').toUpperCase();const badge='badge-'+(h.type||'csp');
       const pnl=h.pnl||0;const pnlCls=pnl>=0?'gain':'loss';
-      const outcome=h.outcome==='assigned'?'Assigned':h.outcome==='called_away'?'Called Away':(pnl>=0?'Expired Worthless':'Loss');
+      const outcome=h.outcome==='assigned'?'Assigned':h.outcome==='called_away'?'Called Away':h.outcome==='rolled'?'Rolled':(pnl>=0?'Win!':'Loss');
       const dt=h.closeDate?new Date(h.closeDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
       const result=h.outcome==='assigned'?'Assigned':(pnl>=0?'+':'')+' $'+Math.round(Math.abs(pnl)).toLocaleString();
       return '<tr><td class="tk-cell">'+tkLogo(h.symbol)+'<span class="tk">'+h.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+h.strike+' '+(type==='CSP'?'PUT':'CALL')+' '+(h.expiration||'')+'</td><td class="m '+pnlCls+'">'+result+'</td><td class="m" style="color:var(--t4)">'+outcome+'</td><td class="m" style="color:var(--t4)">'+dt+'</td></tr>';
     }).join('');
   }else{tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--t4);padding:20px">No executed trades yet</td></tr>'}
+}
+
+// ═══════════════════════════════════════════
+// COPY TRADE FROM SIGNAL
+// ═══════════════════════════════════════════
+function copyTradeFromSignal(ticker,type,strike,exp,prem,signalId){
+  const premVal=parseFloat(String(prem).replace('$',''))||0;
+  const bal=S.startingBalance||S.accSize||25000;
+  const maxC=Math.floor(bal/(parseFloat(strike)*100))||1;
+  showPrompt('Your fill premium? (signal: $'+premVal.toFixed(2)+')',premVal.toFixed(2),(premInput)=>{
+    const myPrem=parseFloat(premInput)||premVal;
+    showPrompt('How many contracts? (max ~'+maxC+')','1',(val)=>{
+      const contracts=Math.max(1,parseInt(val)||1);
+      const fee=(S.feePerContract||0)*contracts;
+      if(!S.positions)S.positions=[];
+      S.positions.push({
+        id:Date.now().toString(),
+        symbol:ticker,
+        type:type,
+        strike:parseFloat(strike)||0,
+        expiration:exp,
+        premium:myPrem,
+        contracts:contracts,
+        openDate:new Date().toISOString(),
+        fromSignal:true,
+        signalId:signalId||null,
+        fees:fee
+      });
+      save();syncPositionsToFirebase();renderDashboard();renderSignals();
+      const totalPrem=(myPrem*contracts*100).toFixed(0);
+      showToast('Copied '+contracts+'x '+ticker+' $'+strike+(type==='csp'?'P':'C')+' · $'+totalPrem+' premium','success');
+    });
+  });
 }
 
 // ═══════════════════════════════════════════
