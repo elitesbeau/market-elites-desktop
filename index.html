@@ -1645,7 +1645,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
           <button class="pill">04/04</button><button class="pill">04/11</button>
         </div>
 
-        <div style="display:flex;align-items:baseline;gap:10px"><div class="card-label" style="margin-bottom:0">Options Chain — Puts</div><span class="calc-spec" style="opacity:.15">SN-48 // LIVE_FEED</span></div>
+        <div style="display:flex;align-items:baseline;gap:10px"><div class="card-label" style="margin-bottom:0" id="chainLabel">Options Chain — Puts</div><span class="calc-spec" style="opacity:.15">SN-48 // LIVE_FEED</span></div>
         <div class="chain-hdr"><span style="min-width:60px">Strike</span><span style="min-width:60px">Bid</span><span style="min-width:60px">Ask</span><span style="min-width:60px">Delta</span><span style="min-width:60px">IV</span></div>
         <div class="chain-rows">
         <div class="chain-row"><span class="strike">$175</span><span class="bid">$1.20</span><span class="ask">$1.35</span><span class="delta">0.15</span><span class="delta">28%</span></div>
@@ -1661,8 +1661,8 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
     <div>
       <div class="card" style="margin-bottom:12px">
         <div class="card-label">Selected Contract</div>
-        <div style="font-family:var(--fd);font-size:22px;letter-spacing:2px;font-weight:600;margin-bottom:4px">AAPL $185 PUT</div>
-        <div style="font-family:var(--fm);font-size:10px;color:var(--t4)">EXP 2026-03-21 · 18 DTE · DELTA 0.30</div>
+        <div id="calcContractTitle" style="font-family:var(--fd);font-size:22px;letter-spacing:2px;font-weight:600;margin-bottom:4px;color:var(--t4)">Select a strike below</div>
+        <div id="calcContractSub" style="font-family:var(--fm);font-size:10px;color:var(--t4)"></div>
         <div class="ct-row" style="margin-top:12px">
           <span style="font-family:var(--fm);font-size:9px;color:var(--t4);letter-spacing:1px">CONTRACTS</span>
           <button class="ct-btn" onclick="adj(-1)">-</button>
@@ -1672,13 +1672,13 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
       </div>
       <div class="card">
         <div class="card-label">Results</div>
-        <div class="result-row"><span class="result-lbl">Max Profit</span><span class="result-val gain" id="rProfit">$340</span></div>
-        <div class="result-row"><span class="result-lbl">Breakeven</span><span class="result-val" id="rBreak">$181.60</span></div>
-        <div class="result-row"><span class="result-lbl">ROI</span><span class="result-val gain">1.84%</span></div>
-        <div class="result-row"><span class="result-lbl">Annualized</span><span class="result-val gain">33.74%</span></div>
-        <div class="result-row"><span class="result-lbl">Prob. of Profit</span><span class="result-val">70%</span></div>
-        <div class="result-row"><span class="result-lbl">Collateral</span><span class="result-val" id="rColl">$18,500</span></div>
-        <div class="result-row" style="border:none"><span class="result-lbl">Net Capital</span><span class="result-val" id="rNet">$18,160</span></div>
+        <div class="result-row"><span class="result-lbl">Max Profit</span><span class="result-val" id="rProfit">—</span></div>
+        <div class="result-row"><span class="result-lbl">Breakeven</span><span class="result-val" id="rBreak">—</span></div>
+        <div class="result-row"><span class="result-lbl">ROI</span><span class="result-val" id="rROI">—</span></div>
+        <div class="result-row"><span class="result-lbl">Annualized</span><span class="result-val" id="rAnn">—</span></div>
+        <div class="result-row"><span class="result-lbl">Prob. of Profit</span><span class="result-val" id="rPOP">—</span></div>
+        <div class="result-row"><span class="result-lbl">Collateral</span><span class="result-val" id="rColl">—</span></div>
+        <div class="result-row" style="border:none"><span class="result-lbl">Net Capital</span><span class="result-val" id="rNet">—</span></div>
         <button class="btn btn-g" style="width:100%;margin-top:14px;padding:12px" onclick="calcAddToPortfolio()">+ Add to Portfolio</button>
       </div>
 
@@ -1688,16 +1688,16 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
         <div class="payoff-chart">
           <svg viewBox="0 0 400 140" preserveAspectRatio="none" id="payoffChart"></svg>
         </div>
-        <div class="payoff-labels"><span>$165</span><span>$175</span><span>$185 STRIKE</span><span>$195</span><span>$205</span></div>
+        <div class="payoff-labels" id="payoffLabels"><span>—</span><span>—</span><span>—</span><span>—</span><span>—</span></div>
       </div>
 
       <!-- Scenario Analysis -->
       <div class="card" style="margin-top:12px">
         <div class="card-label">Scenario Analysis at Expiration</div>
-        <div class="calc-scenarios">
-          <div class="calc-scenario"><div class="sc-label">Stock -5%</div><div class="sc-val loss">-$1,108</div><div class="sc-sub">AAPL @ $177.08</div></div>
-          <div class="calc-scenario" style="border-color:var(--gbr)"><div class="sc-label">Stock Flat</div><div class="sc-val gain">+$340</div><div class="sc-sub">AAPL @ $186.40</div></div>
-          <div class="calc-scenario"><div class="sc-label">Stock +5%</div><div class="sc-val gain">+$340</div><div class="sc-sub">AAPL @ $195.72</div></div>
+        <div class="calc-scenarios" id="calcScenarios">
+          <div class="calc-scenario"><div class="sc-label">Stock -5%</div><div class="sc-val" id="scDown">—</div><div class="sc-sub" id="scDownSub">—</div></div>
+          <div class="calc-scenario" style="border-color:var(--gbr)"><div class="sc-label">Stock Flat</div><div class="sc-val" id="scFlat">—</div><div class="sc-sub" id="scFlatSub">—</div></div>
+          <div class="calc-scenario"><div class="sc-label">Stock +5%</div><div class="sc-val" id="scUp">—</div><div class="sc-sub" id="scUpSub">—</div></div>
         </div>
       </div>
     </div>
@@ -4771,6 +4771,14 @@ async function calcSearch(){
   const sym=$('calcTickerInput').value.trim().toUpperCase();
   if(!sym)return showToast('Enter a ticker','error');
   _calcTicker=sym;_calcSelectedStrike=null;_calcContracts=1;if($('ctVal'))$('ctVal').textContent='1';
+  // Reset selected contract & results
+  if($('calcContractTitle')){$('calcContractTitle').textContent='Select a strike below';$('calcContractTitle').style.color='var(--t4)'}
+  if($('calcContractSub'))$('calcContractSub').textContent='';
+  ['rProfit','rBreak','rROI','rAnn','rPOP','rColl','rNet'].forEach(id=>{const e=$(id);if(e){e.textContent='—';e.className='result-val'}});
+  if($('payoffChart'))$('payoffChart').innerHTML='';
+  if($('payoffLabels'))$('payoffLabels').innerHTML='<span>—</span><span>—</span><span>—</span><span>—</span><span>—</span>';
+  ['scDown','scFlat','scUp'].forEach(id=>{const e=$(id);if(e){e.textContent='—';e.className='sc-val'}});
+  ['scDownSub','scFlatSub','scUpSub'].forEach(id=>{const e=$(id);if(e)e.textContent='—'});
   const stockEl=document.querySelector('.calc-stock');
   if(stockEl)stockEl.innerHTML=`<div style="display:flex;align-items:center;gap:14px">${tkLogo(sym,'tk-logo-lg')}<div><div class="calc-stock-tk">${sym}</div><div class="calc-stock-nm">Loading...</div></div></div><div style="margin-left:auto;text-align:right"><div class="calc-stock-pr">...</div><div style="font-family:var(--fm);font-size:10px" class="gain"></div></div>`;
   try{
@@ -4784,9 +4792,10 @@ async function calcSearch(){
     const chgEl=stockEl.querySelector('.gain, .loss');
     if(chgEl&&chain.change!=null){chgEl.className=chain.change>=0?'gain':'loss';chgEl.innerHTML=(chain.change>=0?'&#9650; ':'&#9660; ')+'$'+Math.abs(chain.change).toFixed(2);}
     if(chain.estimated)document.querySelector('.calc-stock-nm').textContent+=' (estimated)';
-    // Render exp pills
+    // Render exp pills & set initial expiration
     const expPills=document.querySelector('#calculator .pills:last-of-type');
     if(expPills&&chain.expLabels){
+      _calcExp=chain.expLabels[0]?.value||'';
       expPills.innerHTML=chain.expLabels.map((l,i)=>`<button class="pill${i===0?' active':''}" onclick="calcLoadExp('${l.value}')">${l.label}</button>`).join('');
     }
     // Render chain
@@ -4871,10 +4880,12 @@ async function calcFetchChain(sym,expStr){
 }
 
 function calcRenderChain(chain){
+  _calcChain=chain;
   const opts=_calcType==='cc'?(chain.calls||[]):(chain.puts||[]);
-  const sorted=opts.sort((a,b)=>b.strike-a.strike);
+  const sorted=[...opts].sort((a,b)=>b.strike-a.strike);
   const chainEl=document.querySelector('.chain-rows');
   const price=chain.price||_calcPrice;
+  const lbl=$('chainLabel');if(lbl)lbl.textContent='Options Chain — '+(_calcType==='cc'?'Calls':'Puts');
   if(chainEl&&sorted.length>0){
     // Find ATM strike (closest to current price)
     let atmIdx=0,atmDiff=Infinity;
@@ -4895,7 +4906,12 @@ function calcRenderChain(chain){
 
 async function calcLoadExp(expVal){
   _calcExp=expVal;
-  document.querySelectorAll('#calculator .pills:last-of-type .pill').forEach(p=>p.classList.toggle('active',p.textContent===expVal.slice(expVal.length>5?5:0)));
+  // Highlight active pill by matching onclick value
+  document.querySelectorAll('#calculator .pills:last-of-type .pill').forEach(p=>{
+    p.classList.toggle('active',p.getAttribute('onclick')&&p.getAttribute('onclick').includes(expVal));
+  });
+  const chainEl=document.querySelector('.chain-rows');
+  if(chainEl)chainEl.innerHTML='<div style="padding:20px;text-align:center;font-family:var(--fm);font-size:10px;color:var(--t5);letter-spacing:1px">Loading chain...</div>';
   const chain=await calcFetchChain(_calcTicker,expVal);
   if(chain)calcRenderChain(chain);
 }
@@ -4907,27 +4923,76 @@ function calcSelectStrike(strike,bid,ask,delta,iv){
 }
 function calcUpdateResults(){
   if(!_calcSelectedStrike)return;
-  const s=_calcSelectedStrike;const ct=_calcContracts;
-  const profit=s.bid*ct*100;const collateral=s.strike*ct*100;const breakeven=s.strike-s.bid;
+  const s=_calcSelectedStrike;const ct=_calcContracts;const typeLabel=_calcType==='cc'?'CALL':'PUT';
+  const profit=s.bid*ct*100;const collateral=s.strike*ct*100;const breakeven=_calcType==='cc'?s.strike+s.bid:s.strike-s.bid;
   const roi=collateral>0?(profit/collateral*100):0;
-  const now=new Date();const expD=new Date(s.exp+'T00:00:00');const dte=Math.max(0,Math.ceil((expD-now)/(86400000)));
+  const now=new Date();
+  // Handle both date string and Unix timestamp expirations
+  let expD;
+  if(s.exp&&!isNaN(s.exp)&&s.exp>1e9)expD=new Date(parseInt(s.exp)*1000);
+  else expD=new Date((s.exp||'')+'T00:00:00');
+  const dte=Math.max(0,Math.ceil((expD-now)/(86400000)));
   const ann=dte>0?(roi/dte*365):0;
-  const pop=s.delta!=='—'?Math.round((1-parseFloat(s.delta))*100):70;
-  // Update contract display
-  const selEl=document.querySelector('#calculator .card-label + div');
-  if(selEl){const parent=selEl.closest('.card');
-    parent.querySelector('div[style*="font-size:22px"]').textContent=_calcTicker+' $'+s.strike+' '+(_calcType==='cc'?'CALL':'PUT');
-    parent.querySelector('div[style*="font-size:10px"]').textContent='EXP '+s.exp+' · '+dte+' DTE · DELTA '+s.delta;}
+  const pop=s.delta!=='—'&&s.delta!=='0.00'?Math.round((1-Math.abs(parseFloat(s.delta)))*100):70;
+  // Update contract title
+  const title=$('calcContractTitle');if(title){title.textContent=_calcTicker+' $'+s.strike+' '+typeLabel;title.style.color='var(--tx)'}
+  const sub=$('calcContractSub');if(sub)sub.textContent=(s.exp?'EXP '+s.exp+' · ':'')+dte+' DTE'+(s.delta!=='—'?' · DELTA '+s.delta:'');
   // Update result values
-  const rProfit=$('rProfit');if(rProfit){rProfit.textContent='$'+Math.round(profit).toLocaleString();rProfit.className='result-val gain'}
-  const rBreak=$('rBreak');if(rBreak)rBreak.textContent='$'+breakeven.toFixed(2);
-  const rColl=$('rColl');if(rColl)rColl.textContent='$'+Math.round(collateral).toLocaleString();
-  const rNet=$('rNet');if(rNet)rNet.textContent='$'+Math.round(collateral-profit).toLocaleString();
-  // ROI + Annualized + POP
-  const rows=document.querySelectorAll('#calculator .result-row');
-  if(rows[2])rows[2].querySelector('.result-val').textContent=roi.toFixed(2)+'%';
-  if(rows[3])rows[3].querySelector('.result-val').textContent=ann.toFixed(1)+'%';
-  if(rows[4])rows[4].querySelector('.result-val').textContent=pop+'%';
+  const rP=$('rProfit');if(rP){rP.textContent='$'+Math.round(profit).toLocaleString();rP.className='result-val gain'}
+  const rB=$('rBreak');if(rB)rB.textContent='$'+breakeven.toFixed(2);
+  const rR=$('rROI');if(rR){rR.textContent=roi.toFixed(2)+'%';rR.className='result-val '+(roi>0?'gain':'loss')}
+  const rA=$('rAnn');if(rA){rA.textContent=ann.toFixed(1)+'%';rA.className='result-val '+(ann>0?'gain':'loss')}
+  const rPop=$('rPOP');if(rPop)rPop.textContent=pop+'%';
+  const rC=$('rColl');if(rC)rC.textContent='$'+Math.round(collateral).toLocaleString();
+  const rN=$('rNet');if(rN)rN.textContent='$'+Math.round(collateral-profit).toLocaleString();
+  // Update payoff diagram
+  calcDrawPayoff(s.strike,s.bid,ct);
+  // Update scenario analysis
+  const price=_calcPrice;
+  if(price>0){
+    const scenarios=[{id:'Down',pct:-0.05},{id:'Flat',pct:0},{id:'Up',pct:0.05}];
+    scenarios.forEach(sc=>{
+      const sp=price*(1+sc.pct);
+      let pnl;
+      if(_calcType==='cc'){pnl=sp>=s.strike?profit:profit-(s.strike-sp)*ct*100}
+      else{pnl=sp>=s.strike?profit:profit-(s.strike-sp)*ct*100}
+      const el=$('sc'+sc.id);if(el){el.textContent=(pnl>=0?'+':'')+' $'+Math.abs(Math.round(pnl)).toLocaleString();el.className='sc-val '+(pnl>=0?'gain':'loss')}
+      const sub=$('sc'+sc.id+'Sub');if(sub)sub.textContent=_calcTicker+' @ $'+sp.toFixed(2);
+    });
+  }
+}
+function calcDrawPayoff(strike,bid,ct){
+  const svg=$('payoffChart');if(!svg)return;
+  const W=400,H=140,pad=20;
+  const maxProfit=bid*ct*100;const maxLoss=strike*ct*100-maxProfit;
+  const range=strike*0.2;const lo=strike-range,hi=strike+range;
+  const breakeven=strike-bid;
+  const pts=[];
+  for(let px=lo;px<=hi;px+=range/40){
+    let pnl;
+    if(px>=strike)pnl=maxProfit;
+    else pnl=maxProfit-(strike-px)*ct*100;
+    pts.push({x:px,y:pnl});
+  }
+  const minY=Math.min(...pts.map(p=>p.y));const maxY=Math.max(...pts.map(p=>p.y));
+  const yRange=maxY-minY||1;
+  const toX=px=>(px-lo)/(hi-lo)*(W-pad*2)+pad;
+  const toY=pnl=>H-pad-(pnl-minY)/yRange*(H-pad*2);
+  const zeroY=toY(0);
+  let path='M'+pts.map(p=>toX(p.x).toFixed(1)+','+toY(p.y).toFixed(1)).join(' L');
+  const fill='M'+toX(lo).toFixed(1)+','+zeroY.toFixed(1)+' L'+pts.map(p=>toX(p.x).toFixed(1)+','+toY(p.y).toFixed(1)).join(' L')+' L'+toX(hi).toFixed(1)+','+zeroY.toFixed(1)+' Z';
+  svg.innerHTML=`
+    <defs><linearGradient id="payGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="var(--r)" stop-opacity=".15"/><stop offset="${((breakeven-lo)/(hi-lo)).toFixed(2)}" stop-color="var(--r)" stop-opacity=".08"/><stop offset="${((breakeven-lo)/(hi-lo)).toFixed(2)}" stop-color="var(--g)" stop-opacity=".08"/><stop offset="1" stop-color="var(--g)" stop-opacity=".15"/></linearGradient></defs>
+    <line x1="${pad}" y1="${zeroY.toFixed(1)}" x2="${W-pad}" y2="${zeroY.toFixed(1)}" stroke="var(--bd)" stroke-width="1"/>
+    <path d="${fill}" fill="url(#payGrad)"/>
+    <path d="${path}" fill="none" stroke="var(--ac)" stroke-width="2"/>
+    <line x1="${toX(breakeven).toFixed(1)}" y1="${pad}" x2="${toX(breakeven).toFixed(1)}" y2="${H-pad}" stroke="var(--t4)" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="${toX(breakeven).toFixed(1)}" y="${pad-4}" fill="var(--t4)" font-size="8" text-anchor="middle" font-family="var(--fm)">B/E</text>
+    <circle cx="${toX(strike).toFixed(1)}" cy="${toY(maxProfit).toFixed(1)}" r="3" fill="var(--g)"/>
+    <text x="${toX(strike).toFixed(1)}" y="${toY(maxProfit)-8}" fill="var(--g)" font-size="9" text-anchor="middle" font-family="var(--fm)">+$${Math.round(maxProfit)}</text>
+  `;
+  const labels=$('payoffLabels');
+  if(labels)labels.innerHTML=`<span>$${lo.toFixed(0)}</span><span>$${breakeven.toFixed(0)}</span><span>$${strike} STRIKE</span><span>$${(strike+range/2).toFixed(0)}</span><span>$${hi.toFixed(0)}</span>`;
 }
 function adj(n){_calcContracts=Math.max(1,_calcContracts+n);if($('ctVal'))$('ctVal').textContent=_calcContracts;calcUpdateResults()}
 function calcAddToPortfolio(){
@@ -4948,7 +5013,8 @@ function calcAddToPortfolio(){
 document.querySelectorAll('#calculator .pills:first-of-type .pill').forEach(pill=>{
   pill.addEventListener('click',()=>{
     _calcType=pill.textContent.trim().toLowerCase();
-    if(_calcExp)calcLoadExp(_calcExp);
+    if(_calcChain)calcRenderChain(_calcChain);
+    else if(_calcExp)calcLoadExp(_calcExp);
   });
 });
 
