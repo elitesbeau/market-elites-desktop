@@ -1552,7 +1552,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
     <span class="sparkle-deco">✦ ✦ ✦</span>
     <span class="page-line"></span>
     <span style="font-family:var(--fm);font-size:8px;letter-spacing:4px;color:var(--t6)">精鋭 ELITE</span>
-    <button class="btn">+ Add Position</button>
+    <button class="btn" onclick="openAddPos()">+ Add Position</button>
   </div>
 
   <div class="pos-summary">
@@ -2254,6 +2254,51 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
         <button class="btn btn-sm" id="posDoneBtn" style="flex:1" onclick="closeModal('posModal')">Done</button>
       </div>
       <button style="width:100%;margin-top:8px;background:none;border:1px solid var(--bd);color:var(--t4);font-size:11px;cursor:pointer;padding:6px;border-radius:4px" onclick="removePosition()">Remove (no balance change)</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="addPosModal" onclick="closeModal('addPosModal')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:420px">
+    <div class="modal-head"><span class="modal-title">Add Position</span><button class="modal-close" onclick="closeModal('addPosModal')">&times;</button></div>
+    <div class="modal-body">
+      <div style="display:flex;gap:6px;margin-bottom:14px">
+        <button class="btn btn-sm addtype-btn active" data-type="csp" onclick="setAddType('csp')">CSP</button>
+        <button class="btn btn-sm addtype-btn" data-type="cc" onclick="setAddType('cc')">CC</button>
+        <button class="btn btn-sm addtype-btn" data-type="shares" onclick="setAddType('shares')">Shares</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+        <button class="btn btn-sm" style="font-size:10px;padding:4px 10px" onclick="$('addPTicker').value='AAPL'">AAPL</button>
+        <button class="btn btn-sm" style="font-size:10px;padding:4px 10px" onclick="$('addPTicker').value='NVDA'">NVDA</button>
+        <button class="btn btn-sm" style="font-size:10px;padding:4px 10px" onclick="$('addPTicker').value='TSLA'">TSLA</button>
+        <button class="btn btn-sm" style="font-size:10px;padding:4px 10px" onclick="$('addPTicker').value='SPY'">SPY</button>
+        <button class="btn btn-sm" style="font-size:10px;padding:4px 10px" onclick="$('addPTicker').value='AMD'">AMD</button>
+        <button class="btn btn-sm" style="font-size:10px;padding:4px 10px" onclick="$('addPTicker').value='QQQ'">QQQ</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="card-label" style="margin-bottom:4px;display:block">Symbol</label><input class="inp" id="addPTicker" placeholder="AAPL" style="text-transform:uppercase"></div>
+        <div id="addPStrikeWrap"><label class="card-label" style="margin-bottom:4px;display:block">Strike</label><input class="inp" id="addPStrike" type="number" placeholder="150" step="0.5"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px" id="addPOptFields">
+        <div><label class="card-label" style="margin-bottom:4px;display:block">Premium</label><input class="inp" id="addPPremium" type="number" placeholder="2.50" step="0.01"></div>
+        <div><label class="card-label" style="margin-bottom:4px;display:block">Contracts</label><input class="inp" id="addPContracts" type="number" value="1" min="1"></div>
+      </div>
+      <div style="margin-top:10px" id="addPExpWrap">
+        <label class="card-label" style="margin-bottom:4px;display:block">Expiration</label>
+        <input class="inp" id="addPExp" type="date">
+      </div>
+      <div style="margin-top:10px" id="addPCostWrap" class="hidden">
+        <label class="card-label" style="margin-bottom:4px;display:block">Cost Basis</label>
+        <input class="inp" id="addPCost" type="number" placeholder="150.00" step="0.01">
+      </div>
+      <div style="margin-top:10px">
+        <label class="card-label" style="margin-bottom:4px;display:block">Notes (optional)</label>
+        <input class="inp" id="addPNotes" placeholder="e.g. earnings play, wheel entry...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sm" onclick="closeModal('addPosModal')">Cancel</button>
+      <button class="btn btn-sm" style="border-color:var(--gbr);color:var(--g)" onclick="saveNewPosition()">Add Position</button>
     </div>
   </div>
 </div>
@@ -4303,6 +4348,61 @@ function removePosition(){
     save();syncPositionsToFirebase();closeModal('posModal');renderDashboard();
     showToast('Position removed','');
   });
+}
+
+// ── Add Position ──
+let _addPosType='csp';
+function openAddPos(){
+  _addPosType='csp';
+  document.querySelectorAll('.addtype-btn').forEach(b=>b.classList.toggle('active',b.dataset.type==='csp'));
+  $('addPTicker').value='';$('addPStrike').value='';$('addPPremium').value='';
+  $('addPContracts').value='1';$('addPExp').value=getFriday();$('addPNotes').value='';$('addPCost').value='';
+  $('addPOptFields').style.display='';$('addPExpWrap').style.display='';
+  $('addPStrikeWrap').style.display='';$('addPCostWrap').classList.add('hidden');
+  openModal('addPosModal');
+  setTimeout(()=>$('addPTicker').focus(),100);
+}
+function setAddType(t){
+  _addPosType=t;
+  document.querySelectorAll('.addtype-btn').forEach(b=>b.classList.toggle('active',b.dataset.type===t));
+  if(t==='shares'){
+    $('addPOptFields').style.display='none';$('addPExpWrap').style.display='none';
+    $('addPStrikeWrap').style.display='none';$('addPCostWrap').classList.remove('hidden');
+  }else{
+    $('addPOptFields').style.display='';$('addPExpWrap').style.display='';
+    $('addPStrikeWrap').style.display='';$('addPCostWrap').classList.add('hidden');
+  }
+}
+function saveNewPosition(){
+  const sym=$('addPTicker').value.trim().toUpperCase();
+  if(!sym)return showToast('Enter a symbol','error');
+  const contracts=parseInt($('addPContracts').value)||1;
+  const fee=(S.feePerContract||0.65)*contracts;
+  const p={
+    id:Date.now().toString(),
+    symbol:sym,ticker:sym,
+    type:_addPosType,
+    contracts:contracts,
+    openDate:new Date().toISOString(),
+    fees:fee,
+    addedFrom:'desktop'
+  };
+  if(_addPosType==='shares'){
+    p.costBasis=parseFloat($('addPCost').value)||0;
+    if(!p.costBasis)return showToast('Enter cost basis','error');
+  }else{
+    p.strike=parseFloat($('addPStrike').value)||0;
+    p.expiration=$('addPExp').value;
+    p.premium=parseFloat($('addPPremium').value)||0;
+    if(!p.strike)return showToast('Enter a strike price','error');
+  }
+  const notes=$('addPNotes').value.trim();
+  if(notes)p.notes=notes;
+  if(!S.positions)S.positions=[];
+  S.positions.push(p);
+  save();syncPositionsToFirebase();
+  closeModal('addPosModal');renderDashboard();
+  showToast(sym+' '+(_addPosType==='shares'?'shares':(_addPosType==='csp'?'CSP':'CC'))+' added!','success');
 }
 
 async function syncPositionsToFirebase(){
