@@ -4759,72 +4759,134 @@ function getNextMonthlyExp(){
   return d.toISOString().slice(0,10);
 }
 
-// ── Calculator — Live Search & Chain ──
-let _calcTicker='AAPL',_calcType='csp',_calcChain=null,_calcSelectedStrike=null,_calcContracts=1,_calcExp='';
+// ── Calculator — Live Search & Chain (3-tier: Tradier → Yahoo → Estimated) ──
+let _calcTicker='AAPL',_calcType='csp',_calcChain=null,_calcSelectedStrike=null,_calcContracts=1,_calcExp='',_calcPrice=0,_calcExps=[];
 function calcQuick(sym){$('calcTickerInput').value=sym;calcSearch()}
+
 async function calcSearch(){
   const sym=$('calcTickerInput').value.trim().toUpperCase();
   if(!sym)return showToast('Enter a ticker','error');
   _calcTicker=sym;_calcSelectedStrike=null;_calcContracts=1;if($('ctVal'))$('ctVal').textContent='1';
-  // Update stock header
   const stockEl=document.querySelector('.calc-stock');
-  if(stockEl)stockEl.innerHTML=`<div style="display:flex;align-items:center;gap:14px">${tkLogo(sym,'tk-logo-lg')}<div><div class="calc-stock-tk">${sym}</div><div class="calc-stock-nm">Loading...</div></div></div><div style="margin-left:auto;text-align:right"><div class="calc-stock-pr">...</div></div>`;
-  // Fetch chain via Tradier
-  const tradierKey=localStorage.getItem('tradierToken');
-  if(!tradierKey){
-    showToast('Add Tradier API key in Profile > API Keys','error');
-    document.querySelector('.calc-stock-nm').textContent='Add API key in Profile';
-    return;
-  }
+  if(stockEl)stockEl.innerHTML=`<div style="display:flex;align-items:center;gap:14px">${tkLogo(sym,'tk-logo-lg')}<div><div class="calc-stock-tk">${sym}</div><div class="calc-stock-nm">Loading...</div></div></div><div style="margin-left:auto;text-align:right"><div class="calc-stock-pr">...</div><div style="font-family:var(--fm);font-size:10px" class="gain"></div></div>`;
   try{
-    // Get multiple expirations
-    const expR=await fetch('https://sandbox.tradier.com/v1/markets/options/expirations?symbol='+sym+'&includeAllRoots=true',{headers:{Authorization:'Bearer '+tradierKey,Accept:'application/json'}});
-    const expData=await expR.json();
-    const exps=(expData.expirations?.date||[]).slice(0,6);
-    if(exps.length===0){showToast('No options found for '+sym,'error');return}
+    const chain=await calcFetchChain(sym);
+    if(!chain){showToast('No data found for '+sym,'error');return}
+    _calcPrice=chain.price;_calcExps=chain.expirations||[];
+    // Update header
+    document.querySelector('.calc-stock-tk').textContent=sym;
+    document.querySelector('.calc-stock-nm').textContent=chain.name||sym;
+    document.querySelector('.calc-stock-pr').textContent='$'+Number(chain.price||0).toFixed(2);
+    const chgEl=stockEl.querySelector('.gain, .loss');
+    if(chgEl&&chain.change!=null){chgEl.className=chain.change>=0?'gain':'loss';chgEl.innerHTML=(chain.change>=0?'&#9650; ':'&#9660; ')+'$'+Math.abs(chain.change).toFixed(2);}
+    if(chain.estimated)document.querySelector('.calc-stock-nm').textContent+=' (estimated)';
     // Render exp pills
     const expPills=document.querySelector('#calculator .pills:last-of-type');
-    if(expPills){
-      expPills.innerHTML=exps.map((e,i)=>`<button class="pill${i===0?' active':''}" onclick="calcLoadExp('${e}')">${e.slice(5)}</button>`).join('');
+    if(expPills&&chain.expLabels){
+      expPills.innerHTML=chain.expLabels.map((l,i)=>`<button class="pill${i===0?' active':''}" onclick="calcLoadExp('${l.value}')">${l.label}</button>`).join('');
     }
-    // Load first expiration chain
-    await calcLoadExp(exps[0]);
-    // Get quote
-    const qR=await fetch('https://sandbox.tradier.com/v1/markets/quotes?symbols='+sym,{headers:{Authorization:'Bearer '+tradierKey,Accept:'application/json'}});
-    const qData=await qR.json();
-    const q=qData.quotes?.quote;
-    if(q){
-      document.querySelector('.calc-stock-nm').textContent=q.description||sym;
-      document.querySelector('.calc-stock-pr').textContent='$'+Number(q.last||q.close||0).toFixed(2);
-      const chg=q.change||0;const pct=q.change_percentage||0;
-      const chgEl=document.querySelector('.calc-stock .gain, .calc-stock .loss');
-      if(chgEl){chgEl.className=chg>=0?'gain':'loss';chgEl.innerHTML=(chg>=0?'&#9650; ':'&#9660; ')+'$'+Math.abs(chg).toFixed(2)+' ('+(pct>=0?'+':'')+Number(pct).toFixed(2)+'%)';}
-    }
-  }catch(e){showToast('Search failed: '+e.message,'error')}
+    // Render chain
+    calcRenderChain(chain);
+  }catch(e){showToast('Search failed: '+e.message,'error');console.error(e)}
 }
-async function calcLoadExp(exp){
-  _calcExp=exp;
-  const tradierKey=localStorage.getItem('tradierToken');if(!tradierKey)return;
-  const optType=_calcType==='cc'?'call':'put';
+
+async function calcFetchChain(sym,expStr){
+  const tradierKey=localStorage.getItem('tradierToken');
+  // TIER 1: Tradier (if key exists)
+  if(tradierKey){
+    try{
+      const h={Authorization:'Bearer '+tradierKey,Accept:'application/json'};
+      let exps=[],expDate=expStr;
+      if(!expDate){
+        const eR=await fetch('https://sandbox.tradier.com/v1/markets/options/expirations?symbol='+sym,{headers:h});
+        if(eR.ok){const eD=await eR.json();exps=(eD.expirations?.date||[]).slice(0,6);expDate=exps[0]}
+      }
+      if(expDate){
+        const cR=await fetch('https://sandbox.tradier.com/v1/markets/options/chains?symbol='+sym+'&expiration='+expDate+'&greeks=true',{headers:h});
+        if(cR.ok){
+          const cD=await cR.json();const opts=cD.options?.option||[];
+          if(opts.length>0){
+            let price=0,name=sym,change=0;
+            try{const qR=await fetch('https://sandbox.tradier.com/v1/markets/quotes?symbols='+sym,{headers:h});if(qR.ok){const q=(await qR.json()).quotes?.quote;if(q){price=q.last||q.close||0;name=q.description||sym;change=q.change||0}}}catch{}
+            const puts=opts.filter(o=>o.option_type==='put').map(o=>({strike:o.strike,bid:o.bid||0,ask:o.ask||0,delta:o.greeks?.delta?Math.abs(o.greeks.delta):0,iv:o.greeks?.mid_iv||0}));
+            const calls=opts.filter(o=>o.option_type==='call').map(o=>({strike:o.strike,bid:o.bid||0,ask:o.ask||0,delta:o.greeks?.delta?Math.abs(o.greeks.delta):0,iv:o.greeks?.mid_iv||0}));
+            return{price,name,change,puts,calls,expLabels:(exps.length?exps:[expDate]).map(e=>({label:e.slice(5),value:e})),source:'tradier'};
+          }
+        }
+      }
+    }catch(e){console.warn('[Calc] Tradier failed:',e.message)}
+  }
+  // TIER 2: Yahoo via Railway proxy (free, no key)
   try{
-    const r=await fetch('https://sandbox.tradier.com/v1/markets/options/chains?symbol='+_calcTicker+'&expiration='+exp+'&greeks=true',{headers:{Authorization:'Bearer '+tradierKey,Accept:'application/json'}});
-    const data=await r.json();
-    const options=(data.options?.option||[]).filter(o=>o.option_type===optType&&o.bid>0);
-    _calcChain=options;
-    const chainEl=document.querySelector('.chain-rows');
-    if(chainEl&&options.length>0){
-      chainEl.innerHTML=options.sort((a,b)=>b.strike-a.strike).slice(0,15).map(o=>{
-        const delta=o.greeks?.delta?Math.abs(o.greeks.delta).toFixed(2):'—';
-        const iv=o.greeks?.mid_iv?(o.greeks.mid_iv*100).toFixed(0)+'%':'—';
-        return `<div class="chain-row" onclick="calcSelectStrike(${o.strike},${o.bid},${o.ask},'${delta}','${iv}','${exp}')"><span class="strike">$${o.strike}</span><span class="bid">$${o.bid.toFixed(2)}</span><span class="ask">$${o.ask.toFixed(2)}</span><span class="delta">${delta}</span><span class="delta">${iv}</span></div>`;
-      }).join('');
-    }else if(chainEl){chainEl.innerHTML='<div style="padding:12px;color:var(--t4);font-size:12px">No ${optType} options found</div>'}
-    // Update exp pills active state
-    document.querySelectorAll('#calculator .pills:last-of-type .pill').forEach(p=>p.classList.toggle('active',p.textContent===exp.slice(5)));
-  }catch(e){console.warn('Chain load error:',e)}
+    const yUrl=expStr?`https://web-production-feb8.up.railway.app/api/yahoo/options/${sym}?date=${expStr}`:`https://web-production-feb8.up.railway.app/api/yahoo/options/${sym}`;
+    const yR=await fetch(yUrl);
+    if(yR.ok){
+      const yD=await yR.json();const result=yD?.optionChain?.result?.[0];
+      if(result){
+        const price=result.quote?.regularMarketPrice||0;
+        const name=result.quote?.longName||result.quote?.shortName||sym;
+        const change=result.quote?.regularMarketChange||0;
+        const yOpts=result.options?.[0];
+        const puts=(yOpts?.puts||[]).map(p=>({strike:p.strike,bid:p.bid||0,ask:p.ask||0,delta:0,iv:p.impliedVolatility||0}));
+        const calls=(yOpts?.calls||[]).map(c=>({strike:c.strike,bid:c.bid||0,ask:c.ask||0,delta:0,iv:c.impliedVolatility||0}));
+        const exps=(result.expirationDates||[]).slice(0,6);
+        return{price,name,change,puts,calls,expLabels:exps.map(ts=>{const d=new Date(ts*1000);return{label:(d.getMonth()+1)+'/'+String(d.getDate()).padStart(2,'0'),value:String(ts)}}),source:'yahoo'};
+      }
+    }
+  }catch(e){console.warn('[Calc] Yahoo proxy failed:',e.message)}
+  // TIER 3: Estimated chain from price
+  try{
+    const tdKey=localStorage.getItem('twelveDataKey');
+    let price=0,name=sym,change=0;
+    if(tdKey){
+      const r=await fetch('https://api.twelvedata.com/quote?symbol='+sym+'&apikey='+tdKey);
+      if(r.ok){const d=await r.json();if(d.symbol){price=parseFloat(d.close)||0;name=d.name||sym;change=price-(parseFloat(d.previous_close)||price)}}
+    }
+    if(!price){
+      // Try allorigins proxy for Yahoo quote
+      try{const r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=1d'));
+        if(r.ok){const d=await r.json();const m=d.chart?.result?.[0]?.meta;if(m){price=m.regularMarketPrice||0;change=price-(m.previousClose||price)}}}catch{}
+    }
+    if(price>0){
+      const step=price>200?5:price>50?2.5:price>20?1:0.5;
+      const iv=price>200?0.22:price>100?0.28:price>50?0.33:0.42;
+      const puts=[],calls=[];
+      const low=Math.max(step,Math.round(price*0.7/step)*step);
+      const high=Math.round(price*1.3/step)*step;
+      for(let s=low;s<=high;s+=step){
+        const m=(price-s)/price;const tv=price*iv*Math.sqrt(30/365)*0.4*Math.exp(-Math.abs(m)*3);
+        puts.push({strike:Math.round(s*100)/100,bid:Math.max(0.01,Math.max(0,s-price)+tv)*0.95,ask:Math.max(0.01,Math.max(0,s-price)+tv)*1.05,delta:Math.max(0.01,Math.min(0.99,0.5-m*2.5)),iv});
+        calls.push({strike:Math.round(s*100)/100,bid:Math.max(0.01,Math.max(0,price-s)+tv)*0.95,ask:Math.max(0.01,Math.max(0,price-s)+tv)*1.05,delta:Math.max(0.01,Math.min(0.99,0.5+m*2.5)),iv});
+      }
+      const exps=[];const today=new Date();const daysToFri=(5-today.getDay()+7)%7||7;
+      for(let i=0;i<6;i++){const fri=new Date(today);fri.setDate(today.getDate()+daysToFri+i*7);exps.push(fri.toISOString().slice(0,10))}
+      return{price,name,change,puts,calls,estimated:true,expLabels:exps.map(e=>({label:e.slice(5),value:e})),source:'estimated'};
+    }
+  }catch(e){console.warn('[Calc] Estimation failed:',e.message)}
+  return null;
 }
-function calcSelectStrike(strike,bid,ask,delta,iv,exp){
-  _calcSelectedStrike={strike,bid,ask,delta,iv,exp};
+
+function calcRenderChain(chain){
+  const opts=_calcType==='cc'?(chain.calls||[]):(chain.puts||[]);
+  const sorted=opts.filter(o=>o.bid>0).sort((a,b)=>b.strike-a.strike).slice(0,15);
+  const chainEl=document.querySelector('.chain-rows');
+  if(chainEl&&sorted.length>0){
+    chainEl.innerHTML=sorted.map(o=>{
+      const delta=o.delta?o.delta.toFixed(2):'—';
+      const iv=o.iv?(o.iv*100).toFixed(0)+'%':'—';
+      return `<div class="chain-row" onclick="calcSelectStrike(${o.strike},${o.bid.toFixed(2)},${o.ask.toFixed(2)},'${delta}','${iv}')"><span class="strike">$${o.strike}</span><span class="bid">$${o.bid.toFixed(2)}</span><span class="ask">$${o.ask.toFixed(2)}</span><span class="delta">${delta}</span><span class="delta">${iv}</span></div>`;
+    }).join('');
+  }else if(chainEl){chainEl.innerHTML='<div style="padding:12px;color:var(--t4);font-size:12px">No options found</div>'}
+}
+
+async function calcLoadExp(expVal){
+  _calcExp=expVal;
+  document.querySelectorAll('#calculator .pills:last-of-type .pill').forEach(p=>p.classList.toggle('active',p.textContent===expVal.slice(expVal.length>5?5:0)));
+  const chain=await calcFetchChain(_calcTicker,expVal);
+  if(chain)calcRenderChain(chain);
+}
+function calcSelectStrike(strike,bid,ask,delta,iv){
+  _calcSelectedStrike={strike,bid:parseFloat(bid),ask:parseFloat(ask),delta,iv,exp:_calcExp};
   document.querySelectorAll('.chain-row').forEach(r=>r.classList.remove('selected'));
   event.currentTarget.classList.add('selected');
   calcUpdateResults();
