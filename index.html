@@ -2469,7 +2469,7 @@ function checkAuthState(){
     if(ok&&firebase.auth){
       firebase.auth().onAuthStateChanged(user=>{
         if(user){S.firebaseUid=user.uid;loadUserData(user.uid);save();hideAuthScreen();checkLegal();renderProfile();listenToFirebasePosts();firebase.database().ref('users/'+user.uid).update({lastLogin:Date.now()}).catch(()=>{});
-          loadFromFirebase().then(()=>{renderDashboard();renderProfile();renderSignals()});
+          loadFromFirebase().then(()=>{seedWheelsFromPositions();renderDashboard();renderProfile();renderSignals();renderAll()});
           loadWtFromFirebase();
         }
         else if(S.firebaseUid&&!S.isGuest){showAuthScreen()}
@@ -3464,7 +3464,12 @@ function copyTradeFromSignal(ticker,type,strike,exp,prem,signalId){
         signalId:signalId||null,
         fees:fee
       });
-      save();syncPositionsToFirebase();renderDashboard();renderSignals();
+      save();syncPositionsToFirebase();
+      // Auto-create wheel + add transaction
+      const txType=type==='cc'?'sell_cc':'sell_csp';
+      const wid=findOrCreateWheel(ticker,parseFloat(strike),contracts);
+      autoAddWheelTx(wid,txType,{strike:parseFloat(strike),expiration:exp,premium:myPrem,contracts:contracts,totalValue:myPrem*contracts*100,notes:'Copied from signal',signalId:signalId||null});
+      renderDashboard();renderSignals();renderAll();
       const totalPrem=(myPrem*contracts*100).toFixed(0);
       showToast('Copied '+contracts+'x '+ticker+' $'+strike+(type==='csp'?'P':'C')+' · $'+totalPrem+' premium','success');
     });
@@ -3540,7 +3545,11 @@ function closePosition(){
     const pnl=grossPnl-totalFees;
     S.history.unshift({...p,closeDate:new Date().toISOString(),pnl,grossPnl,fees:totalFees,outcome:'expired'});
     S.positions=S.positions.filter(x=>x.id!==_selPosId);
-    save();syncPositionsToFirebase();closeModal('posModal');renderDashboard();
+    save();syncPositionsToFirebase();
+    // Wheel: expired worthless = cycle complete, close it
+    const wdata=wtLoad();const wh=wdata.wheels.find(x=>x.sym===p.symbol&&x.status==='active');
+    if(wh){const ac=(wh.cycles||[]).find(c=>c.status==='active');if(ac){ac.status='completed';ac.endDate=new Date().toISOString().slice(0,10);ac.daysOpen=daysBetween(ac.startDate,ac.endDate)}wtSave(wdata)}
+    closeModal('posModal');renderDashboard();renderAll();
     showToast('Expired worthless: +$'+Math.round(pnl),'success');
   });
   // Override cancel button for "Closed Early"
@@ -3555,7 +3564,12 @@ function closePosition(){
         const pnl=grossPnl-totalFees;
         S.history.unshift({...p,closeDate:new Date().toISOString(),pnl,grossPnl,closePrice,fees:totalFees,outcome:'closed'});
         S.positions=S.positions.filter(x=>x.id!==_selPosId);
-        save();syncPositionsToFirebase();closeModal('posModal');renderDashboard();
+        save();syncPositionsToFirebase();
+        // Wheel: closed early = buyback, add btc transaction
+        const btcType=(p.type||'csp')==='cc'?'btc_call':'btc_put';
+        const wdata2=wtLoad();const wh2=wdata2.wheels.find(x=>x.sym===p.symbol&&x.status==='active');
+        if(wh2)autoAddWheelTx(wh2.id,btcType,{strike:p.strike,premium:closePrice,contracts:contracts,totalValue:-(closePrice*contracts*100),notes:'Auto: closed early at $'+closePrice,signalId:p.signalId||p.id});
+        closeModal('posModal');renderDashboard();renderAll();
         showToast('Closed: '+(pnl>=0?'+':'')+' $'+Math.round(pnl),(pnl>=0?'success':'error'));
       });
     };
@@ -3630,6 +3644,9 @@ async function submitAdminPost(){
     await savePostToFirebase(post);
     sendDiscordSignal(post);
     logAdminAction('Signal posted',posType.toUpperCase()+' '+ticker+' $'+strike);
+    // Auto-add to wheel tracker if wheel exists for this ticker
+    const wd=wtLoad();const wh=wd.wheels.find(x=>x.sym===ticker&&x.status==='active');
+    if(wh){const txType=posType==='cc'?'sell_cc':'sell_csp';const premNum=parseFloat(String(prem).replace('$',''))||0;autoAddWheelTx(wh.id,txType,{strike:strike,expiration:exp,premium:premNum,contracts:1,totalValue:premNum*100,notes:'From signal post'})}
   }else if(adminPostType==='announcement'){
     if(!ticker&&!notes){showToast('Fill title and message','error');return}
     const post={title:ticker||'Announcement',message:notes,time:'Just now',timestamp:Date.now(),kind:'announcement'};
@@ -3680,7 +3697,20 @@ async function updatePostStatus(postId,newStatus){
     save();
     await updatePostInFirebase(postId,{status:newStatus,closedAt:p.closedAt||null});
     logAdminAction('Post status: '+newStatus,p.ticker||p.title||postId);
-    renderAdminPosts();renderSignals();renderDashboard();
+    // Auto-update wheel tracker based on status
+    if(p.ticker&&p.kind==='signal'){
+      const contracts=p.contracts||1;
+      if(newStatus==='assigned'){
+        autoWheelAssign(p.ticker,p.strike,contracts,postId);
+      }else if(newStatus==='called'){
+        autoWheelCalledAway(p.ticker,p.strike,contracts,postId);
+      }else if(newStatus==='winner'){
+        // Winner = expired worthless, close the cycle
+        const wd=wtLoad();const wh=wd.wheels.find(x=>x.sym===p.ticker&&x.status==='active');
+        if(wh){const ac=(wh.cycles||[]).find(c=>c.status==='active');if(ac){ac.status='completed';ac.endDate=new Date().toISOString().slice(0,10);ac.daysOpen=daysBetween(ac.startDate,ac.endDate)}wtSave(wd)}
+      }
+    }
+    renderAdminPosts();renderSignals();renderDashboard();renderAll();
     showToast('Status: '+newStatus,'success');
   }
 }
@@ -4187,6 +4217,98 @@ function wtLoad() {
   catch { return { wheels: [] }; }
 }
 function wtSave(data) { localStorage.setItem(WT_KEY, JSON.stringify(data)); scheduleWtSync(); }
+
+// ── Auto-Tracking Bridge (Positions ↔ Wheel Tracker) ──
+function findOrCreateWheel(ticker,strike,contracts){
+  const data=wtLoad();
+  let w=data.wheels.find(x=>x.sym===ticker&&x.status==='active');
+  if(!w){
+    const capital=(strike||0)*(contracts||1)*100;
+    w={id:uid(),sym:ticker,name:ticker+' Wheel',status:'active',capital:capital||25000,
+      createdAt:new Date().toISOString().slice(0,10),notes:'Auto-created from signal',
+      transactions:[],cycles:[{id:uid(),name:'Cycle 1',startDate:new Date().toISOString().slice(0,10),endDate:null,premium:0,yieldPct:0,daysOpen:0,status:'active'}]};
+    data.wheels.unshift(w);
+    wtSave(data);
+    console.log('[AutoWheel] Created wheel for',ticker);
+  }
+  return w.id;
+}
+
+function autoAddWheelTx(wheelId,type,details){
+  const data=wtLoad();
+  const w=data.wheels.find(x=>x.id===wheelId);
+  if(!w)return;
+  // Prevent duplicate: check if tx with same signalId+type already exists
+  if(details.signalId&&w.transactions.find(t=>t.signalId===details.signalId&&t.type===type))return;
+  const tx={id:uid(),type:type,date:details.date||new Date().toISOString().slice(0,10),
+    notes:details.notes||'Auto-tracked',totalValue:details.totalValue||0,signalId:details.signalId||null};
+  if(details.strike!=null)tx.strike=details.strike;
+  if(details.expiration)tx.expiration=details.expiration;
+  if(details.premium!=null)tx.premium=details.premium;
+  if(details.contracts!=null)tx.contracts=details.contracts;
+  if(details.shares!=null)tx.shares=details.shares;
+  w.transactions.push(tx);
+  // Update active cycle
+  const ac=(w.cycles||[]).find(c=>c.status==='active');
+  if(ac&&tx.totalValue>0){
+    ac.premium+=tx.totalValue;
+    ac.yieldPct=((w.capital||25000)>0?(ac.premium/(w.capital||25000))*100:0);
+    ac.daysOpen=daysBetween(ac.startDate,new Date().toISOString().slice(0,10));
+  }
+  wtSave(data);
+  console.log('[AutoWheel]',type,'added to',w.sym,'($'+tx.totalValue+')');
+}
+
+function autoWheelAssign(ticker,strike,contracts,signalId){
+  const wid=findOrCreateWheel(ticker,strike,contracts);
+  const shares=(contracts||1)*100;
+  autoAddWheelTx(wid,'put_assign',{strike:strike,shares:shares,totalValue:-(strike*shares),notes:'Auto: assigned at $'+strike,signalId:signalId});
+  // Start new cycle for CC phase
+  const data=wtLoad();const w=data.wheels.find(x=>x.id===wid);
+  if(w){
+    const ac=(w.cycles||[]).find(c=>c.status==='active');
+    if(ac){ac.status='completed';ac.endDate=new Date().toISOString().slice(0,10);ac.daysOpen=daysBetween(ac.startDate,ac.endDate)}
+    const num=(w.cycles||[]).length+1;
+    w.cycles.unshift({id:uid(),name:'Cycle '+num+' (CC)',startDate:new Date().toISOString().slice(0,10),endDate:null,premium:0,yieldPct:0,daysOpen:0,status:'active'});
+    wtSave(data);
+  }
+}
+
+function autoWheelCalledAway(ticker,strike,contracts,signalId){
+  const data=wtLoad();
+  const w=data.wheels.find(x=>x.sym===ticker&&x.status==='active');
+  if(!w)return;
+  const shares=(contracts||1)*100;
+  autoAddWheelTx(w.id,'call_assign',{strike:strike,shares:shares,totalValue:strike*shares,notes:'Auto: called away at $'+strike,signalId:signalId});
+  // Close cycle
+  const ac=(w.cycles||[]).find(c=>c.status==='active');
+  if(ac){ac.status='completed';ac.endDate=new Date().toISOString().slice(0,10);ac.daysOpen=daysBetween(ac.startDate,ac.endDate)}
+  w.status='closed';
+  wtSave(data);
+}
+
+// Seed wheels from existing positions on load
+function seedWheelsFromPositions(){
+  const positions=S.positions||[];
+  if(positions.length===0)return;
+  let created=0;
+  positions.forEach(p=>{
+    if(!p.symbol||!p.strike)return;
+    const data=wtLoad();
+    const existing=data.wheels.find(w=>w.sym===p.symbol&&w.status==='active');
+    if(existing){
+      // Check if this position's CSP tx already exists
+      if(!existing.transactions.find(t=>t.signalId===p.signalId&&t.type==='sell_csp')&&!existing.transactions.find(t=>t.signalId===p.id&&t.type==='sell_csp')){
+        autoAddWheelTx(existing.id,'sell_csp',{strike:p.strike,expiration:p.expiration,premium:p.premium||0,contracts:p.contracts||1,totalValue:(p.premium||0)*(p.contracts||1)*100,notes:'Auto: from position',signalId:p.signalId||p.id});
+      }
+    }else{
+      const wid=findOrCreateWheel(p.symbol,p.strike,p.contracts||1);
+      autoAddWheelTx(wid,'sell_csp',{strike:p.strike,expiration:p.expiration,premium:p.premium||0,contracts:p.contracts||1,totalValue:(p.premium||0)*(p.contracts||1)*100,notes:'Auto: from position',signalId:p.signalId||p.id});
+      created++;
+    }
+  });
+  if(created>0)console.log('[AutoWheel] Seeded',created,'wheels from existing positions');
+}
 
 // ── Toast ──
 function wtToast(msg, type = 'success') {
