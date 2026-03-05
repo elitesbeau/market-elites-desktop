@@ -1126,6 +1126,9 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
    ══════════════════════════════════════════ */
 #cursorCanvas{position:fixed;inset:0;z-index:9999;pointer-events:none}
 #particleCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+/* Effects toggle — hide canvases when off */
+.effects-off #cursorCanvas,.effects-off #particleCanvas{display:none}
+.effects-off #scrollProgress{display:none}
 .card,.sig-card,.watch-card,.wt-card{transform-style:preserve-3d;perspective:800px}
 @property --glow-angle{syntax:'<angle>';initial-value:0deg;inherits:false}
 .glow-border{position:relative;overflow:hidden}
@@ -2007,6 +2010,14 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
         <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
           <span style="font-size:13px">DTE Warning Threshold</span>
           <input class="inp" type="number" value="7" id="dteThresholdInput" style="width:60px;text-align:center" onchange="S.dteThreshold=parseInt(this.value)||7;save()">
+        </div>
+      </div>
+      <!-- Display -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="settings-section-title">Display</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
+          <div><span style="font-size:13px">Cursor & Hover Effects</span><div style="font-size:11px;color:var(--t5);margin-top:2px">Particle trail, 3D card tilt, magnetic buttons</div></div>
+          <button class="btn btn-sm" id="effectsToggle" onclick="toggleEffects()">On</button>
         </div>
       </div>
       <!-- Data -->
@@ -2985,6 +2996,7 @@ function renderProfile(){
   if($('feeInput'))$('feeInput').value=S.feePerContract;
   if($('incomeGoalInput'))$('incomeGoalInput').value=S.incomeGoal||500;
   if($('dteThresholdInput'))$('dteThresholdInput').value=S.dteThreshold||7;
+  if($('effectsToggle'))$('effectsToggle').textContent=_effectsOn?'On':'Off';
   // Stats
   const total=S.positions.length+S.history.length;
   const wins=S.history.filter(t=>(t.pnl||0)>=0).length;
@@ -6093,8 +6105,23 @@ function renderAll() {
 renderAll();
 
 // ═══════════════════════════════════════════
-// INTERACTIVE EFFECTS
+// INTERACTIVE EFFECTS (toggleable)
 // ═══════════════════════════════════════════
+let _effectsOn=localStorage.getItem('meEffects')!=='off';
+function toggleEffects(){
+  _effectsOn=!_effectsOn;
+  localStorage.setItem('meEffects',_effectsOn?'on':'off');
+  document.body.classList.toggle('effects-off',!_effectsOn);
+  const btn=$('effectsToggle');
+  if(btn)btn.textContent=_effectsOn?'On':'Off';
+}
+function applyEffectsPref(){
+  document.body.classList.toggle('effects-off',!_effectsOn);
+  const btn=$('effectsToggle');
+  if(btn)btn.textContent=_effectsOn?'On':'Off';
+}
+applyEffectsPref();
+
 (function initEffects() {
   // ── Cursor Glow Trail ──
   const cc = document.createElement('canvas');
@@ -6106,6 +6133,7 @@ renderAll();
   resizeCursor();
   window.addEventListener('resize', resizeCursor);
   document.addEventListener('mousemove', e => {
+    if(!_effectsOn)return;
     for (let i = 0; i < 2; i++) {
       particles.push({ x: e.clientX, y: e.clientY, vx: (Math.random() - .5) * 2, vy: (Math.random() - .5) * 2, life: 1, size: Math.random() * 3 + 1, hue: Math.random() > .5 ? '201,169,124' : '176,124,200' });
     }
@@ -6128,6 +6156,7 @@ renderAll();
   // ── 3D Card Tilt ──
   document.querySelectorAll('.card, .wt-card, .sig-card').forEach(card => {
     card.addEventListener('mousemove', e => {
+      if(!_effectsOn)return;
       const r = card.getBoundingClientRect();
       const x = (e.clientX - r.left) / r.width - .5;
       const y = (e.clientY - r.top) / r.height - .5;
@@ -6199,6 +6228,7 @@ renderAll();
   }));
   (function animDots() {
     pctx.clearRect(0, 0, pc.width, pc.height);
+    if(!_effectsOn){requestAnimationFrame(animDots);return}
     dots.forEach(d => {
       d.x += d.vx; d.y += d.vy;
       if (d.x < 0) d.x = pc.width; if (d.x > pc.width) d.x = 0;
@@ -6221,6 +6251,7 @@ renderAll();
   // ── Magnetic Buttons (subtle) ──
   document.querySelectorAll('.btn').forEach(btn => {
     btn.addEventListener('mousemove', e => {
+      if(!_effectsOn)return;
       const r = btn.getBoundingClientRect();
       const cx = r.left + r.width / 2;
       const cy = r.top + r.height / 2;
