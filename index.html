@@ -419,6 +419,172 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 /* Search input focus glow */
 .calc-search .inp:focus{border-color:var(--mgbr);box-shadow:0 0 16px rgba(176,124,200,.1);outline:none}
 
+/* ── GLOBAL DEPTH ── */
+.page{position:relative;overflow:visible}
+.card{transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .3s,border-color .3s}
+/* Subtle noise grain on all pages */
+.page::after{content:'';position:absolute;inset:0;opacity:.012;pointer-events:none;z-index:0;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:150px 150px}
+
+/* ── DASHBOARD — ENHANCED ── */
+#dashboard .dash-corner{position:absolute;width:20px;height:20px;pointer-events:none;z-index:3;opacity:.12}
+#dashboard .dash-corner::before,#dashboard .dash-corner::after{content:'';position:absolute;background:var(--ac)}
+#dashboard .dash-corner::before{width:14px;height:1px;top:0;left:0}
+#dashboard .dash-corner::after{width:1px;height:14px;top:0;left:0}
+#dashboard .dash-corner.tr{right:16px;top:16px;transform:rotate(90deg)}
+#dashboard .dash-corner.bl{left:16px;bottom:16px;transform:rotate(270deg)}
+#dashboard .dash-corner.br{right:16px;bottom:16px;transform:rotate(180deg)}
+#dashboard .dash-jp{position:absolute;top:100px;left:18px;
+  font-size:11px;letter-spacing:12px;writing-mode:vertical-rl;
+  color:var(--ac);opacity:.08;pointer-events:none;z-index:2;user-select:none}
+#dashboard .dash-spec{position:absolute;bottom:18px;left:18px;
+  font-family:var(--fm);font-size:7px;letter-spacing:3px;color:var(--ac);opacity:.12;
+  text-transform:uppercase;pointer-events:none;user-select:none;z-index:2}
+/* Dashboard stat cards micro-lift */
+#dashboard .quick-stats .card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,169,124,.06)}
+
+/* ── WATCHLIST PAGE — ALIVE ── */
+#watchlist .wl-watermark{position:absolute;top:-20px;right:20px;
+  font-family:var(--fd);font-size:260px;font-weight:700;letter-spacing:-12px;
+  color:#2dd4bf;opacity:.03;pointer-events:none;line-height:1;z-index:1;user-select:none;
+  text-shadow:0 0 60px rgba(45,212,191,.06)}
+#watchlist .wl-jp{position:absolute;top:70px;right:22px;
+  font-size:12px;letter-spacing:10px;writing-mode:vertical-rl;
+  color:#2dd4bf;opacity:.12;pointer-events:none;z-index:2;user-select:none;
+  text-shadow:0 0 20px rgba(45,212,191,.15)}
+.wl-spec{font-family:var(--fm);font-size:7px;letter-spacing:3px;color:#2dd4bf;opacity:.2;
+  text-transform:uppercase;user-select:none;pointer-events:none}
+/* Watch card scan line */
+.watch-card{position:relative;overflow:hidden}
+.watch-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,#2dd4bf,transparent);opacity:0;
+  animation:wlScan 8s ease-in-out infinite;pointer-events:none}
+@keyframes wlScan{0%,100%{top:0;opacity:0}8%{opacity:.25}45%{top:100%;opacity:.25}55%,100%{opacity:0}}
+/* Watch card hover */
+.watch-card:hover{transform:translateY(-2px);border-color:rgba(45,212,191,.15)!important;
+  box-shadow:0 4px 20px rgba(45,212,191,.06)}
+/* Watch stats focus-by-negation */
+.watch-stats:hover .card:not(:hover){opacity:.4;filter:saturate(.3)}
+.watch-stats .card{transition:opacity .2s,filter .2s,transform .2s cubic-bezier(.34,1.56,.64,1)}
+.watch-stats .card:hover{transform:translateY(-2px)}
+/* Watch grid focus-by-negation */
+.watch-grid:hover .watch-card:not(:hover){opacity:.4;filter:saturate(.3)}
+
+/* ── SIGNALS PAGE — ALIVE ── */
+#signals .sig-watermark{position:absolute;top:-20px;right:20px;
+  font-family:var(--fd);font-size:260px;font-weight:700;letter-spacing:-12px;
+  color:var(--g);opacity:.025;pointer-events:none;line-height:1;z-index:1;user-select:none;
+  text-shadow:0 0 60px rgba(74,222,128,.05)}
+#signals .sig-jp{position:absolute;top:70px;right:22px;
+  font-size:12px;letter-spacing:10px;writing-mode:vertical-rl;
+  color:var(--g);opacity:.1;pointer-events:none;z-index:2;user-select:none;
+  text-shadow:0 0 20px rgba(74,222,128,.12)}
+.sig-spec{font-family:var(--fm);font-size:7px;letter-spacing:3px;color:var(--g);opacity:.2;
+  text-transform:uppercase;user-select:none;pointer-events:none}
+/* Live broadcast pulse dot */
+.sig-pulse{display:inline-block;width:6px;height:6px;background:var(--g);border-radius:50%;
+  margin-right:6px;vertical-align:middle;animation:sigPulse 2s ease-in-out infinite;flex-shrink:0}
+@keyframes sigPulse{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.5)}50%{box-shadow:0 0 0 8px rgba(74,222,128,0)}}
+/* Signal card focus-by-negation */
+.sig-grid:hover .sig-card:not(:hover){opacity:.4;filter:saturate(.3)}
+.sig-card{transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+.sig-card:hover{transform:translateY(-2px);border-color:rgba(74,222,128,.15)!important;
+  box-shadow:0 4px 20px rgba(74,222,128,.06)}
+/* Signal stat cards */
+.sig-stats{display:flex;gap:14px}
+.sig-stats:hover .card:not(:hover){opacity:.4;filter:saturate(.3)}
+.sig-stats .card{transition:opacity .2s,filter .2s,transform .2s cubic-bezier(.34,1.56,.64,1)}
+.sig-stats .card:hover{transform:translateY(-2px)}
+
+/* ── LEARN PAGE — ALIVE ── */
+#learn .learn-watermark{position:absolute;top:-20px;right:20px;
+  font-family:var(--fd);font-size:260px;font-weight:700;letter-spacing:-12px;
+  color:#f87171;opacity:.025;pointer-events:none;line-height:1;z-index:1;user-select:none;
+  text-shadow:0 0 60px rgba(248,113,113,.05)}
+#learn .learn-jp{position:absolute;top:70px;right:22px;
+  font-size:12px;letter-spacing:10px;writing-mode:vertical-rl;
+  color:#f87171;opacity:.1;pointer-events:none;z-index:2;user-select:none;
+  text-shadow:0 0 20px rgba(248,113,113,.12)}
+.learn-spec{font-family:var(--fm);font-size:7px;letter-spacing:3px;color:#f87171;opacity:.2;
+  text-transform:uppercase;user-select:none;pointer-events:none}
+/* Module cards hover + focus-by-negation */
+.learn-modules{display:grid;gap:14px}
+.learn-modules:hover .learn-mod-card:not(:hover){opacity:.4;filter:saturate(.3)}
+.learn-mod-card{transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+.learn-mod-card:hover{transform:translateY(-2px);border-color:rgba(248,113,113,.15)!important;
+  box-shadow:0 4px 20px rgba(248,113,113,.06)}
+/* Achievement badge pop */
+.ach-badge{transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+.ach-badge:hover{transform:scale(1.08);filter:brightness(1.2)}
+/* Learn continue card glow border */
+.learn-continue{position:relative;overflow:hidden}
+.learn-continue::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,#f87171,transparent);opacity:.2;pointer-events:none}
+
+/* ── ANALYTICS PAGE — ALIVE ── */
+#analytics .ana-watermark{position:absolute;top:-20px;right:20px;
+  font-family:var(--fd);font-size:260px;font-weight:700;letter-spacing:-12px;
+  color:#60a5fa;opacity:.025;pointer-events:none;line-height:1;z-index:1;user-select:none;
+  text-shadow:0 0 60px rgba(96,165,250,.05)}
+#analytics .ana-jp{position:absolute;top:70px;right:22px;
+  font-size:12px;letter-spacing:10px;writing-mode:vertical-rl;
+  color:#60a5fa;opacity:.1;pointer-events:none;z-index:2;user-select:none;
+  text-shadow:0 0 20px rgba(96,165,250,.12)}
+.ana-spec{font-family:var(--fm);font-size:7px;letter-spacing:3px;color:#60a5fa;opacity:.2;
+  text-transform:uppercase;user-select:none;pointer-events:none}
+/* Data grid dot pattern */
+#analytics .ana-dots{position:absolute;top:60px;left:18px;width:36px;height:72px;
+  background-image:radial-gradient(circle,#60a5fa 1px,transparent 1px);
+  background-size:8px 8px;opacity:.06;pointer-events:none;z-index:2}
+/* Analytics card hover */
+#analytics .card:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(96,165,250,.05)}
+/* Chart containers glow on hover */
+#analytics .ana-chart-wrap{position:relative;overflow:hidden;transition:border-color .3s}
+#analytics .ana-chart-wrap:hover{border-color:rgba(96,165,250,.12)!important}
+#analytics .ana-chart-wrap::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,#60a5fa,transparent);opacity:.15;pointer-events:none}
+
+/* ── WHEEL TRACKER PAGE — ALIVE ── */
+#wheels .wt-watermark-bg{position:absolute;top:-20px;right:20px;
+  font-family:var(--fd);font-size:260px;font-weight:700;letter-spacing:-12px;
+  color:#fb923c;opacity:.025;pointer-events:none;line-height:1;z-index:1;user-select:none;
+  text-shadow:0 0 60px rgba(251,146,60,.05)}
+#wheels .wt-jp-mark{position:absolute;top:70px;right:22px;
+  font-size:12px;letter-spacing:10px;writing-mode:vertical-rl;
+  color:#fb923c;opacity:.1;pointer-events:none;z-index:2;user-select:none;
+  text-shadow:0 0 20px rgba(251,146,60,.12)}
+.wt-spec-label{font-family:var(--fm);font-size:7px;letter-spacing:3px;color:#fb923c;opacity:.2;
+  text-transform:uppercase;user-select:none;pointer-events:none}
+/* Wheel row focus-by-negation */
+.wt-tx-list:hover .wt-row:not(:hover){opacity:.4;filter:saturate(.3)}
+.wt-row{transition:all .15s ease}
+.wt-row:hover{transform:translateX(3px)}
+/* Wheel stats cards */
+.wt-stats:hover .card:not(:hover){opacity:.4;filter:saturate(.3)}
+.wt-stats .card{transition:opacity .2s,filter .2s,transform .2s cubic-bezier(.34,1.56,.64,1)}
+.wt-stats .card:hover{transform:translateY(-2px)}
+/* Cycle rotation icon */
+.wt-cycle-icon{display:inline-block;animation:wtSpin 12s linear infinite;opacity:.15;color:#fb923c;font-size:14px}
+@keyframes wtSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* ── PROFILE PAGE — ALIVE ── */
+#profile .prof-watermark{position:absolute;top:-20px;right:20px;
+  font-family:var(--fd);font-size:260px;font-weight:700;letter-spacing:-12px;
+  color:#f472b6;opacity:.025;pointer-events:none;line-height:1;z-index:1;user-select:none;
+  text-shadow:0 0 60px rgba(244,114,182,.05)}
+#profile .prof-jp{position:absolute;top:70px;right:22px;
+  font-size:12px;letter-spacing:10px;writing-mode:vertical-rl;
+  color:#f472b6;opacity:.1;pointer-events:none;z-index:2;user-select:none;
+  text-shadow:0 0 20px rgba(244,114,182,.12)}
+.prof-spec{font-family:var(--fm);font-size:7px;letter-spacing:3px;color:#f472b6;opacity:.2;
+  text-transform:uppercase;user-select:none;pointer-events:none}
+/* Profile card depth */
+#profile .card:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(244,114,182,.04)}
+/* Avatar glow on hover */
+.avatar-upload{transition:all .3s}
+.avatar-upload:hover{box-shadow:0 0 20px rgba(244,114,182,.15)}
+
 /* ── WATCHLIST ── */
 .watch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .watch-card{min-height:240px;overflow:hidden}
@@ -1293,6 +1459,10 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 
 <!-- ────────── DASHBOARD ────────── -->
 <section id="dashboard" class="page active">
+  <div class="dash-corner"></div><div class="dash-corner tr"></div>
+  <div class="dash-corner bl"></div><div class="dash-corner br"></div>
+  <div class="dash-jp">制御盤</div>
+  <div class="dash-spec">SYS.INIT // PORTFOLIO_CORE v1.0</div>
 
   <!-- Hero -->
   <div class="hero">
@@ -1529,8 +1699,12 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 
 <!-- ────────── WATCHLIST ────────── -->
 <section id="watchlist" class="page">
+  <div class="wl-watermark">04</div>
+  <div class="wl-jp">監視</div>
   <div class="page-head">
     <span class="page-label">04 — Watchlist</span>
+    <span class="sparkle-deco" style="color:#2dd4bf">◎ ◎</span>
+    <span class="wl-spec">SCAN // RADAR_SYS v4.1</span>
     <span class="page-line"></span>
     <div class="pills"><button class="pill active">All</button><button class="pill">Tech</button><button class="pill">High IV</button><button class="pill">Earnings Soon</button></div>
     <button class="btn btn-sm" style="margin-left:8px">+ Add Stock</button>
@@ -1546,8 +1720,11 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 
 <!-- ────────── SIGNALS ────────── -->
 <section id="signals" class="page">
+  <div class="sig-watermark">05</div>
+  <div class="sig-jp">信号</div>
   <div class="page-head">
     <span class="page-label">05 — Live Signals</span>
+    <span class="sig-pulse"></span><span class="sig-spec">TX // BROADCAST LIVE</span>
     <span class="page-line"></span>
   </div>
   <div class="sig-stats">
@@ -1582,8 +1759,12 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 
 <!-- ────────── LEARN ────────── -->
 <section id="learn" class="page">
+  <div class="learn-watermark">06</div>
+  <div class="learn-jp">学院</div>
   <div class="page-head">
     <span class="page-label">06 — Elite Trading Academy</span>
+    <span class="sparkle-deco" style="color:#f87171">▣ ▣</span>
+    <span class="learn-spec">REF // ARCHIVE_EDU v6.0</span>
     <span class="page-line"></span>
   </div>
 
@@ -1625,8 +1806,12 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 
 <!-- ────────── ANALYTICS ────────── -->
 <section id="analytics" class="page">
+  <div class="ana-watermark">07</div>
+  <div class="ana-jp">分析</div>
+  <div class="ana-dots"></div>
   <div class="page-head">
     <span class="page-label">07 — Analytics</span>
+    <span class="ana-spec">CORE // DATASTREAM ACTIVE</span>
     <span class="page-line"></span>
   </div>
   <!-- SVG Gradient Defs -->
@@ -1659,11 +1844,15 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 
 <!-- ────────── WHEEL TRACKER ────────── -->
 <section id="wheels" class="page">
+  <div class="wt-watermark-bg">08</div>
+  <div class="wt-jp-mark">循環</div>
   <div class="wt-wrap">
 
   <!-- Header -->
   <div class="wt-head">
     <span class="wt-label">08 &mdash; Wheel Tracker</span>
+    <span class="wt-cycle-icon">&#10227;</span>
+    <span class="wt-spec-label">MECH // CYCLE_SYS v8.0</span>
     <div class="wt-line"></div>
     <div class="wt-head-actions">
       <button class="btn btn-sm" onclick="openWtModal('calendarView')">Calendar</button>
@@ -1724,8 +1913,12 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 
 <!-- ────────── PROFILE ────────── -->
 <section id="profile" class="page">
+  <div class="prof-watermark">09</div>
+  <div class="prof-jp">個人</div>
   <div class="page-head">
     <span class="page-label">09 — Profile</span>
+    <span class="sparkle-deco" style="color:#f472b6">✧ ✧</span>
+    <span class="prof-spec">ID // USER_CORE</span>
     <span class="page-line"></span>
   </div>
   <div style="display:grid;grid-template-columns:320px 1fr;gap:20px">
