@@ -1529,7 +1529,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
     <div class="page-head" style="margin-bottom:12px">
       <span class="page-label">02 — Active Positions</span>
       <span class="page-line"></span>
-      <button class="btn btn-sm">+ Add</button>
+      <button class="btn btn-sm" onclick="openAddPos()">+ Add</button>
     </div>
     <div class="card" style="padding:0;overflow:hidden">
       <table class="tbl">
@@ -1616,10 +1616,10 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
   </div>
 
   <div class="calc-search">
-    <input class="inp" placeholder="Enter ticker..." value="AAPL">
-    <button class="btn">Search</button>
+    <input class="inp" id="calcTickerInput" placeholder="Enter ticker..." value="AAPL" onkeydown="if(event.key==='Enter')calcSearch()">
+    <button class="btn" onclick="calcSearch()">Search</button>
     <div class="calc-quick">
-      <button>AAPL</button><button>NVDA</button><button>TSLA</button><button>SPY</button><button>AMD</button><button>MSFT</button>
+      <button onclick="calcQuick('AAPL')">AAPL</button><button onclick="calcQuick('NVDA')">NVDA</button><button onclick="calcQuick('TSLA')">TSLA</button><button onclick="calcQuick('SPY')">SPY</button><button onclick="calcQuick('AMD')">AMD</button><button onclick="calcQuick('MSFT')">MSFT</button>
     </div>
   </div>
 
@@ -1675,7 +1675,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
         <div class="result-row"><span class="result-lbl">Prob. of Profit</span><span class="result-val">70%</span></div>
         <div class="result-row"><span class="result-lbl">Collateral</span><span class="result-val" id="rColl">$18,500</span></div>
         <div class="result-row" style="border:none"><span class="result-lbl">Net Capital</span><span class="result-val" id="rNet">$18,160</span></div>
-        <button class="btn btn-g" style="width:100%;margin-top:14px;padding:12px">+ Add to Portfolio</button>
+        <button class="btn btn-g" style="width:100%;margin-top:14px;padding:12px" onclick="calcAddToPortfolio()">+ Add to Portfolio</button>
       </div>
 
       <!-- Payoff Diagram -->
@@ -1710,7 +1710,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
     <span class="wl-spec">SCAN // RADAR_SYS v4.1</span>
     <span class="page-line"></span>
     <div class="pills"><button class="pill active">All</button><button class="pill">Tech</button><button class="pill">High IV</button><button class="pill">Earnings Soon</button></div>
-    <button class="btn btn-sm" style="margin-left:8px">+ Add Stock</button>
+    <button class="btn btn-sm" style="margin-left:8px" onclick="addWatchStock()">+ Add Stock</button>
   </div>
   <div class="watch-stats">
     <div class="card"><div class="card-label">Tracking</div><div class="stat-v">6</div><div class="stat-sub">STOCKS WATCHED</div></div>
@@ -1779,7 +1779,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
       <div class="lc-meta">Module 3 · Intermediate · 60% Complete</div>
       <div class="lc-lesson">Next Lesson: <strong style="color:var(--tx)">Why It Works</strong></div>
       <div class="prog" style="height:5px;margin-bottom:14px"><div class="prog-f gold" style="width:60%"></div></div>
-      <button class="btn btn-g">Resume Module</button>
+      <button class="btn btn-g" onclick="resumeLearnModule()">Resume Module</button>
     </div>
     <div class="card" style="padding:20px">
       <div class="card-label">Achievements</div>
@@ -4759,6 +4759,150 @@ function getNextMonthlyExp(){
   return d.toISOString().slice(0,10);
 }
 
+// ── Calculator — Live Search & Chain ──
+let _calcTicker='AAPL',_calcType='csp',_calcChain=null,_calcSelectedStrike=null,_calcContracts=1,_calcExp='';
+function calcQuick(sym){$('calcTickerInput').value=sym;calcSearch()}
+async function calcSearch(){
+  const sym=$('calcTickerInput').value.trim().toUpperCase();
+  if(!sym)return showToast('Enter a ticker','error');
+  _calcTicker=sym;_calcSelectedStrike=null;_calcContracts=1;if($('ctVal'))$('ctVal').textContent='1';
+  // Update stock header
+  const stockEl=document.querySelector('.calc-stock');
+  if(stockEl)stockEl.innerHTML=`<div style="display:flex;align-items:center;gap:14px">${tkLogo(sym,'tk-logo-lg')}<div><div class="calc-stock-tk">${sym}</div><div class="calc-stock-nm">Loading...</div></div></div><div style="margin-left:auto;text-align:right"><div class="calc-stock-pr">...</div></div>`;
+  // Fetch chain via Tradier
+  const tradierKey=localStorage.getItem('tradierToken');
+  if(!tradierKey){
+    showToast('Add Tradier API key in Profile > API Keys','error');
+    document.querySelector('.calc-stock-nm').textContent='Add API key in Profile';
+    return;
+  }
+  try{
+    // Get multiple expirations
+    const expR=await fetch('https://sandbox.tradier.com/v1/markets/options/expirations?symbol='+sym+'&includeAllRoots=true',{headers:{Authorization:'Bearer '+tradierKey,Accept:'application/json'}});
+    const expData=await expR.json();
+    const exps=(expData.expirations?.date||[]).slice(0,6);
+    if(exps.length===0){showToast('No options found for '+sym,'error');return}
+    // Render exp pills
+    const expPills=document.querySelector('#calculator .pills:last-of-type');
+    if(expPills){
+      expPills.innerHTML=exps.map((e,i)=>`<button class="pill${i===0?' active':''}" onclick="calcLoadExp('${e}')">${e.slice(5)}</button>`).join('');
+    }
+    // Load first expiration chain
+    await calcLoadExp(exps[0]);
+    // Get quote
+    const qR=await fetch('https://sandbox.tradier.com/v1/markets/quotes?symbols='+sym,{headers:{Authorization:'Bearer '+tradierKey,Accept:'application/json'}});
+    const qData=await qR.json();
+    const q=qData.quotes?.quote;
+    if(q){
+      document.querySelector('.calc-stock-nm').textContent=q.description||sym;
+      document.querySelector('.calc-stock-pr').textContent='$'+Number(q.last||q.close||0).toFixed(2);
+      const chg=q.change||0;const pct=q.change_percentage||0;
+      const chgEl=document.querySelector('.calc-stock .gain, .calc-stock .loss');
+      if(chgEl){chgEl.className=chg>=0?'gain':'loss';chgEl.innerHTML=(chg>=0?'&#9650; ':'&#9660; ')+'$'+Math.abs(chg).toFixed(2)+' ('+(pct>=0?'+':'')+Number(pct).toFixed(2)+'%)';}
+    }
+  }catch(e){showToast('Search failed: '+e.message,'error')}
+}
+async function calcLoadExp(exp){
+  _calcExp=exp;
+  const tradierKey=localStorage.getItem('tradierToken');if(!tradierKey)return;
+  const optType=_calcType==='cc'?'call':'put';
+  try{
+    const r=await fetch('https://sandbox.tradier.com/v1/markets/options/chains?symbol='+_calcTicker+'&expiration='+exp+'&greeks=true',{headers:{Authorization:'Bearer '+tradierKey,Accept:'application/json'}});
+    const data=await r.json();
+    const options=(data.options?.option||[]).filter(o=>o.option_type===optType&&o.bid>0);
+    _calcChain=options;
+    const chainEl=document.querySelector('.chain-rows');
+    if(chainEl&&options.length>0){
+      chainEl.innerHTML=options.sort((a,b)=>b.strike-a.strike).slice(0,15).map(o=>{
+        const delta=o.greeks?.delta?Math.abs(o.greeks.delta).toFixed(2):'—';
+        const iv=o.greeks?.mid_iv?(o.greeks.mid_iv*100).toFixed(0)+'%':'—';
+        return `<div class="chain-row" onclick="calcSelectStrike(${o.strike},${o.bid},${o.ask},'${delta}','${iv}','${exp}')"><span class="strike">$${o.strike}</span><span class="bid">$${o.bid.toFixed(2)}</span><span class="ask">$${o.ask.toFixed(2)}</span><span class="delta">${delta}</span><span class="delta">${iv}</span></div>`;
+      }).join('');
+    }else if(chainEl){chainEl.innerHTML='<div style="padding:12px;color:var(--t4);font-size:12px">No ${optType} options found</div>'}
+    // Update exp pills active state
+    document.querySelectorAll('#calculator .pills:last-of-type .pill').forEach(p=>p.classList.toggle('active',p.textContent===exp.slice(5)));
+  }catch(e){console.warn('Chain load error:',e)}
+}
+function calcSelectStrike(strike,bid,ask,delta,iv,exp){
+  _calcSelectedStrike={strike,bid,ask,delta,iv,exp};
+  document.querySelectorAll('.chain-row').forEach(r=>r.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  calcUpdateResults();
+}
+function calcUpdateResults(){
+  if(!_calcSelectedStrike)return;
+  const s=_calcSelectedStrike;const ct=_calcContracts;
+  const profit=s.bid*ct*100;const collateral=s.strike*ct*100;const breakeven=s.strike-s.bid;
+  const roi=collateral>0?(profit/collateral*100):0;
+  const now=new Date();const expD=new Date(s.exp+'T00:00:00');const dte=Math.max(0,Math.ceil((expD-now)/(86400000)));
+  const ann=dte>0?(roi/dte*365):0;
+  const pop=s.delta!=='—'?Math.round((1-parseFloat(s.delta))*100):70;
+  // Update contract display
+  const selEl=document.querySelector('#calculator .card-label + div');
+  if(selEl){const parent=selEl.closest('.card');
+    parent.querySelector('div[style*="font-size:22px"]').textContent=_calcTicker+' $'+s.strike+' '+(_calcType==='cc'?'CALL':'PUT');
+    parent.querySelector('div[style*="font-size:10px"]').textContent='EXP '+s.exp+' · '+dte+' DTE · DELTA '+s.delta;}
+  // Update result values
+  const rProfit=$('rProfit');if(rProfit){rProfit.textContent='$'+Math.round(profit).toLocaleString();rProfit.className='result-val gain'}
+  const rBreak=$('rBreak');if(rBreak)rBreak.textContent='$'+breakeven.toFixed(2);
+  const rColl=$('rColl');if(rColl)rColl.textContent='$'+Math.round(collateral).toLocaleString();
+  const rNet=$('rNet');if(rNet)rNet.textContent='$'+Math.round(collateral-profit).toLocaleString();
+  // ROI + Annualized + POP
+  const rows=document.querySelectorAll('#calculator .result-row');
+  if(rows[2])rows[2].querySelector('.result-val').textContent=roi.toFixed(2)+'%';
+  if(rows[3])rows[3].querySelector('.result-val').textContent=ann.toFixed(1)+'%';
+  if(rows[4])rows[4].querySelector('.result-val').textContent=pop+'%';
+}
+function adj(n){_calcContracts=Math.max(1,_calcContracts+n);if($('ctVal'))$('ctVal').textContent=_calcContracts;calcUpdateResults()}
+function calcAddToPortfolio(){
+  if(!_calcSelectedStrike)return showToast('Select a strike first','error');
+  const s=_calcSelectedStrike;
+  const p={
+    id:Date.now().toString(),symbol:_calcTicker,ticker:_calcTicker,
+    type:_calcType,strike:s.strike,premium:s.bid,
+    expiration:s.exp,contracts:_calcContracts,
+    openDate:new Date().toISOString(),fees:(_calcContracts*(S.feePerContract||0.65)),
+    addedFrom:'desktop-calc',notes:'Added from calculator'
+  };
+  if(!S.positions)S.positions=[];
+  S.positions.push(p);save();syncPositionsToFirebase();renderDashboard();
+  showToast(_calcTicker+' $'+s.strike+' '+(_calcType==='cc'?'CC':'CSP')+' added!','success');
+}
+// CSP/CC toggle for calculator
+document.querySelectorAll('#calculator .pills:first-of-type .pill').forEach(pill=>{
+  pill.addEventListener('click',()=>{
+    _calcType=pill.textContent.trim().toLowerCase();
+    if(_calcExp)calcLoadExp(_calcExp);
+  });
+});
+
+// ── Watchlist — Add Stock ──
+function addWatchStock(){
+  showPrompt('Add ticker to watchlist','AAPL',sym=>{
+    const ticker=sym.toUpperCase().trim();
+    if(!ticker)return;
+    if(!S.watchlist)S.watchlist=['AAPL','NVDA','TSLA','SPY','AMD','MSFT'];
+    if(S.watchlist.includes(ticker))return showToast(ticker+' already on watchlist','');
+    S.watchlist.push(ticker);save();syncPositionsToFirebase();
+    showToast(ticker+' added to watchlist','success');
+    // Add card to grid
+    const wg=document.getElementById('watchGrid');
+    if(wg)wg.innerHTML+=`<div class="card watch-card"><div class="w-top"><div style="display:flex;align-items:center;gap:10px">${tkLogo(ticker)}<div><div class="w-tk">${ticker}</div><div class="w-nm">Loading...</div></div></div></div><div style="padding:12px 0;font-family:var(--fm);font-size:10px;color:var(--t4)">Added — refresh for full data</div></div>`;
+  });
+}
+
+// ── Learn — Resume Module ──
+function resumeLearnModule(){
+  const prog=getLearnProgress();
+  // Find first incomplete module
+  for(const m of MODULES){
+    const done=prog[m.id]||[];
+    if(done.length<m.chapters.length){openModule(m.id);return}
+  }
+  // All complete — open first
+  if(MODULES.length>0)openModule(MODULES[0].id);
+}
+
 // ── Global logo map ──
 function tkLogo(sym, cls='tk-logo') {
   return `<img src="https://assets.parqet.com/logos/symbol/${sym}" class="${cls}" onerror="this.onerror=null;var f=document.createElement('span');f.style.cssText='display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;background:var(--bge);border:1px solid var(--bd);font-family:var(--fm);font-size:9px;color:var(--t3);letter-spacing:.5px;font-weight:600';f.textContent='${sym.slice(0,2)}';this.replaceWith(f)" alt="">`;
@@ -4795,16 +4939,6 @@ document.querySelectorAll('.chain-row').forEach(row => {
     row.classList.add('selected');
   });
 });
-
-// ── Calculator contract stepper ──
-let contracts = 1;
-function adj(d) {
-  contracts = Math.max(1, Math.min(20, contracts + d));
-  document.getElementById('ctVal').textContent = contracts;
-  document.getElementById('rProfit').textContent = '$' + (340 * contracts).toLocaleString();
-  document.getElementById('rColl').textContent = '$' + (18500 * contracts).toLocaleString();
-  document.getElementById('rNet').textContent = '$' + (18160 * contracts).toLocaleString();
-}
 
 // ── TradingView: Ticker Tape ──
 (function loadTicker() {
