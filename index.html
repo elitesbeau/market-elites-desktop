@@ -1713,14 +1713,14 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
     <span class="sparkle-deco" style="color:#2dd4bf">◎ ◎</span>
     <span class="wl-spec">SCAN // RADAR_SYS v4.1</span>
     <span class="page-line"></span>
-    <div class="pills"><button class="pill active">All</button><button class="pill">Tech</button><button class="pill">High IV</button><button class="pill">Earnings Soon</button></div>
+    <div class="pills" id="wlPills"><button class="pill active" onclick="filterWatchlist('all')">All</button><button class="pill" onclick="filterWatchlist('tech')">Tech</button><button class="pill" onclick="filterWatchlist('highiv')">High IV</button><button class="pill" onclick="filterWatchlist('earnings')">Earnings Soon</button></div>
     <button class="btn btn-sm" style="margin-left:8px" onclick="addWatchStock()">+ Add Stock</button>
   </div>
-  <div class="watch-stats">
-    <div class="card"><div class="card-label">Tracking</div><div class="stat-v">6</div><div class="stat-sub">STOCKS WATCHED</div></div>
-    <div class="card"><div class="card-label">Avg IV Rank</div><div class="stat-v warn">37.7%</div><div class="stat-sub">ACROSS WATCHLIST</div></div>
-    <div class="card"><div class="card-label">Nearest Earnings</div><div class="stat-v">TSLA</div><div class="stat-sub">APR 22 · 50 DAYS</div></div>
-    <div class="card"><div class="card-label">Best CSP Target</div><div class="stat-v gain">TSLA</div><div class="stat-sub">55% IV RANK</div></div>
+  <div class="watch-stats" id="watchStats">
+    <div class="card"><div class="card-label">Tracking</div><div class="stat-v" id="wsCount">0</div><div class="stat-sub">STOCKS WATCHED</div></div>
+    <div class="card"><div class="card-label">Avg IV Rank</div><div class="stat-v warn" id="wsIV">—</div><div class="stat-sub">ACROSS WATCHLIST</div></div>
+    <div class="card"><div class="card-label">Biggest Mover</div><div class="stat-v" id="wsEarn">—</div><div class="stat-sub" id="wsEarnSub">—</div></div>
+    <div class="card"><div class="card-label">Best CSP Target</div><div class="stat-v gain" id="wsBest">—</div><div class="stat-sub" id="wsBestSub">—</div></div>
   </div>
   <div class="watch-grid" id="watchGrid"></div>
 </section>
@@ -4952,7 +4952,7 @@ document.querySelectorAll('#calculator .pills:first-of-type .pill').forEach(pill
   });
 });
 
-// ── Watchlist — Add Stock ──
+// ── Watchlist — Add / Remove ──
 function addWatchStock(){
   showPrompt('Add ticker to watchlist','AAPL',sym=>{
     const ticker=sym.toUpperCase().trim();
@@ -4960,11 +4960,17 @@ function addWatchStock(){
     if(!S.watchlist)S.watchlist=['AAPL','NVDA','TSLA','SPY','AMD','MSFT'];
     if(S.watchlist.includes(ticker))return showToast(ticker+' already on watchlist','');
     S.watchlist.push(ticker);save();syncPositionsToFirebase();
-    showToast(ticker+' added to watchlist','success');
-    // Add card to grid
-    const wg=document.getElementById('watchGrid');
-    if(wg)wg.innerHTML+=`<div class="card watch-card"><div class="w-top"><div style="display:flex;align-items:center;gap:10px">${tkLogo(ticker)}<div><div class="w-tk">${ticker}</div><div class="w-nm">Loading...</div></div></div></div><div style="padding:12px 0;font-family:var(--fm);font-size:10px;color:var(--t4)">Added — refresh for full data</div></div>`;
+    showToast(ticker+' added','success');
+    renderWatchlist();
   });
+}
+function removeWatchStock(ticker){
+  if(!S.watchlist)return;
+  S.watchlist=S.watchlist.filter(t=>t!==ticker);
+  if(_wlCache[ticker])delete _wlCache[ticker];
+  save();syncPositionsToFirebase();
+  showToast(ticker+' removed','');
+  renderWatchlist();
 }
 
 // ── Learn — Resume Module ──
@@ -4985,18 +4991,27 @@ function tkLogo(sym, cls='tk-logo') {
 }
 
 // ── Tab switching ──
+function switchTab(tabId){
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  const navItem=document.querySelector(`.nav-item[data-tab="${tabId}"]`);
+  if(navItem)navItem.classList.add('active');
+  const page=document.getElementById(tabId);
+  if(page)page.classList.add('active');
+  localStorage.setItem('meDesktopTab',tabId);
+  // Lazy load watchlist when first visited
+  if(tabId==='watchlist'&&!document.getElementById('watchGrid').dataset.loaded){
+    renderWatchlist();
+  }
+}
 document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-    item.classList.add('active');
-    document.getElementById(item.dataset.tab).classList.add('active');
-    // Lazy load watchlist TradingView widgets
-    if (item.dataset.tab === 'watchlist' && !document.getElementById('watchGrid').dataset.loaded) {
-      loadWatchlistWidgets();
-    }
-  });
+  item.addEventListener('click', () => switchTab(item.dataset.tab));
 });
+// Restore last active tab on load
+(function(){
+  const savedTab=localStorage.getItem('meDesktopTab');
+  if(savedTab&&document.getElementById(savedTab)){switchTab(savedTab)}
+})();
 
 // ── Pill filters (generic) ──
 document.querySelectorAll('.pills').forEach(group => {
@@ -5066,80 +5081,150 @@ document.querySelectorAll('.chain-row').forEach(row => {
 
 // ── (Market Overview removed — used full-width chart instead) ──
 
-// ── Watchlist: TradingView Mini Charts (lazy loaded) ──
-const watchStocks = [
-  {sym:'AAPL',name:'Apple Inc.',exchange:'NASDAQ',price:'$186.40',chg:'+0.65%',dir:'gain',
-   iv:'32%',vol:'58.2M',earn:'Apr 24',sup:'$180',res:'$195',lo:164,hi:199,cur:186,sector:'Tech',
-   note:'Strong support at $180, watching for earnings premium play'},
-  {sym:'NVDA',name:'NVIDIA Corp.',exchange:'NASDAQ',price:'$924.80',chg:'+1.24%',dir:'gain',
-   iv:'48%',vol:'42.1M',earn:'May 28',sup:'$880',res:'$960',lo:550,hi:974,cur:925,sector:'Tech',
-   note:'AI momentum continues, elevated IV ideal for premium selling'},
-  {sym:'TSLA',name:'Tesla Inc.',exchange:'NASDAQ',price:'$271.30',chg:'-0.82%',dir:'loss',
-   iv:'55%',vol:'89.4M',earn:'Apr 22',sup:'$250',res:'$290',lo:152,hi:299,cur:271,sector:'Auto',
-   note:'Highest IV rank on watchlist, range-bound $250-$290'},
-  {sym:'AMD',name:'AMD Inc.',exchange:'NASDAQ',price:'$168.50',chg:'+0.38%',dir:'gain',
-   iv:'35%',vol:'51.8M',earn:'Apr 29',sup:'$160',res:'$180',lo:120,hi:185,cur:169,sector:'Tech',
-   note:'Consolidating nicely, $160 CSP has strong support'},
-  {sym:'META',name:'Meta Platforms',exchange:'NASDAQ',price:'$518.20',chg:'+0.92%',dir:'gain',
-   iv:'30%',vol:'22.6M',earn:'Apr 30',sup:'$500',res:'$540',lo:390,hi:542,cur:518,sector:'Tech',
-   note:'Post-earnings cool down, looking for CC setup near $540'},
-  {sym:'MSFT',name:'Microsoft',exchange:'NASDAQ',price:'$408.60',chg:'+0.44%',dir:'gain',
-   iv:'26%',vol:'24.3M',earn:'Apr 22',sup:'$390',res:'$420',lo:362,hi:432,cur:409,sector:'Tech',
-   note:'Steady premium generator, strong fundamentals'}
-];
+// ── Watchlist: Dynamic rendering with live data ──
+const _wlCache={};
+let _wlFilter='all';
+const TECH_TICKERS=['AAPL','NVDA','TSLA','AMD','META','MSFT','GOOG','GOOGL','AMZN','NFLX','CRM','INTC','QCOM','AVGO','MU','PLTR','SNOW','NET','SHOP','SQ','COIN','MARA','RIOT','UBER','LYFT','ABNB','RBLX','SNAP','PINS','ZM','DOCU','CRWD','ZS','DDOG','OKTA','PANW','FTNT'];
 
-// Render enriched watchlist cards
-const wg = document.getElementById('watchGrid');
-watchStocks.forEach(w => {
-  const rangePct = ((w.cur - w.lo) / (w.hi - w.lo) * 100).toFixed(0);
-  wg.innerHTML += `<div class="card watch-card">
-    <div class="w-top">
-      <div style="display:flex;align-items:center;gap:10px">${tkLogo(w.sym)}<div><div class="w-tk">${w.sym}</div><div class="w-nm">${w.name}</div></div></div>
-      <div style="text-align:right;margin-left:auto">
-        <div class="w-pr">${w.price}</div>
-        <div class="w-chg ${w.dir}" style="font-family:var(--fm);font-size:12px;letter-spacing:.5px">${w.dir==='gain'?'&#9650;':'&#9660;'} ${w.chg}</div>
+async function fetchWatchData(sym){
+  if(_wlCache[sym]&&Date.now()-_wlCache[sym]._ts<300000)return _wlCache[sym];
+  try{
+    const r=await fetch(`https://web-production-feb8.up.railway.app/api/yahoo/options/${sym}`);
+    if(r.ok){
+      const d=await r.json();
+      const q=d?.optionChain?.result?.[0]?.quote||d?.quote||{};
+      // Estimate IV rank from option premiums if available
+      const opts=d?.optionChain?.result?.[0]?.options?.[0];
+      let ivEst=null;
+      if(opts){const atm=opts.puts?.find(p=>Math.abs(p.strike-q.regularMarketPrice)<q.regularMarketPrice*0.03);
+        if(atm&&atm.impliedVolatility)ivEst=Math.round(atm.impliedVolatility*100)}
+      const data={
+        sym,name:q.shortName||q.longName||sym,price:q.regularMarketPrice||0,
+        change:q.regularMarketChangePercent||0,prevClose:q.regularMarketPreviousClose||0,
+        lo52:q.fiftyTwoWeekLow||0,hi52:q.fiftyTwoWeekHigh||0,
+        vol:q.averageDailyVolume3Month||q.regularMarketVolume||0,
+        iv:ivEst,sector:q.sector||'',exchange:q.fullExchangeName||q.exchange||'NASDAQ',
+        _ts:Date.now()
+      };
+      _wlCache[sym]=data;return data;
+    }
+  }catch(e){}
+  // Fallback: try Twelve Data for just price
+  try{
+    const tdKey=localStorage.getItem('twelveDataKey');
+    const url=tdKey?`https://api.twelvedata.com/quote?symbol=${sym}&apikey=${tdKey}`
+      :`https://api.twelvedata.com/quote?symbol=${sym}&apikey=demo`;
+    const r=await fetch(url);if(r.ok){const d=await r.json();
+      if(d.close){const data={sym,name:d.name||sym,price:parseFloat(d.close),change:parseFloat(d.percent_change)||0,
+        prevClose:parseFloat(d.previous_close)||0,lo52:0,hi52:0,vol:parseInt(d.volume)||0,iv:null,sector:'',exchange:d.exchange||'',_ts:Date.now()};
+        _wlCache[sym]=data;return data}}
+  }catch(e){}
+  return{sym,name:sym,price:0,change:0,prevClose:0,lo52:0,hi52:0,vol:0,iv:null,sector:'',exchange:'NASDAQ',_ts:Date.now()};
+}
+
+function fmtVol(n){if(n>=1e9)return(n/1e9).toFixed(1)+'B';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n.toString()}
+
+function filterWatchlist(filter){
+  _wlFilter=filter;
+  document.querySelectorAll('#wlPills .pill').forEach(p=>p.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  renderWatchlistCards();
+}
+
+function renderWatchlistCards(){
+  const wg=document.getElementById('watchGrid');
+  const list=S.watchlist||[];
+  let filtered=list;
+  if(_wlFilter==='tech')filtered=list.filter(t=>TECH_TICKERS.includes(t)||(_wlCache[t]&&_wlCache[t].sector&&_wlCache[t].sector.toLowerCase().includes('tech')));
+  if(_wlFilter==='highiv')filtered=list.filter(t=>_wlCache[t]&&_wlCache[t].iv&&_wlCache[t].iv>35);
+  if(_wlFilter==='earnings')filtered=list.filter(t=>_wlCache[t]&&_wlCache[t].iv&&_wlCache[t].iv>30);
+  if(filtered.length===0){wg.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;font-family:var(--fm);font-size:12px;color:var(--t4);letter-spacing:1px">No stocks match this filter</div>';return}
+  wg.innerHTML=filtered.map((sym,i)=>{
+    const w=_wlCache[sym]||{sym,name:'Loading...',price:0,change:0,lo52:0,hi52:0,vol:0,iv:null,sector:''};
+    const dir=w.change>=0?'gain':'loss';
+    const chgStr=(w.change>=0?'+':'')+w.change.toFixed(2)+'%';
+    const rangePct=w.hi52>w.lo52?((w.price-w.lo52)/(w.hi52-w.lo52)*100).toFixed(0):'50';
+    const ivStr=w.iv?w.iv.toFixed(0)+'%':'—';
+    const isTech=TECH_TICKERS.includes(sym)||(w.sector&&w.sector.toLowerCase().includes('tech'));
+    return `<div class="card watch-card" style="animation-delay:${i*50}ms">
+      <div class="w-top">
+        <div style="display:flex;align-items:center;gap:10px">${tkLogo(sym)}<div><div class="w-tk">${sym}</div><div class="w-nm">${w.name}</div></div></div>
+        <div style="text-align:right;margin-left:auto;display:flex;align-items:flex-start;gap:8px">
+          <div>
+            <div class="w-pr">${w.price>0?'$'+w.price.toFixed(2):'...'}</div>
+            <div class="w-chg ${dir}" style="font-family:var(--fm);font-size:12px;letter-spacing:.5px">${w.price>0?(dir==='gain'?'&#9650;':'&#9660;')+' '+chgStr:''}</div>
+          </div>
+          <button onclick="removeWatchStock('${sym}')" title="Remove" style="background:none;border:none;color:var(--t5);cursor:pointer;font-size:14px;padding:2px 4px;opacity:.4;transition:opacity .2s" onmouseenter="this.style.opacity='1';this.style.color='var(--r)'" onmouseleave="this.style.opacity='.4';this.style.color='var(--t5)'">&times;</button>
+        </div>
       </div>
-    </div>
-    <div class="w-range"><div class="w-range-fill"></div><div class="w-range-dot" style="left:${rangePct}%"></div></div>
-    <div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:8px;color:var(--t5);letter-spacing:1px;margin-top:2px">
-      <span>52W: $${w.lo}</span><span>$${w.hi}</span>
-    </div>
-    <div class="w-metrics">
-      <div><div class="w-met-lbl">IV RANK</div><div class="w-met-val">${w.iv}</div></div>
-      <div><div class="w-met-lbl">AVG VOLUME</div><div class="w-met-val">${w.vol}</div></div>
-      <div><div class="w-met-lbl">NEXT EARNINGS</div><div class="w-met-val">${w.earn}</div></div>
-      <div><div class="w-met-lbl">SUPPORT / RESIST</div><div class="w-met-val">${w.sup} / ${w.res}</div></div>
-    </div>
-    <div class="w-tags"><span class="w-tag">${w.sector}</span><span class="w-tag">WHEEL</span></div>
-    <div class="w-note">"${w.note}"</div>
-    <div class="tv-mini" id="tv-${w.sym}"><div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:2px">CLICK TAB TO LOAD CHART</div></div>
-  </div>`;
-});
-
-function loadWatchlistWidgets() {
-  document.getElementById('watchGrid').dataset.loaded = 'true';
-  watchStocks.forEach(w => {
-    const box = document.getElementById('tv-' + w.sym);
-    box.innerHTML = '';
-    const d = document.createElement('div');
-    d.className = 'tradingview-widget-container';
-    d.style.cssText = 'width:100%;height:100%';
-    d.innerHTML = '<div class="tradingview-widget-container__widget" style="width:100%;height:100%"></div>';
-    const s = document.createElement('script');
-    s.type = 'text/javascript';
-    s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js';
-    s.async = true;
-    s.textContent = JSON.stringify({
-      symbol: w.exchange + ':' + w.sym, width: "100%", height: "100%",
-      locale: "en", dateRange: "1M", colorTheme: "dark", isTransparent: true,
-      autosize: true, chartOnly: false,
-      trendLineColor: "rgba(74,222,128,1)", underLineColor: "rgba(74,222,128,0.15)",
-      underLineBottomColor: "rgba(74,222,128,0)"
-    });
-    d.appendChild(s);
-    box.appendChild(d);
+      ${w.hi52>0?`<div class="w-range"><div class="w-range-fill"></div><div class="w-range-dot" style="left:${rangePct}%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:8px;color:var(--t5);letter-spacing:1px;margin-top:2px">
+        <span>52W: $${w.lo52.toFixed(0)}</span><span>$${w.hi52.toFixed(0)}</span>
+      </div>`:''}
+      <div class="w-metrics">
+        <div><div class="w-met-lbl">IV RANK</div><div class="w-met-val">${ivStr}</div></div>
+        <div><div class="w-met-lbl">AVG VOLUME</div><div class="w-met-val">${fmtVol(w.vol)}</div></div>
+        <div><div class="w-met-lbl">PRICE</div><div class="w-met-val ${dir}">${w.price>0?'$'+w.price.toFixed(2):'—'}</div></div>
+        <div><div class="w-met-lbl">CHANGE</div><div class="w-met-val ${dir}">${w.price>0?chgStr:'—'}</div></div>
+      </div>
+      <div class="w-tags">${isTech?'<span class="w-tag">Tech</span>':''}${w.sector&&!isTech?'<span class="w-tag">'+w.sector+'</span>':''}${w.iv&&w.iv>40?'<span class="w-tag" style="border-color:var(--ac);color:var(--ac)">High IV</span>':''}${sym!=='SPY'?'<span class="w-tag">WHEEL</span>':''}</div>
+      <div class="tv-mini" id="tv-${sym}"><div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:2px">LOADING CHART...</div></div>
+    </div>`;
+  }).join('');
+  // Load TradingView widgets
+  const tvExchange=ex=>{if(!ex)return'NASDAQ';const u=ex.toUpperCase();if(u.includes('NASDAQ')||u==='NMS')return'NASDAQ';if(u.includes('NYSE')||u==='NGM')return'NYSE';if(u.includes('AMEX'))return'AMEX';return'NASDAQ'};
+  filtered.forEach(sym=>{
+    const w=_wlCache[sym]||{exchange:'NASDAQ'};
+    const box=document.getElementById('tv-'+sym);
+    if(!box)return;
+    box.innerHTML='';
+    const d=document.createElement('div');d.className='tradingview-widget-container';d.style.cssText='width:100%;height:100%';
+    d.innerHTML='<div class="tradingview-widget-container__widget" style="width:100%;height:100%"></div>';
+    const s=document.createElement('script');s.type='text/javascript';
+    s.src='https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js';s.async=true;
+    s.textContent=JSON.stringify({symbol:tvExchange(w.exchange)+':'+sym,width:"100%",height:"100%",locale:"en",dateRange:"1M",colorTheme:"dark",isTransparent:true,autosize:true,chartOnly:false,
+      trendLineColor:"rgba(74,222,128,1)",underLineColor:"rgba(74,222,128,0.15)",underLineBottomColor:"rgba(74,222,128,0)"});
+    d.appendChild(s);box.appendChild(d);
   });
 }
+
+function updateWatchStats(){
+  const list=S.watchlist||[];
+  $('wsCount').textContent=list.length;
+  const ivs=list.map(t=>_wlCache[t]&&_wlCache[t].iv).filter(v=>v);
+  $('wsIV').textContent=ivs.length>0?(ivs.reduce((a,b)=>a+b,0)/ivs.length).toFixed(1)+'%':'—';
+  // Best CSP target = highest IV
+  let bestIV=0,bestSym='—';
+  list.forEach(t=>{const c=_wlCache[t];if(c&&c.iv&&c.iv>bestIV){bestIV=c.iv;bestSym=t}});
+  $('wsBest').textContent=bestSym;
+  $('wsBestSub').textContent=bestIV>0?bestIV.toFixed(0)+'% IV RANK':'—';
+  // Biggest mover for earnings slot (reuse as "Biggest Mover")
+  let maxChg=0,movSym='—',movDir='';
+  list.forEach(t=>{const c=_wlCache[t];if(c&&Math.abs(c.change)>maxChg){maxChg=Math.abs(c.change);movSym=t;movDir=c.change>=0?'gain':'loss'}});
+  $('wsEarn').textContent=movSym;
+  $('wsEarn').className='stat-v '+(movDir||'');
+  $('wsEarnSub').textContent=maxChg>0?(movDir==='gain'?'+':'')+(_wlCache[movSym]?.change||0).toFixed(2)+'% TODAY':'—';
+}
+
+async function renderWatchlist(){
+  const wg=document.getElementById('watchGrid');
+  wg.dataset.loaded='true';
+  if(!S.watchlist||S.watchlist.length===0)S.watchlist=['AAPL','NVDA','TSLA','SPY','AMD','MSFT'];
+  const list=S.watchlist;
+  // Show skeleton cards immediately
+  wg.innerHTML=list.map((sym,i)=>`<div class="card watch-card" style="animation-delay:${i*50}ms">
+    <div class="w-top"><div style="display:flex;align-items:center;gap:10px">${tkLogo(sym)}<div><div class="w-tk">${sym}</div><div class="w-nm" style="color:var(--t5)">Loading...</div></div></div>
+    <button onclick="removeWatchStock('${sym}')" title="Remove" style="background:none;border:none;color:var(--t5);cursor:pointer;font-size:14px;padding:2px 4px;margin-left:auto;opacity:.4;transition:opacity .2s" onmouseenter="this.style.opacity='1';this.style.color='var(--r)'" onmouseleave="this.style.opacity='.4';this.style.color='var(--t5)'">&times;</button>
+    </div>
+    <div style="padding:20px 0;text-align:center"><div class="skeleton-shimmer" style="width:60%;height:12px;margin:0 auto 8px;border-radius:4px"></div><div class="skeleton-shimmer" style="width:40%;height:12px;margin:0 auto;border-radius:4px"></div></div>
+  </div>`).join('');
+  $('wsCount').textContent=list.length;
+  // Fetch all data in parallel
+  await Promise.allSettled(list.map(sym=>fetchWatchData(sym)));
+  updateWatchStats();
+  renderWatchlistCards();
+}
+
 
 // ── Signals data ──
 const sigData = [
