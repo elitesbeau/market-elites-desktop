@@ -5223,7 +5223,7 @@ function renderWatchlistCards(){
             <div class="w-pr">${w.price>0?'$'+w.price.toFixed(2):'...'}</div>
             <div class="w-chg ${dir}" style="font-family:var(--fm);font-size:12px;letter-spacing:.5px">${w.price>0?(dir==='gain'?'&#9650;':'&#9660;')+' '+chgStr:''}</div>
           </div>
-          <button onclick="removeWatchStock('${sym}')" title="Remove" style="background:none;border:none;color:var(--t5);cursor:pointer;font-size:14px;padding:2px 4px;opacity:.4;transition:opacity .2s" onmouseenter="this.style.opacity='1';this.style.color='var(--r)'" onmouseleave="this.style.opacity='.4';this.style.color='var(--t5)'">&times;</button>
+          <button onclick="event.stopPropagation();removeWatchStock('${sym}')" title="Remove ${sym}" style="background:var(--bge);border:1px solid var(--bd);color:var(--t4);cursor:pointer;font-size:11px;padding:4px 8px;border-radius:4px;font-family:var(--fm);letter-spacing:.5px;transition:all .2s;margin-left:auto" onmouseenter="this.style.background='var(--r)';this.style.borderColor='var(--r)';this.style.color='#fff'" onmouseleave="this.style.background='var(--bge)';this.style.borderColor='var(--bd)';this.style.color='var(--t4)'">REMOVE</button>
         </div>
       </div>
       ${w.hi52>0?`<div class="w-range"><div class="w-range-fill"></div><div class="w-range-dot" style="left:${rangePct}%"></div></div>
@@ -5241,7 +5241,8 @@ function renderWatchlistCards(){
     </div>`;
   }).join('');
   // Load TradingView widgets
-  const tvExchange=ex=>{if(!ex)return'NASDAQ';const u=ex.toUpperCase();if(u.includes('NASDAQ')||u==='NMS')return'NASDAQ';if(u.includes('NYSE')||u==='NGM')return'NYSE';if(u.includes('AMEX'))return'AMEX';return'NASDAQ'};
+  const TV_SYM_MAP={SPY:'AMEX:SPY',QQQ:'NASDAQ:QQQ',IWM:'AMEX:IWM',DIA:'AMEX:DIA',GLD:'AMEX:GLD',SLV:'AMEX:SLV',TLT:'NASDAQ:TLT',XLF:'AMEX:XLF',XLE:'AMEX:XLE',XLK:'AMEX:XLK',VXX:'CBOE:VXX',UVXY:'CBOE:UVXY'};
+  const tvExchange=ex=>{if(!ex)return'NASDAQ';const u=ex.toUpperCase();if(u.includes('NASDAQ')||u==='NMS')return'NASDAQ';if(u==='PCX'||u.includes('ARCA')||u.includes('AMEX'))return'AMEX';if(u.includes('NYSE')||u==='NGM')return'NYSE';return'NASDAQ'};
   filtered.forEach(sym=>{
     const w=_wlCache[sym]||{exchange:'NASDAQ'};
     const box=document.getElementById('tv-'+sym);
@@ -5251,7 +5252,7 @@ function renderWatchlistCards(){
     d.innerHTML='<div class="tradingview-widget-container__widget" style="width:100%;height:100%"></div>';
     const s=document.createElement('script');s.type='text/javascript';
     s.src='https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js';s.async=true;
-    s.textContent=JSON.stringify({symbol:tvExchange(w.exchange)+':'+sym,width:"100%",height:"100%",locale:"en",dateRange:"1M",colorTheme:"dark",isTransparent:true,autosize:true,chartOnly:false,
+    s.textContent=JSON.stringify({symbol:TV_SYM_MAP[sym]||(tvExchange(w.exchange)+':'+sym),width:"100%",height:"100%",locale:"en",dateRange:"1M",colorTheme:"dark",isTransparent:true,autosize:true,chartOnly:false,
       trendLineColor:"rgba(74,222,128,1)",underLineColor:"rgba(74,222,128,0.15)",underLineBottomColor:"rgba(74,222,128,0)"});
     d.appendChild(s);box.appendChild(d);
   });
@@ -5283,7 +5284,7 @@ async function renderWatchlist(){
   // Show skeleton cards immediately
   wg.innerHTML=list.map((sym,i)=>`<div class="card watch-card" style="animation-delay:${i*50}ms">
     <div class="w-top"><div style="display:flex;align-items:center;gap:10px">${tkLogo(sym)}<div><div class="w-tk">${sym}</div><div class="w-nm" style="color:var(--t5)">Loading...</div></div></div>
-    <button onclick="removeWatchStock('${sym}')" title="Remove" style="background:none;border:none;color:var(--t5);cursor:pointer;font-size:14px;padding:2px 4px;margin-left:auto;opacity:.4;transition:opacity .2s" onmouseenter="this.style.opacity='1';this.style.color='var(--r)'" onmouseleave="this.style.opacity='.4';this.style.color='var(--t5)'">&times;</button>
+    <button onclick="event.stopPropagation();removeWatchStock('${sym}')" title="Remove ${sym}" style="background:var(--bge);border:1px solid var(--bd);color:var(--t4);cursor:pointer;font-size:11px;padding:4px 8px;border-radius:4px;font-family:var(--fm);letter-spacing:.5px;transition:all .2s;margin-left:auto" onmouseenter="this.style.background='var(--r)';this.style.borderColor='var(--r)';this.style.color='#fff'" onmouseleave="this.style.background='var(--bge)';this.style.borderColor='var(--bd)';this.style.color='var(--t4)'">REMOVE</button>
     </div>
     <div style="padding:20px 0;text-align:center"><div class="skeleton-shimmer" style="width:60%;height:12px;margin:0 auto 8px;border-radius:4px"></div><div class="skeleton-shimmer" style="width:40%;height:12px;margin:0 auto;border-radius:4px"></div></div>
   </div>`).join('');
