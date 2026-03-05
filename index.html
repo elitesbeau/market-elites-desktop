@@ -361,20 +361,21 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 .calc-stock-tk{font-family:var(--fd);font-size:42px;letter-spacing:3px;font-weight:700}
 .calc-stock-nm{font-size:14px;color:var(--t3)}
 .calc-stock-pr{font-family:var(--fd);font-size:32px;margin-left:auto;letter-spacing:2px;font-weight:700}
-.chain-hdr{display:flex;padding:6px 10px;font-family:var(--fm);font-size:10px;color:var(--t5);letter-spacing:1px;text-transform:uppercase}
-.chain-hdr span{min-width:70px}
+.chain-hdr,.chain-row{display:flex;align-items:center;padding:0 10px}
+.chain-hdr{padding-top:6px;padding-bottom:6px;font-family:var(--fm);font-size:10px;color:var(--t5);letter-spacing:1px;text-transform:uppercase}
+.chain-hdr span,.chain-row span{flex:1;min-width:0}
 .chain-rows{max-height:480px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--bd) transparent}
 .chain-rows::-webkit-scrollbar{width:4px}.chain-rows::-webkit-scrollbar-thumb{background:var(--bd);border-radius:4px}
-.chain-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid transparent;
-  cursor:pointer;border-radius:2px;transition:all .15s;font-family:var(--fm);font-size:13px}
+.chain-row{padding-top:8px;padding-bottom:8px;border:1px solid transparent;
+  cursor:pointer;border-radius:2px;transition:all .15s;font-family:var(--fm);font-size:13px;position:relative}
 .chain-row:hover{background:rgba(232,224,208,.02);border-color:var(--bd)}
 .chain-row.selected{background:var(--acbg);border-color:var(--acbr)}
 .chain-row.atm{border-left:2px solid var(--ac);background:rgba(201,169,124,.04)}
 .chain-row.zero-bid{opacity:.4}
-.chain-row .strike{min-width:70px;font-weight:600;color:var(--tx)}
-.chain-row .bid{color:var(--g);min-width:70px}
-.chain-row .ask{color:var(--r);min-width:70px}
-.chain-row .delta{color:var(--t4);min-width:70px}
+.chain-row .strike{font-weight:600;color:var(--tx)}
+.chain-row .bid{color:var(--g)}
+.chain-row .ask{color:var(--r)}
+.chain-row .delta{color:var(--t4)}
 .result-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(232,224,208,.03)}
 .result-lbl{font-family:var(--fm);font-size:12px;letter-spacing:1px;color:var(--t3);text-transform:uppercase}
 .result-val{font-family:var(--fd);font-size:26px;letter-spacing:1px;font-weight:700}
@@ -1646,7 +1647,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
         </div>
 
         <div style="display:flex;align-items:baseline;gap:10px"><div class="card-label" style="margin-bottom:0" id="chainLabel">Options Chain — Puts</div><span class="calc-spec" style="opacity:.15">SN-48 // LIVE_FEED</span></div>
-        <div class="chain-hdr"><span style="min-width:60px">Strike</span><span style="min-width:60px">Bid</span><span style="min-width:60px">Ask</span><span style="min-width:60px">Delta</span><span style="min-width:60px">IV</span></div>
+        <div class="chain-hdr"><span>Strike</span><span>Bid</span><span>Ask</span><span>Delta</span><span>IV</span></div>
         <div class="chain-rows">
         <div class="chain-row"><span class="strike">$175</span><span class="bid">$1.20</span><span class="ask">$1.35</span><span class="delta">0.15</span><span class="delta">28%</span></div>
         <div class="chain-row"><span class="strike">$180</span><span class="bid">$2.40</span><span class="ask">$2.60</span><span class="delta">0.22</span><span class="delta">30%</span></div>
@@ -4896,7 +4897,7 @@ function calcRenderChain(chain){
       const cls=['chain-row'];
       if(i===atmIdx)cls.push('atm');
       if(o.bid<=0)cls.push('zero-bid');
-      return `<div class="${cls.join(' ')}" onclick="calcSelectStrike(${o.strike},${Math.max(0,o.bid).toFixed(2)},${Math.max(0,o.ask).toFixed(2)},'${delta}','${iv}')">${i===atmIdx?'<span style="position:absolute;left:-1px;font-size:7px;color:var(--ac);font-family:var(--fm);letter-spacing:1px;writing-mode:vertical-rl">ATM</span>':''}<span class="strike">$${o.strike}</span><span class="bid">${o.bid>0?'$'+o.bid.toFixed(2):'—'}</span><span class="ask">${o.ask>0?'$'+o.ask.toFixed(2):'—'}</span><span class="delta">${delta}</span><span class="delta">${iv}</span></div>`;
+      return `<div class="${cls.join(' ')}" onclick="calcSelectStrike(${o.strike},${Math.max(0,o.bid).toFixed(2)},${Math.max(0,o.ask).toFixed(2)},'${delta}','${iv}')"><span class="strike">$${o.strike}</span><span class="bid">${o.bid>0?'$'+o.bid.toFixed(2):'—'}</span><span class="ask">${o.ask>0?'$'+o.ask.toFixed(2):'—'}</span><span class="delta">${delta}</span><span class="delta">${iv}</span></div>`;
     }).join('');
     // Auto-scroll to ATM strike
     const atmRow=chainEl.querySelector('.atm');
