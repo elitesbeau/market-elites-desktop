@@ -2397,10 +2397,15 @@ async function handleAppleSignIn(){
   }catch(e){if(e.code==='auth/popup-closed-by-user')return;showToast(e.message||'Apple sign-in failed','error')}
 }
 
-function completeAuth(user){
-  S.firebaseUid=user.uid;S.isGuest=false;save();hideAuthScreen();checkLegal();renderProfile();
+async function completeAuth(user){
+  S.firebaseUid=user.uid;S.isGuest=false;save();hideAuthScreen();checkLegal();
+  await loadUserData(user.uid);
+  renderProfile();
   firebase.database().ref('users/'+user.uid).update({lastLogin:Date.now()}).catch(()=>{});
   listenToFirebasePosts();
+  await loadFromFirebase();
+  seedWheelsFromPositions();renderDashboard();renderProfile();renderSignals();renderAll();
+  loadWtFromFirebase();
   // Auto-recover positions from Firebase if empty
   if(!S.positions||S.positions.length===0){
     setTimeout(()=>recoverPositionsFromFirebase(),2000);
@@ -2439,7 +2444,13 @@ async function loadUserData(uid){
   try{
     const snap=await firebase.database().ref('users/'+uid).once('value');
     const data=snap.val();
-    if(data){S.user.name=data.name||'';S.user.email=data.email||'';S.isPremium=data.isPremium||false;save()}
+    if(data){
+      S.user.name=data.name||'';S.user.email=data.email||'';S.isPremium=data.isPremium||false;
+      if(data.avatar)S.user.avatar=data.avatar;
+      if(data.phone)S.user.phone=data.phone;
+      if(data.carrier)S.user.carrier=data.carrier;
+      save();
+    }
     firebase.database().ref('users/'+uid+'/isPremium').on('value',s=>{
       const was=S.isPremium;S.isPremium=s.val()||false;
       if(S.isPremium!==was){save();if(S.isPremium&&!was)showToast('Premium activated!','success');renderProfile()}
@@ -2467,9 +2478,14 @@ function confirmSignOut(){showConfirm('Sign Out','Are you sure you want to sign 
 function checkAuthState(){
   initFirebase().then(ok=>{
     if(ok&&firebase.auth){
-      firebase.auth().onAuthStateChanged(user=>{
-        if(user){S.firebaseUid=user.uid;loadUserData(user.uid);save();hideAuthScreen();checkLegal();renderProfile();listenToFirebasePosts();firebase.database().ref('users/'+user.uid).update({lastLogin:Date.now()}).catch(()=>{});
-          loadFromFirebase().then(()=>{seedWheelsFromPositions();renderDashboard();renderProfile();renderSignals();renderAll()});
+      firebase.auth().onAuthStateChanged(async user=>{
+        if(user){
+          S.firebaseUid=user.uid;save();hideAuthScreen();checkLegal();
+          await loadUserData(user.uid);
+          renderProfile();listenToFirebasePosts();
+          firebase.database().ref('users/'+user.uid).update({lastLogin:Date.now()}).catch(()=>{});
+          await loadFromFirebase();
+          seedWheelsFromPositions();renderDashboard();renderProfile();renderSignals();renderAll();
           loadWtFromFirebase();
         }
         else if(S.firebaseUid&&!S.isGuest){showAuthScreen()}
@@ -2546,7 +2562,7 @@ function saveProfile(){
   S.user.phone=$('userPhone')?.value.trim()||'';
   S.user.carrier=$('userCarrier')?.value||'';
   save();renderProfile();showToast('Profile saved','success');
-  if(S.firebaseUid)initFirebase().then(ok=>{if(ok)firebase.database().ref('users/'+S.firebaseUid).update({name:S.user.name}).catch(()=>{})});
+  if(S.firebaseUid)initFirebase().then(ok=>{if(ok)firebase.database().ref('users/'+S.firebaseUid).update({name:S.user.name,phone:S.user.phone||null,carrier:S.user.carrier||null}).catch(()=>{})});
 }
 
 function savePortfolioSettings(){
@@ -2609,6 +2625,7 @@ function handleAvatarUpload(event){
       if(w>h){if(w>max){h=h*max/w;w=max}}else{if(h>max){w=w*max/h;h=max}}
       canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);
       S.user.avatar=canvas.toDataURL('image/jpeg',.8);save();renderProfile();showToast('Photo updated!','success');
+      if(S.firebaseUid)firebase.database().ref('users/'+S.firebaseUid).update({avatar:S.user.avatar}).catch(()=>{});
     };img.src=e.target.result;
   };reader.readAsDataURL(file);
 }
