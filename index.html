@@ -298,17 +298,20 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 
 /* ── POSITIONS PAGE — ALIVE ── */
 #positions{position:relative}
-#positions .pos-watermark{position:absolute;top:-30px;right:10px;
-  font-family:var(--fd);font-size:280px;font-weight:700;letter-spacing:-15px;
-  color:var(--ac);opacity:.025;pointer-events:none;line-height:1;z-index:0;user-select:none}
-#positions .pos-jp{position:absolute;top:80px;right:18px;
-  font-size:11px;letter-spacing:8px;writing-mode:vertical-rl;
-  color:var(--ac);opacity:.07;pointer-events:none;z-index:0;user-select:none}
+#positions .pos-watermark{position:absolute;top:-20px;right:20px;
+  font-family:var(--fd);font-size:260px;font-weight:700;letter-spacing:-12px;
+  color:var(--ac);opacity:.07;pointer-events:none;line-height:1;z-index:1;user-select:none;
+  text-shadow:0 0 80px rgba(201,169,124,.15)}
+#positions .pos-jp{position:absolute;top:70px;right:22px;
+  font-size:12px;letter-spacing:10px;writing-mode:vertical-rl;
+  color:var(--ac);opacity:.15;pointer-events:none;z-index:2;user-select:none;
+  text-shadow:0 0 20px rgba(201,169,124,.2)}
 .pos-summary .card::after{content:'✦';position:absolute;top:8px;right:10px;
-  font-size:8px;color:var(--ac);opacity:.25}
-.pos-summary .card:nth-child(3)::after{content:'✦✦';letter-spacing:4px}
+  font-size:9px;color:var(--ac);opacity:.4}
+.pos-summary .card:nth-child(2)::after{content:'✦';opacity:.3}
+.pos-summary .card:nth-child(3)::after{content:'✦✦';letter-spacing:4px;opacity:.35}
 .pos-summary .card:nth-child(4)::after,.pos-summary .card:nth-child(5)::after{content:''}
-.page-head .sparkle-deco{color:var(--ac);opacity:.35;font-size:8px;margin:0 8px;letter-spacing:6px}
+.page-head .sparkle-deco{color:var(--ac);opacity:.5;font-size:9px;margin:0 8px;letter-spacing:5px}
 /* Status pill badges */
 .status-pill{font-family:var(--fm);font-size:9px;letter-spacing:1px;padding:3px 10px;border-radius:2px;
   display:inline-flex;align-items:center;gap:4px;position:relative;cursor:default;white-space:nowrap;
