@@ -3243,8 +3243,8 @@ function renderDashboard(){
         if(p.status==='assigned'||p.type==='assigned'){status='Assigned';statusCls='color:var(--w)'}
         else if(dte<0){status='EXPIRED';statusCls='color:var(--r)'}
         else if(dte===0){status='Exp Today';statusCls='color:var(--w)'}
-        else if(dte<=3){status='Expiring';statusCls='color:var(--r)'}
-        else if(dte<=7){status='Expiring';statusCls='color:var(--w)'}
+        else if(dte===1){status='Tomorrow';statusCls='color:var(--r)'}
+        else if(dte<=7){status=dte+'d left';statusCls=dte<=3?'color:var(--r)':'color:var(--w)'}
         return '<tr class="pos-glow-'+dc+'" data-type="'+(p.type||'csp')+'" data-status="'+(p.status||'open')+'"><td class="tk-cell">'+tkLogo(p.symbol,28)+'<span class="tk">'+p.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+Number(p.strike).toFixed(2)+'</td><td class="m">'+(p.expiration||'-')+'</td><td class="m"><div class="dte-live"><span class="dot '+dc+'"></span><span class="dte-live-val" data-exp="'+(parseExpDate(p.expiration)?parseExpDate(p.expiration).getTime():'')+'">'+fmtDte(p.expiration)+'</span></div></td><td class="m">$'+(p.premium||0).toFixed(2)+'</td><td class="m">'+(p.contracts||1)+'</td><td class="m">'+collateral+'</td><td class="m gain">+$'+Math.round(prem).toLocaleString()+'</td><td style="'+statusCls+'">'+status+'</td><td><button class="btn btn-sm" onclick="event.stopPropagation();viewPos(\''+p.id+'\')">Manage</button></td></tr>';
       }).join('');
     }else{posTbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--t4);padding:20px">No open positions</td></tr>'}
