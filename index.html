@@ -47,28 +47,28 @@ body::after{content:'';position:fixed;inset:0;
   background:var(--bg);border-top:1px solid var(--bd);overflow:hidden}
 
 /* ── SIDEBAR ── */
-.sb-brand{position:relative;margin:0 12px 12px;height:150px;
+.sb-brand{position:relative;margin:0 12px 12px;height:130px;
   display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
-  padding:0 12px 18px;border:1px solid var(--bd);border-radius:3px;overflow:hidden;background:var(--bgc)}
+  padding:0 12px 14px;border:1px solid var(--bd);border-radius:3px;overflow:hidden;background:var(--bgc)}
 .sb-brand::before,.sb-brand::after{content:'';position:absolute;width:10px;height:10px}
 .sb-brand::before{top:6px;left:6px;border-top:1px solid var(--t5);border-left:1px solid var(--t5)}
 .sb-brand::after{top:6px;right:6px;border-top:1px solid var(--t5);border-right:1px solid var(--t5)}
 .sb-brand-img{position:absolute;top:-15px;left:50%;transform:translateX(-50%);width:170px;height:170px;
-  object-fit:contain;mix-blend-mode:screen;opacity:.35;
-  -webkit-mask-image:radial-gradient(ellipse at center,black 10%,rgba(0,0,0,.4) 30%,transparent 55%);
-  mask-image:radial-gradient(ellipse at center,black 10%,rgba(0,0,0,.4) 30%,transparent 55%);
-  filter:drop-shadow(0 0 20px rgba(176,124,200,.3))}
+  object-fit:contain;mix-blend-mode:screen;opacity:.4;
+  -webkit-mask-image:radial-gradient(ellipse at center,black 18%,rgba(0,0,0,.6) 38%,transparent 62%);
+  mask-image:radial-gradient(ellipse at center,black 18%,rgba(0,0,0,.6) 38%,transparent 62%);
+  filter:brightness(1.6) drop-shadow(0 0 30px rgba(176,124,200,.6))}
 .sb-brand-glow{position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:220px;height:220px;
   background:radial-gradient(circle,rgba(176,124,200,.1) 0%,rgba(176,124,200,.03) 40%,transparent 65%);pointer-events:none}
-.sb-brand-name{font-family:var(--fd);font-size:22px;letter-spacing:10px;font-weight:700;
-  text-align:center;position:relative;z-index:2;line-height:1.3;
-  text-shadow:0 0 30px rgba(176,124,200,.2)}
-.sb-brand-sub{font-family:var(--fm);font-size:8px;letter-spacing:4px;color:var(--t4);
-  margin-top:10px;position:relative;z-index:2;text-transform:uppercase}
+.sb-brand-name{font-family:var(--fd);font-size:18px;letter-spacing:8px;font-weight:700;
+  text-align:center;position:relative;z-index:2;line-height:1.25;
+  text-shadow:0 0 30px rgba(176,124,200,.15)}
+.sb-brand-sub{font-family:var(--fm);font-size:7px;letter-spacing:3px;color:var(--t4);
+  margin-top:8px;position:relative;z-index:2;text-transform:uppercase}
 .sb-div{height:1px;background:var(--bd);margin:0 20px 12px}
 .sb-nav{flex:1}
 /* Vertical Japanese text decoration */
-.sb-jp{writing-mode:vertical-rl;font-size:12px;color:rgba(176,124,200,.3);letter-spacing:8px;
+.sb-jp{writing-mode:vertical-rl;font-size:11px;color:rgba(176,124,200,.12);letter-spacing:8px;
   position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;font-weight:500}
 .nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;color:var(--t4);cursor:pointer;
   transition:all .2s;border-left:2px solid transparent;font-size:14px;text-decoration:none;user-select:none}
@@ -85,10 +85,10 @@ body::after{content:'';position:fixed;inset:0;
 .sb-meta{font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1.5px;line-height:1.8}
 /* Sidebar mascot watermark */
 .sb-mascot{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);width:180px;height:180px;
-  object-fit:contain;mix-blend-mode:screen;opacity:.15;pointer-events:none;
-  -webkit-mask-image:radial-gradient(ellipse at center,black 10%,rgba(0,0,0,.35) 30%,transparent 55%);
-  mask-image:radial-gradient(ellipse at center,black 10%,rgba(0,0,0,.35) 30%,transparent 55%);
-  filter:drop-shadow(0 0 15px rgba(176,124,200,.15))}
+  object-fit:contain;mix-blend-mode:screen;opacity:.25;pointer-events:none;
+  -webkit-mask-image:radial-gradient(ellipse at center,black 22%,rgba(0,0,0,.5) 42%,transparent 65%);
+  mask-image:radial-gradient(ellipse at center,black 22%,rgba(0,0,0,.5) 42%,transparent 65%);
+  filter:brightness(1.3) drop-shadow(0 0 20px rgba(176,124,200,.25))}
 
 /* ── PAGES ── */
 .page{display:none;padding:28px 36px;min-height:100%}
@@ -241,10 +241,10 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
   background:radial-gradient(circle,rgba(176,124,200,.12) 0%,rgba(176,124,200,.06) 30%,rgba(176,124,200,.02) 50%,transparent 70%);
   pointer-events:none;z-index:1}
 .hero-mascot{position:absolute;right:30px;top:50%;transform:translateY(-50%);width:340px;height:340px;
-  object-fit:contain;mix-blend-mode:screen;opacity:.3;pointer-events:none;z-index:2;
-  filter:drop-shadow(0 0 40px rgba(176,124,200,.35));
-  -webkit-mask-image:radial-gradient(ellipse at center,black 15%,rgba(0,0,0,.4) 35%,transparent 60%);
-  mask-image:radial-gradient(ellipse at center,black 15%,rgba(0,0,0,.4) 35%,transparent 60%)}
+  object-fit:contain;mix-blend-mode:screen;opacity:.55;pointer-events:none;z-index:2;
+  filter:brightness(1.4) drop-shadow(0 0 40px rgba(176,124,200,.6));
+  -webkit-mask-image:radial-gradient(ellipse at center,black 30%,rgba(0,0,0,.7) 50%,transparent 75%);
+  mask-image:radial-gradient(ellipse at center,black 30%,rgba(0,0,0,.7) 50%,transparent 75%)}
 /* Halftone dot overlay on hero — from CYBERWAVE reference */
 .hero-halftone{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:.03;
   background-image:radial-gradient(circle,var(--tx) .5px,transparent .5px);background-size:4px 4px}
@@ -1942,7 +1942,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
           <button class="btn btn-sm" onclick="openAdminPostForm('roll')">+ Roll</button>
         </div>
         <!-- Signal Form -->
-        <div id="adminPostForm" style="display:none" class="card" style="margin-bottom:14px">
+        <div id="adminPostForm" style="display:none;margin-bottom:14px" class="card">
           <div class="settings-section-title" id="adminPostFormTitle">New Signal</div>
           <div class="form-row">
             <div class="form-group"><label class="form-label">Ticker</label><input class="inp" id="apTicker" placeholder="AAPL" style="text-transform:uppercase"></div>
@@ -1956,9 +1956,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
           </div>
           <div class="form-row">
             <div class="form-group"><label class="form-label">Premium</label><input class="inp" id="apPremium" type="number" step="0.01" placeholder="3.20"></div>
-            <div class="form-group"><label class="form-label">Confidence</label>
-              <select class="inp" id="apConf"><option value="HIGH">High</option><option value="MEDIUM">Medium</option><option value="LOW">Low</option></select>
-            </div>
+            <div class="form-group"><label class="form-label">Delta</label><input class="inp" id="apDelta" type="number" step="0.01" placeholder="0.30"></div>
           </div>
           <div class="form-group"><label class="form-label">Notes</label><textarea class="inp" id="apNotes" rows="2" placeholder="Entry notes..." style="resize:vertical;font-family:var(--fb);width:100%"></textarea></div>
           <div style="display:flex;gap:8px">
@@ -3308,49 +3306,68 @@ function openAdminPostForm(type){
 
 async function submitAdminPost(){
   const ticker=$('apTicker')?.value.trim().toUpperCase();
-  const type=$('apType')?.value;
+  const posType=($('apType')?.value||'CSP').toLowerCase(); // csp or cc — match main site lowercase
   const strike=parseFloat($('apStrike')?.value)||0;
-  const exp=$('apExp')?.value;
-  const premium=parseFloat($('apPremium')?.value)||0;
-  const confidence=$('apConf')?.value;
-  const notes=$('apNotes')?.value.trim();
-  if(adminPostType==='signal'&&!ticker){showToast('Enter a ticker','error');return}
-  const post={
-    type:adminPostType,ticker,positionType:type,strike,expiration:exp,premium,confidence,notes,
-    status:'OPEN',timestamp:Date.now(),uid:S.firebaseUid,authorName:S.user.name||'Admin'
-  };
-  if(adminPostType==='announcement')Object.assign(post,{type:'announcement',title:ticker||'Announcement',body:notes});
-  if(adminPostType==='roll')Object.assign(post,{type:'roll'});
-  await savePostToFirebase(post);
+  const exp=$('apExp')?.value?.trim()||'';
+  const prem=$('apPremium')?.value?.trim()||'';
+  const notes=$('apNotes')?.value.trim()||'';
+  if(adminPostType==='signal'){
+    if(!ticker||!strike){showToast('Fill ticker and strike','error');return}
+    const delta=$('apDelta')?.value?.trim()||'';
+    // Match main site field names EXACTLY
+    const post={type:posType,ticker,strike,exp,prem,delta,notes,time:'Just now',timestamp:Date.now(),kind:'signal'};
+    await savePostToFirebase(post);
+    sendDiscordSignal(post);
+  }else if(adminPostType==='announcement'){
+    if(!ticker&&!notes){showToast('Fill title and message','error');return}
+    const post={title:ticker||'Announcement',message:notes,time:'Just now',timestamp:Date.now(),kind:'announcement'};
+    await savePostToFirebase(post);
+  }else if(adminPostType==='roll'){
+    // Simplified roll — main site has full roll flow, desktop is basic
+    const post={original:ticker+' $'+strike+' '+exp,newPos:'',credit:prem?'+$'+prem:'',notes,time:'Just now',timestamp:Date.now(),kind:'roll'};
+    await savePostToFirebase(post);
+  }
   $('adminPostForm').style.display='none';
-  ['apTicker','apStrike','apExp','apPremium','apNotes'].forEach(id=>{const el=$(id);if(el)el.value=''});
+  ['apTicker','apStrike','apExp','apPremium','apDelta','apNotes'].forEach(id=>{const el=$(id);if(el)el.value=''});
   renderAdminPosts();renderSignals();
-  // Discord webhook
-  sendDiscordSignal(post);
 }
 
 function renderAdminPosts(){
   const el=$('adminPostList');if(!el)return;
   const posts=S.adminPosts||[];
   if(posts.length===0){el.innerHTML='<div style="color:var(--t4);text-align:center;padding:20px">No posts yet.</div>';return}
-  el.innerHTML=posts.slice(0,30).map(p=>`
-    <div class="admin-post-card">
-      <div class="post-time">${p.timestamp?timeAgo(p.timestamp):'—'} · ${(p.type||'signal').toUpperCase()}</div>
-      <div class="post-title">${p.ticker||p.title||'Post'} ${p.positionType?'<span class="badge ${p.positionType==="CC"?"badge-cc":"badge-csp"}">${p.positionType}</span>':''}</div>
-      <div class="post-body">${p.notes||p.body||''}</div>
-      ${p.strike?'<div style="font-family:var(--fm);font-size:11px;color:var(--t4);margin-top:6px">$'+p.strike+' '+p.positionType+' exp '+p.expiration+' @ $'+p.premium+'</div>':''}
-      <div style="display:flex;gap:6px;margin-top:8px">
-        ${p.status==='OPEN'?'<button class="btn btn-sm" onclick="markAssigned(\''+p.id+'\')">Mark Assigned</button>':''}
-        <button class="btn btn-sm" style="border-color:var(--rbr);color:var(--r)" onclick="deleteAdminPost(\''+p.id+'\')">Delete</button>
-      </div>
-    </div>
-  `).join('');
+  el.innerHTML=posts.slice(0,30).map(p=>{
+    // Normalize field names (support both main site + legacy desktop fields)
+    const kind=p.kind||p.type||'signal';
+    const type=(p.type||p.positionType||'csp').toLowerCase();
+    const badge=type==='cc'?'badge-cc':'badge-csp';
+    const prem=p.prem||p.premium||'';
+    const exp=p.exp||p.expiration||'';
+    const status=(p.status||'open').toLowerCase();
+    const statusLabel=status==='open'?'OPEN':status==='rolled'?'ROLLED':status==='assigned'?'ASSIGNED':status==='winner'?'WINNER':status==='called'?'CALLED':status.toUpperCase();
+    const statusColor=status==='open'?'var(--ac)':status==='winner'||status==='called'?'var(--g)':status==='assigned'?'var(--w)':'var(--t4)';
+    if(kind==='announcement'){
+      return '<div class="admin-post-card"><div class="post-time">'+(p.timestamp?timeAgo(p.timestamp):'—')+' · ANNOUNCEMENT</div><div class="post-title">'+(p.title||'Announcement')+'</div><div class="post-body">'+(p.message||p.notes||p.body||'')+'</div><div style="display:flex;gap:6px;margin-top:8px"><button class="btn btn-sm" style="border-color:var(--rbr);color:var(--r)" onclick="deleteAdminPost(\''+p.id+'\')">Delete</button></div></div>';
+    }
+    if(kind==='roll'){
+      return '<div class="admin-post-card"><div class="post-time">'+(p.timestamp?timeAgo(p.timestamp):'—')+' · ROLL</div><div class="post-title">Roll: '+(p.original||p.ticker||'—')+'</div><div class="post-body">'+(p.newPos?'→ '+p.newPos:'')+(p.credit?' ('+p.credit+')':'')+(p.notes?'<br>'+p.notes:'')+'</div><div style="display:flex;gap:6px;margin-top:8px"><button class="btn btn-sm" style="border-color:var(--rbr);color:var(--r)" onclick="deleteAdminPost(\''+p.id+'\')">Delete</button></div></div>';
+    }
+    // Signal
+    return '<div class="admin-post-card"><div class="post-time">'+(p.timestamp?timeAgo(p.timestamp):'—')+' · <span style="color:'+statusColor+'">'+statusLabel+'</span></div><div class="post-title">'+p.ticker+' <span class="badge '+badge+'">'+type.toUpperCase()+'</span></div>'+(p.notes?'<div class="post-body">'+p.notes+'</div>':'')+(p.strike?'<div style="font-family:var(--fm);font-size:11px;color:var(--t4);margin-top:6px">$'+p.strike+' '+type.toUpperCase()+' exp '+exp+' @ $'+prem+'</div>':'')+'<div style="display:flex;gap:6px;margin-top:8px">'+(status==='open'?'<button class="btn btn-sm" onclick="updatePostStatus(\''+p.id+'\',\'assigned\')">Assigned</button><button class="btn btn-sm" onclick="updatePostStatus(\''+p.id+'\',\'winner\')">Winner</button><button class="btn btn-sm" onclick="updatePostStatus(\''+p.id+'\',\'called\')">Called</button>':'')+'<button class="btn btn-sm" style="border-color:var(--rbr);color:var(--r)" onclick="deleteAdminPost(\''+p.id+'\')">Delete</button></div></div>';
+  }).join('');
 }
 
-async function markAssigned(postId){
+async function updatePostStatus(postId,newStatus){
   const posts=S.adminPosts||[];
   const p=posts.find(x=>x.id===postId);
-  if(p){p.status='ASSIGNED';save();await updatePostInFirebase(postId,{status:'ASSIGNED'});renderAdminPosts();renderSignals();showToast('Marked assigned','success')}
+  if(p){
+    p.status=newStatus;
+    if(newStatus!=='open')p.closedAt=Date.now();
+    save();
+    await updatePostInFirebase(postId,{status:newStatus,closedAt:p.closedAt||null});
+    renderAdminPosts();renderSignals();renderDashboard();
+    showToast('Status: '+newStatus,'success');
+  }
 }
 
 async function deleteAdminPost(postId){
@@ -3430,9 +3447,10 @@ async function sendDiscordSignal(post){
   const roleId=localStorage.getItem('discordRoleId');
   try{
     const ping=roleId?`<@&${roleId}> `:'';
-    const embed={title:`${post.positionType} Signal: ${post.ticker}`,color:post.positionType==='CC'?3447003:5763719,
-      fields:[{name:'Strike',value:'$'+post.strike,inline:true},{name:'Exp',value:post.expiration||'—',inline:true},
-        {name:'Premium',value:'$'+post.premium,inline:true},{name:'Confidence',value:post.confidence||'MEDIUM',inline:true}],
+    const type=(post.type||'csp').toUpperCase();
+    const embed={title:`${type} Signal: ${post.ticker}`,color:type==='CC'?3447003:5763719,
+      fields:[{name:'Strike',value:'$'+post.strike,inline:true},{name:'Exp',value:post.exp||'—',inline:true},
+        {name:'Premium',value:'$'+(post.prem||''),inline:true}],
       footer:{text:'Market Elites'},timestamp:new Date().toISOString()};
     if(post.notes)embed.description=post.notes;
     await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:ping+'New signal posted!',embeds:[embed],username:'Market Elites Bot'})});
