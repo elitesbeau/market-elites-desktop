@@ -2257,7 +2257,7 @@ function loadState(){try{const d=localStorage.getItem('meDesktop');if(d)Object.a
   if(S[k]&&typeof S[k]==='string'){try{S[k]=JSON.parse(S[k])}catch(e){S[k]=[]}}
   if(S[k]&&!Array.isArray(S[k]))S[k]=[];
 });}catch(e){}}
-function save(){try{localStorage.setItem('meDesktop',JSON.stringify(S))}catch(e){}}
+function save(){S._localSaveAt=Date.now();try{localStorage.setItem('meDesktop',JSON.stringify(S))}catch(e){}}
 function scheduleSettingsSync(){
   if(_settingsSyncTimer)clearTimeout(_settingsSyncTimer);
   _settingsSyncTimer=setTimeout(syncSettingsToFirebase,2000);
@@ -2266,9 +2266,11 @@ let _settingsSyncTimer=null;
 async function syncSettingsToFirebase(){
   if(!S.firebaseUid||S.isGuest||!firebaseReady)return;
   try{
+    const now=Date.now();
     const updates={};
     FB_SETTINGS_FIELDS.forEach(k=>{if(S[k]!==undefined){updates[k]=S[k];updates['settings/'+k]=S[k]}});
-    updates['_meta/lastWriteAt']=Date.now();updates['_meta/lastWriteBy']='desktop';
+    updates['_meta/lastWriteAt']=now;updates['_meta/lastWriteBy']='desktop';
+    S._settingsWriteAt=now;save();
     await firebase.database().ref('users/'+S.firebaseUid+'/tradingData').update(updates);
     console.log('[Sync] Settings pushed to Firebase');
   }catch(e){console.warn('[Sync] Settings sync failed:',e)}
@@ -2295,16 +2297,23 @@ async function loadFromFirebase(){
     if(!td._meta||!td._meta.schemaVersion){
       FB_READ_FIELDS.forEach(k=>{if(td[k]&&typeof td[k]==='string'){try{td[k]=JSON.parse(td[k])}catch(e){td[k]=[]}}});
     }
-    // Always apply Firebase data — main site is source of truth
+    // Apply Firebase trading data — main site is source of truth for positions/history
     let applied=0;
     FB_READ_FIELDS.forEach(k=>{
       const fbVal=sanitizeArrayField(td[k]);
       if(fbVal.length>0||(S[k]||[]).length===0){S[k]=fbVal;applied+=fbVal.length}
     });
-    if(td.settings){
-      FB_SETTINGS_FIELDS.forEach(k=>{if(td.settings[k]!==undefined)S[k]=td.settings[k]});
+    // Settings: only apply if Firebase is newer than local settings write
+    const fbWriteAt=(td._meta&&td._meta.lastWriteAt)||0;
+    const localSettingsAt=S._settingsWriteAt||0;
+    if(fbWriteAt>localSettingsAt){
+      if(td.settings){
+        FB_SETTINGS_FIELDS.forEach(k=>{if(td.settings[k]!==undefined)S[k]=td.settings[k]});
+      }else{
+        FB_SETTINGS_FIELDS.forEach(k=>{if(td[k]!==undefined)S[k]=td[k]});
+      }
     }else{
-      FB_SETTINGS_FIELDS.forEach(k=>{if(td[k]!==undefined)S[k]=td[k]});
+      console.log('[Sync] Skipping Firebase settings — local is newer (',localSettingsAt,'vs',fbWriteAt,')');
     }
     save();
     console.log('[Sync] Loaded from Firebase (READ-ONLY) — positions:',S.positions.length,'history:',S.history.length,'items:',applied);
