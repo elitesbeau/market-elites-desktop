@@ -297,18 +297,18 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 .pos-sort{margin-left:auto;font-family:var(--fm);font-size:10px;color:var(--t5);letter-spacing:1px}
 
 /* ── POSITIONS PAGE — ALIVE ── */
-#positions{position:relative;overflow:hidden}
-#positions::before{content:'02';position:absolute;top:-40px;right:-20px;
-  font-family:var(--fd);font-size:320px;font-weight:700;letter-spacing:-15px;
-  color:var(--ac);opacity:.018;pointer-events:none;line-height:1;z-index:0}
-#positions::after{content:'ポジション';position:absolute;top:90px;right:14px;
+#positions{position:relative}
+#positions .pos-watermark{position:absolute;top:-30px;right:10px;
+  font-family:var(--fd);font-size:280px;font-weight:700;letter-spacing:-15px;
+  color:var(--ac);opacity:.025;pointer-events:none;line-height:1;z-index:0;user-select:none}
+#positions .pos-jp{position:absolute;top:80px;right:18px;
   font-size:11px;letter-spacing:8px;writing-mode:vertical-rl;
-  color:var(--ac);opacity:.05;pointer-events:none;z-index:0}
+  color:var(--ac);opacity:.07;pointer-events:none;z-index:0;user-select:none}
 .pos-summary .card::after{content:'✦';position:absolute;top:8px;right:10px;
-  font-size:7px;color:var(--ac);opacity:.12}
+  font-size:8px;color:var(--ac);opacity:.25}
 .pos-summary .card:nth-child(3)::after{content:'✦✦';letter-spacing:4px}
 .pos-summary .card:nth-child(4)::after,.pos-summary .card:nth-child(5)::after{content:''}
-.page-head .sparkle-deco{color:var(--ac);opacity:.2;font-size:7px;margin:0 8px;letter-spacing:6px}
+.page-head .sparkle-deco{color:var(--ac);opacity:.35;font-size:8px;margin:0 8px;letter-spacing:6px}
 /* Status pill badges */
 .status-pill{font-family:var(--fm);font-size:9px;letter-spacing:1px;padding:3px 10px;border-radius:2px;
   display:inline-flex;align-items:center;gap:4px;position:relative;cursor:default;white-space:nowrap;
@@ -1330,6 +1330,8 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 
 <!-- ────────── POSITIONS ────────── -->
 <section id="positions" class="page">
+  <div class="pos-watermark">02</div>
+  <div class="pos-jp">ポジション</div>
   <div class="page-head">
     <span class="page-label">02 — Positions</span>
     <span class="sparkle-deco">✦ ✦ ✦</span>
