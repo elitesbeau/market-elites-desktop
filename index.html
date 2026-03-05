@@ -923,7 +923,8 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
   border:1px solid var(--bd);border-radius:2px;color:var(--t4);letter-spacing:1px;margin-left:auto}
 
 /* ── Admin Panel ── */
-.admin-tabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:16px;overflow-x:auto;gap:0}
+.admin-tabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:0;overflow-x:auto;gap:0;
+  flex-shrink:0;background:var(--bgc);padding:0 24px}
 .admin-tab{padding:10px 16px;font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
   color:var(--t4);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
 .admin-tab:hover{color:var(--t2)}
@@ -1920,8 +1921,8 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
      ADMIN PANEL MODAL
      ══════════════════════════════════════════ -->
 <div class="modal-bg" id="adminModal" onclick="closeModal('adminModal')">
-  <div class="modal modal-xl" onclick="event.stopPropagation()" style="max-height:85vh;display:flex;flex-direction:column">
-    <div class="modal-head">
+  <div class="modal modal-xl" onclick="event.stopPropagation()" style="max-height:85vh;display:flex;flex-direction:column;overflow:hidden">
+    <div class="modal-head" style="flex-shrink:0">
       <span class="modal-title">Admin Panel</span>
       <button class="modal-close" onclick="closeModal('adminModal')">&times;</button>
     </div>
@@ -1933,7 +1934,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
       <button class="admin-tab" onclick="switchAdminTab('adminConfig',this)">Config</button>
       <button class="admin-tab" onclick="switchAdminTab('adminLogs',this)">Logs</button>
     </div>
-    <div class="modal-body" style="flex:1;overflow-y:auto;padding-top:0">
+    <div class="modal-body" style="flex:1;overflow-y:auto;padding-top:16px">
       <!-- Posts Tab -->
       <div class="admin-panel active" id="adminPosts">
         <div style="display:flex;gap:8px;margin-bottom:14px">
