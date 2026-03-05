@@ -1846,6 +1846,23 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 <!-- ══════════════════════════════════════════
      CONFIRM MODAL
      ══════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════
+     POSITION DETAIL MODAL
+     ══════════════════════════════════════════ -->
+<div class="modal-bg" id="posModal" onclick="closeModal('posModal')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:440px">
+    <div class="modal-head"><span class="modal-title" id="posTitle">Position</span><button class="modal-close" onclick="closeModal('posModal')">&times;</button></div>
+    <div class="modal-body">
+      <div id="posContent"></div>
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn btn-sm" style="flex:1;border-color:var(--rbr);color:var(--r)" onclick="closePosition()">Close Position</button>
+        <button class="btn btn-sm" style="flex:1" onclick="closeModal('posModal')">Done</button>
+      </div>
+      <button style="width:100%;margin-top:8px;background:none;border:1px solid var(--bd);color:var(--t4);font-size:11px;cursor:pointer;padding:6px;border-radius:4px" onclick="removePosition()">Remove (no balance change)</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="confirmModal" onclick="closeModal('confirmModal')">
   <div class="modal" onclick="event.stopPropagation()" style="max-width:380px">
     <div class="modal-head"><span class="modal-title" id="confirmTitle">Confirm</span><button class="modal-close" onclick="closeModal('confirmModal')">&times;</button></div>
@@ -3099,7 +3116,7 @@ function renderDashboard(){
         if(p.status==='assigned'||p.type==='assigned'){status='Assigned';statusCls='color:var(--w)'}
         else if(dte<=0){status='EXPIRED';statusCls='color:var(--r)'}
         else if(dte<=7){status='Expiring';statusCls='color:var(--w)'}
-        return '<tr class="pos-glow-'+dc+'" data-type="'+(p.type||'csp')+'" data-status="'+(p.status||'open')+'"><td class="tk-cell">'+tkLogo(p.symbol,28)+'<span class="tk">'+p.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+Number(p.strike).toFixed(2)+'</td><td class="m">'+(p.expiration||'-')+'</td><td class="m"><div class="dte-live"><span class="dot '+dc+'"></span><span class="dte-live-val" data-exp="'+(parseExpDate(p.expiration)?parseExpDate(p.expiration).getTime():'')+'">'+fmtDte(p.expiration)+'</span></div></td><td class="m">$'+(p.premium||0).toFixed(2)+'</td><td class="m">'+(p.contracts||1)+'</td><td class="m">'+collateral+'</td><td class="m gain">+$'+Math.round(prem).toLocaleString()+'</td><td style="'+statusCls+'">'+status+'</td><td><button class="btn btn-sm">Manage</button></td></tr>';
+        return '<tr class="pos-glow-'+dc+'" data-type="'+(p.type||'csp')+'" data-status="'+(p.status||'open')+'"><td class="tk-cell">'+tkLogo(p.symbol,28)+'<span class="tk">'+p.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+Number(p.strike).toFixed(2)+'</td><td class="m">'+(p.expiration||'-')+'</td><td class="m"><div class="dte-live"><span class="dot '+dc+'"></span><span class="dte-live-val" data-exp="'+(parseExpDate(p.expiration)?parseExpDate(p.expiration).getTime():'')+'">'+fmtDte(p.expiration)+'</span></div></td><td class="m">$'+(p.premium||0).toFixed(2)+'</td><td class="m">'+(p.contracts||1)+'</td><td class="m">'+collateral+'</td><td class="m gain">+$'+Math.round(prem).toLocaleString()+'</td><td style="'+statusCls+'">'+status+'</td><td><button class="btn btn-sm" onclick="event.stopPropagation();viewPos(\''+p.id+'\')">Manage</button></td></tr>';
       }).join('');
     }else{posTbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--t4);padding:20px">No open positions</td></tr>'}
   }
@@ -3416,6 +3433,120 @@ function renderSignalsRecent(){
       return '<tr><td class="tk-cell">'+tkLogo(h.symbol)+'<span class="tk">'+h.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+h.strike+' '+(type==='CSP'?'PUT':'CALL')+' '+(h.expiration||'')+'</td><td class="m '+pnlCls+'">'+result+'</td><td class="m" style="color:var(--t4)">'+outcome+'</td><td class="m" style="color:var(--t4)">'+dt+'</td></tr>';
     }).join('');
   }else{tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--t4);padding:20px">No executed trades yet</td></tr>'}
+}
+
+// ═══════════════════════════════════════════
+// POSITION MANAGEMENT
+// ═══════════════════════════════════════════
+let _selPosId=null;
+
+function viewPos(id){
+  const p=(S.positions||[]).find(x=>x.id===id);
+  if(!p)return;
+  _selPosId=id;
+  $('posTitle').textContent=p.symbol+' — '+(p.type||'csp').toUpperCase();
+  const contracts=p.contracts||1;
+  const totalPrem=(p.premium||0)*contracts*100;
+  const dte=getDte(p.expiration);
+  const collateral=(p.type||'csp').toLowerCase()==='csp'?p.strike*contracts*100:contracts*100;
+  const yieldPct=collateral>0?((totalPrem/collateral)*100).toFixed(2):0;
+  const daysHeld=p.openDate?Math.max(1,Math.round((Date.now()-new Date(p.openDate).getTime())/86400000)):'-';
+  const annualized=collateral>0&&daysHeld!=='-'?((totalPrem/collateral)*(365/daysHeld)*100).toFixed(1):'-';
+  $('posContent').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="background:var(--bgch);border:1px solid var(--bd);border-radius:6px;padding:10px;text-align:center">
+        <div style="font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1px;margin-bottom:4px">TYPE</div>
+        <div style="font-family:var(--fd);font-size:18px;font-weight:700">${(p.type||'csp').toUpperCase()}</div>
+      </div>
+      <div style="background:var(--bgch);border:1px solid var(--bd);border-radius:6px;padding:10px;text-align:center">
+        <div style="font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1px;margin-bottom:4px">CONTRACTS</div>
+        <div style="font-family:var(--fd);font-size:18px;font-weight:700">${contracts}</div>
+      </div>
+      <div style="background:var(--bgch);border:1px solid var(--bd);border-radius:6px;padding:10px;text-align:center">
+        <div style="font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1px;margin-bottom:4px">STRIKE</div>
+        <div style="font-family:var(--fd);font-size:18px;font-weight:700">$${Number(p.strike).toFixed(2)}</div>
+      </div>
+      <div style="background:var(--bgch);border:1px solid var(--bd);border-radius:6px;padding:10px;text-align:center">
+        <div style="font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1px;margin-bottom:4px">PREMIUM</div>
+        <div style="font-family:var(--fd);font-size:18px;font-weight:700;color:var(--g)">+$${Math.round(totalPrem)}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="background:var(--bgch);border:1px solid var(--bd);border-radius:6px;padding:10px;text-align:center">
+        <div style="font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1px;margin-bottom:4px">DTE</div>
+        <div style="font-family:var(--fd);font-size:16px;font-weight:700;color:${dte<=0?'var(--r)':dte<=7?'var(--w)':'var(--t2)'}">${dte<=0?'EXPIRED':dte+'d'}</div>
+      </div>
+      <div style="background:var(--bgch);border:1px solid var(--bd);border-radius:6px;padding:10px;text-align:center">
+        <div style="font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1px;margin-bottom:4px">YIELD</div>
+        <div style="font-family:var(--fd);font-size:16px;font-weight:700;color:var(--ac)">${yieldPct}%</div>
+      </div>
+      <div style="background:var(--bgch);border:1px solid var(--bd);border-radius:6px;padding:10px;text-align:center">
+        <div style="font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1px;margin-bottom:4px">ANNUALIZED</div>
+        <div style="font-family:var(--fd);font-size:16px;font-weight:700;color:var(--g)">${annualized}%</div>
+      </div>
+    </div>
+    <div style="font-family:var(--fm);font-size:10px;color:var(--t4);letter-spacing:.5px">
+      EXP: ${p.expiration||'-'} · OPENED: ${p.openDate?new Date(p.openDate).toLocaleDateString():'—'} · COLLATERAL: $${Math.round(collateral).toLocaleString()}
+    </div>`;
+  openModal('posModal');
+}
+
+function closePosition(){
+  if(!_selPosId)return;
+  const p=(S.positions||[]).find(x=>x.id===_selPosId);
+  if(!p)return;
+  const contracts=p.contracts||1;
+  const fee=(S.feePerContract||0)*contracts;
+  const totalFees=(p.fees||0)+fee;
+
+  showConfirm('Close Position','Did this option expire worthless (full profit)?',()=>{
+    const grossPnl=(p.premium||0)*contracts*100;
+    const pnl=grossPnl-totalFees;
+    S.history.unshift({...p,closeDate:new Date().toISOString(),pnl,grossPnl,fees:totalFees,outcome:'expired'});
+    S.positions=S.positions.filter(x=>x.id!==_selPosId);
+    save();syncPositionsToFirebase();closeModal('posModal');renderDashboard();
+    showToast('Expired worthless: +$'+Math.round(pnl),'success');
+  });
+  // Override cancel button for "Closed Early"
+  const cancelBtn=$('confirmModal').querySelector('.btn:first-child');
+  if(cancelBtn){
+    cancelBtn.textContent='Closed Early';
+    cancelBtn.onclick=()=>{
+      closeModal('confirmModal');
+      showPrompt('Close price per share (e.g. 0.50)','0',(val)=>{
+        const closePrice=parseFloat(val)||0;
+        const grossPnl=((p.premium||0)-closePrice)*contracts*100;
+        const pnl=grossPnl-totalFees;
+        S.history.unshift({...p,closeDate:new Date().toISOString(),pnl,grossPnl,closePrice,fees:totalFees,outcome:'closed'});
+        S.positions=S.positions.filter(x=>x.id!==_selPosId);
+        save();syncPositionsToFirebase();closeModal('posModal');renderDashboard();
+        showToast('Closed: '+(pnl>=0?'+':'')+' $'+Math.round(pnl),(pnl>=0?'success':'error'));
+      });
+    };
+  }
+}
+
+function removePosition(){
+  if(!_selPosId)return;
+  showConfirm('Remove Position','Remove this position without affecting balance?',()=>{
+    S.positions=S.positions.filter(x=>x.id!==_selPosId);
+    save();syncPositionsToFirebase();closeModal('posModal');renderDashboard();
+    showToast('Position removed','');
+  });
+}
+
+async function syncPositionsToFirebase(){
+  if(!S.firebaseUid||S.isGuest||!firebaseReady)return;
+  try{
+    const updates={
+      positions:S.positions||[],
+      history:S.history||[],
+      '_meta/lastWriteAt':Date.now(),
+      '_meta/lastWriteBy':'desktop'
+    };
+    await firebase.database().ref('users/'+S.firebaseUid+'/tradingData').update(updates);
+    console.log('[Sync] Positions+history pushed to Firebase');
+  }catch(e){console.warn('[Sync] Position sync failed:',e)}
 }
 
 // ═══════════════════════════════════════════
