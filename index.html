@@ -3118,6 +3118,9 @@ function generateQuiz(m){
 function parseExpDate(exp){
   if(!exp)return null;
   const s=String(exp).trim();
+  // YYYY-MM-DD → parse parts directly to avoid UTC midnight shifting back a day
+  const isoMatch=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(isoMatch)return new Date(+isoMatch[1],+isoMatch[2]-1,+isoMatch[3]);
   let d=new Date(s);
   // "Mar 6" style (no year) → JS may parse as invalid or year 2001
   if(isNaN(d.getTime())||d.getFullYear()<2020){
@@ -3127,7 +3130,6 @@ function parseExpDate(exp){
     d=new Date(s+' '+new Date().getFullYear());
   }
   if(isNaN(d.getTime()))return null;
-  // Normalize to LOCAL midnight to avoid UTC parse shifting the date back a day
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 function getDte(exp){
