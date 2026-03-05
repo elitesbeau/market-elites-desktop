@@ -3113,29 +3113,39 @@ function generateQuiz(m){
 // ═══════════════════════════════════════════
 // DYNAMIC DASHBOARD + POSITIONS RENDERER
 // ═══════════════════════════════════════════
-// Parse expiration dates — handles "Mar 6", "Mar 21", "2026-03-21", "March 6, 2026" etc.
+// Parse expiration dates — handles "Mar 6", "Mar 21", "2026-03-21", "March 6, 2026", "3/6", "3/7/2026" etc.
 function parseExpDate(exp){
   if(!exp)return null;
-  let d=new Date(exp);
+  const s=String(exp).trim();
+  let d=new Date(s);
   // "Mar 6" style (no year) → JS may parse as invalid or year 2001
   if(isNaN(d.getTime())||d.getFullYear()<2020){
-    d=new Date(exp+' '+new Date().getFullYear());
+    d=new Date(s+', '+new Date().getFullYear());
+  }
+  if(isNaN(d.getTime())){
+    d=new Date(s+' '+new Date().getFullYear());
   }
   if(isNaN(d.getTime()))return null;
-  return d;
+  // Normalize to LOCAL midnight to avoid UTC parse shifting the date back a day
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 function getDte(exp){
   const d=parseExpDate(exp);
   if(!d)return 999;
-  return Math.max(0,Math.ceil((d-new Date())/(864e5)));
+  // Compare date-only (both at midnight local) so time-of-day doesn't affect DTE
+  const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  return Math.round((d-today)/864e5);
 }
-function dteClass(dte){return dte<=3?'danger':dte<=7?'warn':'safe'}
+function dteClass(dte){return dte<=0?'danger':dte<=3?'danger':dte<=7?'warn':'safe'}
 function fmtDte(exp){
-  const d=parseExpDate(exp);
-  if(!d)return'-';
-  const diff=d-new Date();if(diff<=0)return'EXPIRED';
-  const days=Math.floor(diff/864e5),h=Math.floor((diff%864e5)/36e5),m=Math.floor((diff%36e5)/6e4);
-  if(days>7)return days+'d '+h+'h';if(days>=1)return days+'d '+h+'h '+m+'m';if(h>=1)return h+'h '+m+'m';return m+'m';
+  const dte=getDte(exp);
+  if(dte===999)return'-';
+  if(dte<0)return'EXPIRED';
+  if(dte===0)return'TODAY';
+  if(dte===1)return'TOMORROW';
+  if(dte<=7)return dte+'d';
+  return dte+'d';
 }
 function renderDashboard(){
   const pos=S.positions||[];
@@ -3219,7 +3229,9 @@ function renderDashboard(){
         // Status: check expiration + assigned
         let status='Open',statusCls='color:var(--t4)';
         if(p.status==='assigned'||p.type==='assigned'){status='Assigned';statusCls='color:var(--w)'}
-        else if(dte<=0){status='EXPIRED';statusCls='color:var(--r)'}
+        else if(dte<0){status='EXPIRED';statusCls='color:var(--r)'}
+        else if(dte===0){status='Exp Today';statusCls='color:var(--w)'}
+        else if(dte<=3){status='Expiring';statusCls='color:var(--r)'}
         else if(dte<=7){status='Expiring';statusCls='color:var(--w)'}
         return '<tr class="pos-glow-'+dc+'" data-type="'+(p.type||'csp')+'" data-status="'+(p.status||'open')+'"><td class="tk-cell">'+tkLogo(p.symbol,28)+'<span class="tk">'+p.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+Number(p.strike).toFixed(2)+'</td><td class="m">'+(p.expiration||'-')+'</td><td class="m"><div class="dte-live"><span class="dot '+dc+'"></span><span class="dte-live-val" data-exp="'+(parseExpDate(p.expiration)?parseExpDate(p.expiration).getTime():'')+'">'+fmtDte(p.expiration)+'</span></div></td><td class="m">$'+(p.premium||0).toFixed(2)+'</td><td class="m">'+(p.contracts||1)+'</td><td class="m">'+collateral+'</td><td class="m gain">+$'+Math.round(prem).toLocaleString()+'</td><td style="'+statusCls+'">'+status+'</td><td><button class="btn btn-sm" onclick="event.stopPropagation();viewPos(\''+p.id+'\')">Manage</button></td></tr>';
       }).join('');
@@ -3237,7 +3249,7 @@ function renderDashboard(){
     // Card 2: Unrealized P&L (premium on open = unrealized gain)
     if(cards[2]){const sv=cards[2].querySelector('.stat-v');sv.textContent=(totalPrem>=0?'+':'')+' $'+Math.round(totalPrem).toLocaleString();sv.className='stat-v '+(totalPrem>=0?'gain':'loss');cards[2].querySelector('.stat-sub').textContent='ALL POSITIONS'}
     // Card 3: Avg DTE
-    if(cards[3]){const ad=pos.length>0?Math.round(pos.reduce((s,p)=>s+getDte(p.expiration),0)/pos.length):0;cards[3].querySelector('.stat-v').textContent=ad;cards[3].querySelector('.stat-sub').textContent='DAYS TO EXPIRY'}
+    if(cards[3]){const ad=pos.length>0?Math.round(pos.reduce((s,p)=>s+Math.max(0,getDte(p.expiration)),0)/pos.length):0;cards[3].querySelector('.stat-v').textContent=ad;cards[3].querySelector('.stat-sub').textContent='DAYS TO EXPIRY'}
     // Card 4: Capital Deployed
     if(cards[4]){
       const deployed=pos.reduce((s,p)=>{const t=(p.type||'csp').toLowerCase();return s+(t==='csp'?(p.strike||0)*(p.contracts||1)*100:0)},0);
@@ -3270,18 +3282,22 @@ function renderDashboard(){
     });
   }
 
-  // DTE timeline — uses parseExpDate
+  // DTE timeline — uses parseExpDate, dynamic scale based on max DTE
   const dteTl=document.querySelector('.dte-timeline');
   if(dteTl&&pos.length>0){
     const sorted=[...pos].sort((a,b)=>getDte(a.expiration)-getDte(b.expiration));
-    const bars=sorted.slice(0,8).map(p=>{
+    const shown=sorted.slice(0,8);
+    const maxDte=Math.max(...shown.map(p=>Math.max(0,getDte(p.expiration))),1);
+    const bars=shown.map(p=>{
       const dte=getDte(p.expiration);
-      const pct=Math.min(100,Math.round(dte/50*100));
+      const safeDte=Math.max(0,dte);
+      const pct=Math.min(100,Math.round(safeDte/maxDte*100));
       const type=(p.type||'csp').toUpperCase();
       const badge='badge-'+(p.type||'csp');
       const warnCls=dte<=7?'warn':'';
-      const barColor=dte<=7?'var(--w)':dte<=14?'var(--ac)':'var(--g)';
-      return '<div class="dte-bar">'+tkLogo(p.symbol,18)+'<span class="dte-tk">'+p.symbol+'</span><span class="dte-type"><span class="badge '+badge+'" style="font-size:8px;padding:2px 6px">'+type+'</span></span><div class="dte-track"><div class="dte-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div><span class="dte-days '+warnCls+'">'+dte+' DTE</span></div>';
+      const barColor=dte<0?'var(--r)':dte===0?'var(--w)':dte<=3?'var(--r)':dte<=7?'var(--w)':dte<=14?'var(--ac)':'var(--g)';
+      const label=dte<0?'EXPIRED':dte===0?'TODAY':dte+' DTE';
+      return '<div class="dte-bar">'+tkLogo(p.symbol,18)+'<span class="dte-tk">'+p.symbol+'</span><span class="dte-type"><span class="badge '+badge+'" style="font-size:8px;padding:2px 6px">'+type+'</span></span><div class="dte-track"><div class="dte-fill" style="width:'+(dte<=0?'100':pct)+'%;background:'+barColor+'"></div></div><span class="dte-days '+warnCls+'">'+label+'</span></div>';
     }).join('');
     dteTl.innerHTML='<div class="card-label">Expiration Timeline</div>'+bars;
   }else if(dteTl){dteTl.innerHTML='<div class="card-label">Expiration Timeline</div><div style="color:var(--t4);padding:12px;text-align:center;font-size:11px">No open positions</div>'}
@@ -3337,7 +3353,7 @@ function renderAnalyticsPage(){
     const dd=peak-cumDD;if(dd>maxDD)maxDD=dd;
     if((h.pnl||0)>=0){streak++;bestStreak=Math.max(bestStreak,streak)}else{streak=0}
   }
-  const avgDte=pos.length>0?Math.round(pos.reduce((s,p)=>s+getDte(p.expiration),0)/pos.length):0;
+  const avgDte=pos.length>0?Math.round(pos.reduce((s,p)=>s+Math.max(0,getDte(p.expiration)),0)/pos.length):0;
   const totalCollateral=pos.reduce((s,p)=>s+(parseFloat(p.strike)||0)*(p.contracts||1)*100,0);
   const portfolioYield=totalCollateral>0?((pendingPrem/totalCollateral)*100):0;
   const fmtD=v=>(v>=0?'+':'-')+'$'+Math.abs(Math.round(v)).toLocaleString();
@@ -3582,16 +3598,23 @@ function renderAnalyticsPage(){
 function startLiveTicker(){
   if(window._liveTicker)return;
   window._liveTicker=setInterval(()=>{
-    // Update all countdown timers
+    // Update all countdown timers — date-only comparison so expiration day shows "TODAY" not "EXPIRED"
     document.querySelectorAll('.dte-live-val[data-exp]').forEach(el=>{
       const exp=parseInt(el.dataset.exp);if(!exp)return;
+      const expD=new Date(exp);
+      const expDay=new Date(expD.getFullYear(),expD.getMonth(),expD.getDate());
+      const now=new Date();
+      const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+      const daysDiff=Math.round((expDay-today)/864e5);
+      if(daysDiff<0){el.textContent='EXPIRED';el.style.color='var(--r)';return}
+      if(daysDiff===0){el.textContent='TODAY';el.style.color='var(--w)';return}
+      if(daysDiff===1){el.textContent='TOMORROW';el.style.color='var(--w)';return}
+      // For multi-day, show days + hours remaining
       const diff=exp-Date.now();
-      if(diff<=0){el.textContent='EXPIRED';el.style.color='var(--r)';return}
-      const d=Math.floor(diff/864e5),h=Math.floor((diff%864e5)/36e5),m=Math.floor((diff%36e5)/6e4),s=Math.floor((diff%6e4)/1e3);
+      const d=Math.floor(diff/864e5),h=Math.floor((diff%864e5)/36e5),m=Math.floor((diff%36e5)/6e4);
       if(d>7)el.textContent=d+'d '+h+'h';
       else if(d>=1)el.textContent=d+'d '+h+'h '+m+'m';
-      else if(h>=1)el.textContent=h+'h '+m+'m '+s+'s';
-      else el.textContent=m+'m '+s+'s';
+      else el.textContent=daysDiff+'d';
     });
     // Update live clock in hero
     const clock=document.querySelector('.hero-meta .live-clock');
@@ -3781,7 +3804,7 @@ function viewPos(id){
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
       <div style="background:var(--bgch);border:1px solid var(--bd);border-radius:6px;padding:10px;text-align:center">
         <div style="font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1px;margin-bottom:4px">DTE</div>
-        <div style="font-family:var(--fd);font-size:16px;font-weight:700;color:${dte<=0?'var(--r)':dte<=7?'var(--w)':'var(--t2)'}">${dte<=0?'EXPIRED':dte+'d'}</div>
+        <div style="font-family:var(--fd);font-size:16px;font-weight:700;color:${dte<0?'var(--r)':dte===0?'var(--w)':dte<=7?'var(--w)':'var(--t2)'}">${dte<0?'EXPIRED':dte===0?'TODAY':dte+'d'}</div>
       </div>
       <div style="background:var(--bgch);border:1px solid var(--bd);border-radius:6px;padding:10px;text-align:center">
         <div style="font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1px;margin-bottom:4px">YIELD</div>
