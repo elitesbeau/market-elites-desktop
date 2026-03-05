@@ -1942,9 +1942,10 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
     <div class="modal-head"><span class="modal-title" id="posTitle">Position</span><button class="modal-close" onclick="closeModal('posModal')">&times;</button></div>
     <div class="modal-body">
       <div id="posContent"></div>
-      <div style="display:flex;gap:10px;margin-top:20px">
+      <div id="posButtons" style="display:flex;gap:10px;margin-top:20px">
         <button class="btn btn-sm" style="flex:1;border-color:var(--rbr);color:var(--r)" onclick="closePosition()">Close Position</button>
-        <button class="btn btn-sm" style="flex:1" onclick="closeModal('posModal')">Done</button>
+        <button class="btn btn-sm" id="posEditBtn" style="flex:1;border-color:var(--ac);color:var(--ac)" onclick="editPos()">Edit</button>
+        <button class="btn btn-sm" id="posDoneBtn" style="flex:1" onclick="closeModal('posModal')">Done</button>
       </div>
       <button style="width:100%;margin-top:8px;background:none;border:1px solid var(--bd);color:var(--t4);font-size:11px;cursor:pointer;padding:6px;border-radius:4px" onclick="removePosition()">Remove (no balance change)</button>
     </div>
@@ -3817,8 +3818,72 @@ function viewPos(id){
     </div>
     <div style="font-family:var(--fm);font-size:10px;color:var(--t4);letter-spacing:.5px">
       EXP: ${p.expiration||'-'} · OPENED: ${p.openDate?new Date(p.openDate).toLocaleDateString():'—'} · COLLATERAL: $${Math.round(collateral).toLocaleString()}
-    </div>`;
+    </div>
+    ${p.notes?`<div style="margin-top:12px;padding:10px;background:var(--bgch);border:1px solid var(--bd);border-radius:6px"><div style="font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1px;margin-bottom:4px">NOTES</div><div style="font-size:12px;color:var(--t3);white-space:pre-wrap">${p.notes}</div></div>`:''}
+    ${p.editHistory&&p.editHistory.length?`<details style="margin-top:12px"><summary style="font-family:var(--fm);font-size:10px;color:var(--t5);letter-spacing:.5px;cursor:pointer">EDIT HISTORY (${p.editHistory.length})</summary><div style="margin-top:8px;max-height:150px;overflow-y:auto">${p.editHistory.slice().reverse().map(eh=>{const changes=[];const b=eh.before||{};const a=eh.after||{};for(const k of Object.keys(a)){if(JSON.stringify(b[k])!==JSON.stringify(a[k]))changes.push('<span style="color:var(--t4)">'+k+':</span> <span style="color:var(--r)">'+((b[k]!=null)?b[k]:'—')+'</span> → <span style="color:var(--g)">'+a[k]+'</span>')}return '<div style="font-size:11px;color:var(--t4);padding:4px 0;border-bottom:1px solid var(--bd)"><div style="font-size:9px;color:var(--t5);margin-bottom:2px">'+new Date(eh.timestamp).toLocaleString()+'</div>'+changes.join(' · ')+'</div>'}).join('')}</div></details>`:''}`;
   openModal('posModal');
+}
+
+function editPos(){
+  if(!_selPosId)return;
+  const p=(S.positions||[]).find(x=>x.id===_selPosId);
+  if(!p)return;
+  const inputStyle='width:100%;padding:8px;background:var(--bgch);border:1px solid var(--bd);border-radius:6px;color:var(--t1);font-family:var(--fd);font-size:14px;box-sizing:border-box';
+  const labelStyle='font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1px;margin-bottom:4px';
+  $('posContent').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><div style="${labelStyle}">TYPE</div><select id="editType" style="${inputStyle}"><option value="csp" ${(p.type||'csp')==='csp'?'selected':''}>CSP</option><option value="cc" ${p.type==='cc'?'selected':''}>CC</option><option value="shares" ${p.type==='shares'?'selected':''}>Shares</option></select></div>
+      <div><div style="${labelStyle}">STRIKE</div><input id="editStrike" type="number" step="0.01" value="${p.strike||''}" style="${inputStyle}"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><div style="${labelStyle}">PREMIUM / SHARE</div><input id="editPremium" type="number" step="0.01" value="${p.premium||''}" style="${inputStyle}"></div>
+      <div><div style="${labelStyle}">CONTRACTS</div><input id="editContracts" type="number" step="1" min="1" value="${p.contracts||1}" style="${inputStyle}"></div>
+    </div>
+    <div style="margin-bottom:10px"><div style="${labelStyle}">EXPIRATION</div><input id="editExp" type="date" value="${p.expiration||''}" style="${inputStyle}"></div>
+    <div style="margin-bottom:10px"><div style="${labelStyle}">FEES</div><input id="editFees" type="number" step="0.01" value="${p.fees||0}" style="${inputStyle}"></div>
+    <div style="margin-bottom:10px"><div style="${labelStyle}">NOTES</div><textarea id="editNotes" rows="2" style="${inputStyle};resize:vertical">${p.notes||''}</textarea></div>
+    <div style="font-family:var(--fm);font-size:10px;color:var(--t5);letter-spacing:.5px">
+      OPENED: ${p.openDate?new Date(p.openDate).toLocaleDateString():'—'}${p.signalId?' · FROM SIGNAL':''}
+    </div>`;
+  // Swap buttons: Edit→Save, Done→Cancel
+  $('posEditBtn').textContent='Save';$('posEditBtn').style.borderColor='var(--gbr)';$('posEditBtn').style.color='var(--g)';$('posEditBtn').onclick=savePos;
+  $('posDoneBtn').textContent='Cancel';$('posDoneBtn').onclick=()=>{viewPos(_selPosId);resetPosButtons()};
+}
+
+function savePos(){
+  if(!_selPosId)return;
+  const p=(S.positions||[]).find(x=>x.id===_selPosId);
+  if(!p)return;
+  const strike=parseFloat($('editStrike').value)||0;
+  const premium=parseFloat($('editPremium').value)||0;
+  const contracts=parseInt($('editContracts').value)||1;
+  if(strike<=0){showToast('Strike must be > 0','error');return}
+  if(contracts<1){showToast('Contracts must be >= 1','error');return}
+  // Snapshot before
+  const before={type:p.type,strike:p.strike,premium:p.premium,contracts:p.contracts,expiration:p.expiration,fees:p.fees,notes:p.notes};
+  const after={type:$('editType').value,strike,premium,contracts,expiration:$('editExp').value,fees:parseFloat($('editFees').value)||0,notes:$('editNotes').value.trim()};
+  // Check if anything changed
+  const changed=Object.keys(after).some(k=>JSON.stringify(before[k])!==JSON.stringify(after[k]));
+  if(!changed){viewPos(_selPosId);resetPosButtons();return}
+  // Record edit history (cap at 20)
+  if(!p.editHistory)p.editHistory=[];
+  p.editHistory.push({timestamp:Date.now(),before,after});
+  if(p.editHistory.length>20)p.editHistory=p.editHistory.slice(-20);
+  // Apply changes
+  Object.assign(p,after);
+  p.lastEditedAt=Date.now();p.lastEditedBy='desktop';
+  save();syncPositionsToFirebase();
+  // If admin + signal-linked: update the global signal
+  if(isAdmin()&&p.signalId){
+    updatePostInFirebase(p.signalId,{type:after.type,strike:after.strike,prem:after.premium,exp:after.expiration});
+  }
+  resetPosButtons();viewPos(_selPosId);renderDashboard();renderAll();
+  showToast('Position updated','success');
+}
+
+function resetPosButtons(){
+  $('posEditBtn').textContent='Edit';$('posEditBtn').style.borderColor='var(--ac)';$('posEditBtn').style.color='var(--ac)';$('posEditBtn').onclick=editPos;
+  $('posDoneBtn').textContent='Done';$('posDoneBtn').onclick=()=>closeModal('posModal');
 }
 
 function closePosition(){
