@@ -369,32 +369,152 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
 .mod-locked{opacity:.5;pointer-events:none}
 
 /* ── ANALYTICS ── */
-.ana-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:20px}
-.ana-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
-.chart-card{min-height:220px}
+@property --ana-angle{syntax:'<angle>';initial-value:0deg;inherits:false}
+@keyframes ana-rotate{to{--ana-angle:360deg}}
+@keyframes ana-pulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+@keyframes ana-countUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ana-drawLine{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
+@keyframes ana-donutSpin{from{transform:rotate(-90deg)}to{transform:rotate(270deg)}}
+@keyframes ana-barGrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes ana-fadeSlide{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ana-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes ana-glow{0%,100%{box-shadow:0 0 20px rgba(201,169,124,.15),0 0 60px rgba(201,169,124,.05)}50%{box-shadow:0 0 30px rgba(201,169,124,.25),0 0 80px rgba(201,169,124,.1)}}
+
+/* Hero P&L Card */
+.ana-hero{position:relative;border-radius:16px;padding:3px;margin-bottom:20px;
+  background:conic-gradient(from var(--ana-angle),var(--ac),var(--mg),var(--g),var(--ac));
+  animation:ana-rotate 4s linear infinite,ana-glow 4s ease-in-out infinite}
+.ana-hero-inner{background:var(--bgc);border-radius:14px;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.ana-hero-left{flex:1}
+.ana-hero-label{font-family:var(--fm);font-size:10px;letter-spacing:3px;color:var(--t4);text-transform:uppercase;margin-bottom:6px}
+.ana-hero-val{font-family:var(--fd);font-size:48px;font-weight:700;letter-spacing:2px;line-height:1}
+.ana-hero-sub{font-family:var(--fm);font-size:11px;color:var(--t4);margin-top:8px;display:flex;gap:16px;align-items:center}
+.ana-hero-sub .tag{padding:3px 8px;border-radius:4px;font-size:9px;letter-spacing:1px;font-weight:600}
+.ana-hero-spark{width:200px;height:60px}
+.ana-hero-spark polyline{fill:none;stroke:var(--g);stroke-width:2;filter:drop-shadow(0 0 6px rgba(74,222,128,.4))}
+.ana-hero-spark .area{stroke:none;opacity:.15}
+
+/* Stat Cards Grid */
+.ana-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
+.ana-card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:16px 18px;
+  position:relative;overflow:hidden;transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  animation:ana-fadeSlide .6s cubic-bezier(.23,1,.32,1) both}
+.ana-card:nth-child(1){animation-delay:0s}.ana-card:nth-child(2){animation-delay:.08s}
+.ana-card:nth-child(3){animation-delay:.16s}.ana-card:nth-child(4){animation-delay:.24s}
+.ana-card:nth-child(5){animation-delay:.32s}
+.ana-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.2);border-color:var(--ac)}
+.ana-card::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(201,169,124,.06),transparent 60%);pointer-events:none;opacity:0;transition:opacity .3s}
+.ana-card:hover::after{opacity:1}
+.ana-card-label{font-family:var(--fm);font-size:9px;letter-spacing:2px;color:var(--t5);text-transform:uppercase;margin-bottom:8px}
+.ana-card-val{font-family:var(--fd);font-size:28px;font-weight:700;letter-spacing:1px;line-height:1}
+.ana-card-sub{font-family:var(--fm);font-size:10px;color:var(--t4);margin-top:6px;display:flex;align-items:center;gap:6px}
+.ana-card-trend{display:inline-flex;align-items:center;gap:2px;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:600}
+.ana-card-trend.up{background:rgba(74,222,128,.12);color:var(--g)}
+.ana-card-trend.down{background:rgba(248,113,113,.12);color:var(--r)}
+.ana-card-mini{position:absolute;right:14px;bottom:14px;width:64px;height:28px;opacity:.5}
+.ana-card-mini polyline{fill:none;stroke-width:1.5}
+
+/* Charts Row */
+.ana-charts-row{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:20px}
+.ana-chart-card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:20px;min-height:260px;
+  animation:ana-fadeSlide .6s cubic-bezier(.23,1,.32,1) .4s both}
 .chart-title{font-family:var(--fm);font-size:10px;letter-spacing:2px;color:var(--t4);text-transform:uppercase;margin-bottom:14px}
-.bar-chart{display:flex;align-items:flex-end;gap:8px;height:160px;padding-top:10px}
-.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
-.bar-col .bar{width:100%;background:rgba(74,222,128,.15);border-top:2px solid var(--g);border-radius:1px;transition:height .5s}
-.bar-col:hover .bar{background:rgba(74,222,128,.25)}
-.bar-col .bar-label{font-family:var(--fm);font-size:10px;color:var(--t5);letter-spacing:1px}
-.bar-col .bar-val{font-family:var(--fm);font-size:10px;color:var(--t4)}
-.donut{width:140px;height:140px;border-radius:50%;position:relative;margin:0 auto;
-  background:conic-gradient(var(--g) 0deg 282deg,var(--r) 282deg 360deg);display:flex;align-items:center;justify-content:center}
-.donut::after{content:'';position:absolute;inset:22px;border-radius:50%;background:var(--bgc)}
-.donut-center{position:relative;z-index:2;text-align:center}
-.donut-val{font-family:var(--fd);font-size:34px;letter-spacing:1px;font-weight:700}
-.donut-lbl{font-family:var(--fm);font-size:10px;color:var(--t4);letter-spacing:1px}
-.line-chart{width:100%;height:160px}
-.line-chart polyline{fill:none;stroke:var(--g);stroke-width:2}
-.line-chart .area{fill:url(#greenGrad);stroke:none}
-.line-chart .dot{fill:var(--g);r:3}
-.ana-bottom{display:grid;grid-template-columns:1fr 1fr 320px;gap:14px}
-.top-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(232,224,208,.03)}
-.top-row .tt-sym{font-family:var(--fd);font-size:22px;letter-spacing:2px;min-width:60px;font-weight:700}
-.top-row .tt-bar{flex:1;height:5px;background:rgba(232,224,208,.03);border-radius:2px;overflow:hidden}
-.top-row .tt-fill{height:100%;background:var(--g);border-radius:2px}
-.top-row .tt-val{font-family:var(--fm);font-size:12px;color:var(--t3);min-width:70px;text-align:right}
+.ana-pnl-wrap{position:relative;height:200px}
+.ana-pnl-svg{width:100%;height:100%}
+.ana-pnl-svg .grid-line{stroke:var(--bd);stroke-width:.5;stroke-dasharray:4,4}
+.ana-pnl-svg .axis-label{font-family:var(--fm);font-size:8px;fill:var(--t5)}
+.ana-pnl-svg .pnl-line{fill:none;stroke:var(--g);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 0 6px rgba(74,222,128,.3))}
+.ana-pnl-svg .pnl-area{fill:url(#anaGreenGrad);stroke:none}
+.ana-pnl-svg .pnl-dot{fill:var(--g);stroke:var(--bgc);stroke-width:2;r:4;opacity:0;transition:opacity .2s}
+.ana-pnl-svg .pnl-dot:hover{opacity:1;r:6}
+.ana-pnl-svg .zero-line{stroke:var(--t5);stroke-width:1;stroke-dasharray:6,4;opacity:.4}
+.ana-pnl-svg .x-label{font-family:var(--fm);font-size:7px;fill:var(--t5);text-anchor:middle}
+.ana-pnl-svg .y-label{font-family:var(--fm);font-size:8px;fill:var(--t5);text-anchor:end}
+
+/* Donut Enhanced */
+.ana-donut-wrap{display:flex;align-items:center;justify-content:center;gap:28px;flex:1}
+.ana-donut{width:160px;height:160px;position:relative}
+.ana-donut svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ana-donut circle{fill:none;stroke-width:18;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.23,1,.32,1)}
+.ana-donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ana-donut-pct{font-family:var(--fd);font-size:36px;font-weight:700;letter-spacing:1px}
+.ana-donut-lbl{font-family:var(--fm);font-size:9px;color:var(--t4);letter-spacing:2px;text-transform:uppercase}
+.ana-donut-legend{font-family:var(--fm);font-size:11px;color:var(--t3);line-height:2.2}
+.ana-donut-legend .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:middle}
+.ana-donut-legend .sub{color:var(--t5);font-size:9px;margin-left:18px}
+
+/* Deep Dive Row */
+.ana-deep{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:14px;margin-bottom:20px}
+.ana-deep>.card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:18px;
+  animation:ana-fadeSlide .6s cubic-bezier(.23,1,.32,1) .5s both}
+.ana-deep>.card:nth-child(2){animation-delay:.6s}.ana-deep>.card:nth-child(3){animation-delay:.7s}
+
+/* Bar Chart Enhanced */
+.ana-bar-chart{display:flex;align-items:flex-end;gap:6px;height:160px;padding:10px 0;position:relative}
+.ana-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%}
+.ana-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(to top,rgba(74,222,128,.08),rgba(74,222,128,.2));
+  border-top:2px solid var(--g);transition:all .4s;transform-origin:bottom;animation:ana-barGrow .8s cubic-bezier(.23,1,.32,1) both;
+  position:relative;cursor:pointer;margin-top:auto}
+.ana-bar:hover{background:linear-gradient(to top,rgba(74,222,128,.15),rgba(74,222,128,.35));box-shadow:0 -4px 16px rgba(74,222,128,.15)}
+.ana-bar:nth-child(1){animation-delay:.6s}
+.ana-bar-label{font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:1px;flex-shrink:0}
+.ana-bar-val{font-family:var(--fm);font-size:9px;color:var(--t3);flex-shrink:0}
+
+/* Horizontal Bar for Top Performers */
+.ana-hbar-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(232,224,208,.04);
+  transition:all .3s;cursor:default}
+.ana-hbar-row:hover{padding-left:6px;background:rgba(201,169,124,.03);border-radius:6px}
+.ana-hbar-rank{font-family:var(--fd);font-size:11px;color:var(--t5);width:16px;text-align:center}
+.ana-hbar-sym{font-family:var(--fd);font-size:16px;letter-spacing:2px;font-weight:700;min-width:50px}
+.ana-hbar-bar{flex:1;height:8px;background:rgba(232,224,208,.04);border-radius:4px;overflow:hidden;position:relative}
+.ana-hbar-fill{height:100%;border-radius:4px;transition:width 1s cubic-bezier(.23,1,.32,1);position:relative}
+.ana-hbar-fill.pos{background:linear-gradient(90deg,var(--g),rgba(74,222,128,.5))}
+.ana-hbar-fill.neg{background:linear-gradient(90deg,var(--r),rgba(248,113,113,.5))}
+.ana-hbar-val{font-family:var(--fm);font-size:11px;min-width:72px;text-align:right;font-weight:600}
+.ana-hbar-trades{font-family:var(--fm);font-size:9px;color:var(--t5);min-width:40px;text-align:right}
+
+/* Advanced Row */
+.ana-advanced{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+.ana-advanced>.card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:18px;
+  animation:ana-fadeSlide .6s cubic-bezier(.23,1,.32,1) .8s both}
+.ana-advanced>.card:nth-child(2){animation-delay:.9s}.ana-advanced>.card:nth-child(3){animation-delay:1s}
+
+/* Risk Metric Rows */
+.ana-metric{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(232,224,208,.04)}
+.ana-metric:last-child{border:none}
+.ana-metric-label{font-family:var(--fm);font-size:10px;color:var(--t4);letter-spacing:1px;display:flex;align-items:center;gap:6px}
+.ana-metric-val{font-family:var(--fd);font-size:16px;font-weight:700;letter-spacing:1px}
+
+/* Strategy Split Enhanced */
+.ana-strat-bar{display:flex;height:28px;border-radius:6px;overflow:hidden;gap:2px;margin:12px 0}
+.ana-strat-seg{display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:10px;font-weight:600;
+  letter-spacing:1px;transition:flex .8s cubic-bezier(.23,1,.32,1)}
+.ana-strat-seg.csp{background:linear-gradient(135deg,var(--g),rgba(74,222,128,.6));color:rgba(0,0,0,.8)}
+.ana-strat-seg.cc{background:linear-gradient(135deg,var(--bl),rgba(96,165,250,.6));color:rgba(0,0,0,.8)}
+.ana-strat-detail{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.ana-strat-box{text-align:center;padding:10px;border-radius:8px;background:rgba(232,224,208,.03)}
+.ana-strat-box .val{font-family:var(--fd);font-size:18px;font-weight:700}
+.ana-strat-box .lbl{font-family:var(--fm);font-size:8px;color:var(--t5);letter-spacing:1px;margin-top:2px}
+
+/* Achievement Badges */
+.ana-badges{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ana-badge{text-align:center;padding:10px 6px;border-radius:8px;background:rgba(232,224,208,.03);
+  transition:all .3s;position:relative;overflow:hidden}
+.ana-badge.earned{background:rgba(201,169,124,.08);border:1px solid rgba(201,169,124,.2)}
+.ana-badge.earned:hover{transform:scale(1.05);box-shadow:0 4px 16px rgba(201,169,124,.15)}
+.ana-badge.locked{opacity:.35;filter:grayscale(1)}
+.ana-badge-icon{font-size:20px;margin-bottom:4px}
+.ana-badge-name{font-family:var(--fm);font-size:8px;color:var(--t4);letter-spacing:.5px}
+
+/* Monthly Table Enhanced */
+.ana-monthly-tbl{width:100%;border-collapse:collapse}
+.ana-monthly-tbl th{font-family:var(--fm);font-size:9px;letter-spacing:2px;color:var(--t5);text-transform:uppercase;
+  padding:6px 8px;text-align:left;border-bottom:1px solid var(--bd);position:sticky;top:0;background:var(--bg2)}
+.ana-monthly-tbl td{font-family:var(--fm);font-size:11px;padding:8px;border-bottom:1px solid rgba(232,224,208,.03)}
+.ana-monthly-tbl tr:hover td{background:rgba(201,169,124,.03)}
+.ana-monthly-tbl .bar-cell{position:relative}
+.ana-monthly-tbl .mini-bar{position:absolute;bottom:0;left:0;height:2px;border-radius:1px;transition:width .6s}
 
 /* ── WATCHLIST ENHANCED ── */
 .watch-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
@@ -1407,63 +1527,31 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
     <span class="page-label">07 — Analytics</span>
     <span class="page-line"></span>
   </div>
-
-  <div class="ana-stats">
-    <div class="card"><div class="card-label">Total Trades</div><div class="stat-v">156</div><div class="stat-sub">ALL TIME</div></div>
-    <div class="card"><div class="card-label">Win Rate</div><div class="stat-v gain">78.4%</div><div class="stat-sub">122W / 34L</div></div>
-    <div class="card"><div class="card-label">Total P&L</div><div class="stat-v gain">$8,420</div><div class="stat-sub">REALIZED</div></div>
-    <div class="card"><div class="card-label">Avg Premium</div><div class="stat-v">$3.40</div><div class="stat-sub">PER CONTRACT</div></div>
-    <div class="card"><div class="card-label">Win Streak</div><div class="stat-v warn">12</div><div class="stat-sub">CURRENT / BEST: 18</div></div>
-    <div class="card"><div class="card-label">Avg DTE</div><div class="stat-v">24</div><div class="stat-sub">DAYS AT ENTRY</div></div>
+  <!-- SVG Gradient Defs -->
+  <svg width="0" height="0" style="position:absolute"><defs>
+    <linearGradient id="anaGreenGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--g)" stop-opacity=".25"/><stop offset="100%" stop-color="var(--g)" stop-opacity="0"/></linearGradient>
+    <linearGradient id="anaGoldGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--ac)" stop-opacity=".2"/><stop offset="100%" stop-color="var(--ac)" stop-opacity="0"/></linearGradient>
+  </defs></svg>
+  <!-- HERO: Total P&L -->
+  <div class="ana-hero"><div class="ana-hero-inner" id="anaHero"></div></div>
+  <!-- STAT CARDS -->
+  <div class="ana-grid" id="anaGrid"></div>
+  <!-- CHARTS: P&L + Donut -->
+  <div class="ana-charts-row">
+    <div class="ana-chart-card" id="anaPlCard"></div>
+    <div class="ana-chart-card" id="anaDonutCard" style="display:flex;flex-direction:column"></div>
   </div>
-
-  <div class="ana-charts">
-    <div class="card chart-card">
-      <div class="chart-title">P&L Over Time (Cumulative)</div>
-      <svg class="line-chart spark-draw" viewBox="0 0 500 140" preserveAspectRatio="none" id="plChart"></svg>
-    </div>
-    <div class="card chart-card" style="display:flex;flex-direction:column">
-      <div class="chart-title">Win / Loss Distribution</div>
-      <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:32px">
-        <div class="donut"><div class="donut-center"><div class="donut-val">78%</div><div class="donut-lbl">WIN RATE</div></div></div>
-        <div style="font-family:var(--fm);font-size:10px;color:var(--t3);line-height:2">
-          <div><span style="display:inline-block;width:8px;height:8px;background:var(--g);border-radius:1px;margin-right:6px"></span>Winners: 122</div>
-          <div><span style="display:inline-block;width:8px;height:8px;background:var(--r);border-radius:1px;margin-right:6px"></span>Losers: 34</div>
-          <div style="margin-top:8px;color:var(--t4)">Best: AAPL (92%)</div>
-          <div style="color:var(--t4)">Worst: TSLA (61%)</div>
-        </div>
-      </div>
-    </div>
+  <!-- DEEP DIVE: Monthly + Premium Bars + Top Performers -->
+  <div class="ana-deep">
+    <div class="card" id="anaMonthly" style="overflow:auto;max-height:340px"></div>
+    <div class="card" id="anaPremBars"></div>
+    <div class="card" id="anaTopPerf"></div>
   </div>
-
-  <div class="ana-bottom">
-    <div class="card" style="overflow:auto">
-      <div class="chart-title" style="margin-bottom:10px">Monthly Breakdown</div>
-      <table class="tbl">
-        <thead><tr><th>Month</th><th>Realized</th><th>Pending</th><th>Trades</th><th>Win%</th></tr></thead>
-        <tbody>
-          <!-- Populated dynamically by renderAnalyticsPage -->
-        </tbody>
-      </table>
-    </div>
-    <div class="card chart-card">
-      <div class="chart-title">Premium by Month</div>
-      <div class="bar-chart" id="premChart"></div>
-    </div>
-    <div class="card">
-      <div class="chart-title" style="margin-bottom:10px">Top Performers</div>
-      <div id="topTickers"></div>
-      <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--bd)">
-        <div class="chart-title" style="margin-bottom:8px">By Position Type</div>
-        <div style="display:flex;gap:4px">
-          <div style="flex:68;height:6px;background:var(--g);border-radius:2px" title="CSP 68%"></div>
-          <div style="flex:32;height:6px;background:var(--bl);border-radius:2px" title="CC 32%"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:8px;color:var(--t4);margin-top:4px">
-          <span>CSP 68%</span><span>CC 32%</span>
-        </div>
-      </div>
-    </div>
+  <!-- ADVANCED: Risk Metrics + Strategy + Badges -->
+  <div class="ana-advanced">
+    <div class="card" id="anaRisk"></div>
+    <div class="card" id="anaStrategy"></div>
+    <div class="card" id="anaBadges"></div>
   </div>
 </section>
 
@@ -3227,104 +3315,265 @@ function renderDashboard(){
 
 function renderAnalyticsPage(){
   const pos=S.positions||[];const hist=S.history||[];
-  // Match main site: exclude rolled trades from win/loss calculations
   const closedTrades=hist.filter(h=>h.outcome!=='rolled');
   const rolls=hist.filter(h=>h.outcome==='rolled');
   const wins=closedTrades.filter(h=>(h.pnl||0)>=0).length;
   const losses=closedTrades.length-wins;
-  const winRate=closedTrades.length>0?(wins/closedTrades.length*100).toFixed(1):'0';
+  const wr=closedTrades.length>0?(wins/closedTrades.length*100):0;
   const totalPnl=closedTrades.reduce((s,h)=>s+(h.pnl||0),0);
-  // Avg premium per contract from closed trades only
-  const avgPrem=closedTrades.length>0?(closedTrades.reduce((s,t)=>s+(t.premium||0),0)/closedTrades.length).toFixed(2):'0';
-  // Win streak — iterate oldest to newest (reverse of default newest-first)
-  let streak=0,bestStreak=0;
+  const pendingPrem=pos.reduce((s,p)=>s+(p.premium||0)*(p.contracts||1)*100,0);
+  const avgPrem=closedTrades.length>0?(closedTrades.reduce((s,t)=>s+(t.premium||0),0)/closedTrades.length):0;
+  const winPnls=closedTrades.filter(h=>(h.pnl||0)>0).map(h=>h.pnl);
+  const lossPnls=closedTrades.filter(h=>(h.pnl||0)<0).map(h=>h.pnl);
+  const avgWin=winPnls.length?winPnls.reduce((a,b)=>a+b,0)/winPnls.length:0;
+  const avgLoss=lossPnls.length?Math.abs(lossPnls.reduce((a,b)=>a+b,0)/lossPnls.length):0;
+  const profitFactor=avgLoss>0&&wins>0?((avgWin*wins)/(avgLoss*losses)).toFixed(2):'--';
+  const bestTrade=closedTrades.length?Math.max(...closedTrades.map(h=>h.pnl||0)):0;
+  const worstTrade=closedTrades.length?Math.min(...closedTrades.map(h=>h.pnl||0)):0;
+  let streak=0,bestStreak=0,maxDD=0,peak=0,cumDD=0;
   const ordered=closedTrades.slice().reverse();
-  for(const h of ordered){if((h.pnl||0)>=0){streak++;bestStreak=Math.max(bestStreak,streak)}else{streak=0}}
-  // Avg DTE of current open positions
-  const now=new Date();
-  const avgDte=pos.length>0?Math.round(pos.reduce((s,p)=>{return s+getDte(p.expiration)},0)/pos.length):0;
+  for(const h of ordered){
+    cumDD+=(h.pnl||0);if(cumDD>peak)peak=cumDD;
+    const dd=peak-cumDD;if(dd>maxDD)maxDD=dd;
+    if((h.pnl||0)>=0){streak++;bestStreak=Math.max(bestStreak,streak)}else{streak=0}
+  }
+  const avgDte=pos.length>0?Math.round(pos.reduce((s,p)=>s+getDte(p.expiration),0)/pos.length):0;
+  const totalCollateral=pos.reduce((s,p)=>s+(parseFloat(p.strike)||0)*(p.contracts||1)*100,0);
+  const portfolioYield=totalCollateral>0?((pendingPrem/totalCollateral)*100):0;
+  const fmtD=v=>(v>=0?'+':'-')+'$'+Math.abs(Math.round(v)).toLocaleString();
 
-  // Stats cards — Total Trades = closed only (not open positions)
-  const anaStats=document.querySelectorAll('.ana-stats .card');
-  if(anaStats[0]){anaStats[0].querySelector('.stat-v').textContent=closedTrades.length+(rolls.length>0?' (+'+rolls.length+' rolls)':'');anaStats[0].querySelector('.stat-sub').textContent='CLOSED TRADES'}
-  if(anaStats[1]){const sv=anaStats[1].querySelector('.stat-v');sv.textContent=winRate+'%';sv.className='stat-v '+(parseFloat(winRate)>=50?'gain':'loss');anaStats[1].querySelector('.stat-sub').textContent=wins+'W / '+losses+'L'}
-  if(anaStats[2]){const sv=anaStats[2].querySelector('.stat-v');sv.textContent=(totalPnl>=0?'+':'-')+'$'+Math.abs(Math.round(totalPnl)).toLocaleString();sv.className='stat-v '+(totalPnl>=0?'gain':'loss');anaStats[2].querySelector('.stat-sub').textContent='REALIZED'}
-  if(anaStats[3]){anaStats[3].querySelector('.stat-v').textContent='$'+avgPrem}
-  if(anaStats[4]){anaStats[4].querySelector('.stat-v').textContent=streak;anaStats[4].querySelector('.stat-sub').textContent='CURRENT / BEST: '+bestStreak}
-  if(anaStats[5]){anaStats[5].querySelector('.stat-v').textContent=avgDte}
+  // ── HERO ──
+  const heroEl=$('anaHero');
+  if(heroEl){
+    let sparkSvg='';
+    if(closedTrades.length>1){
+      let c2=0;const pts=ordered.map((h,i)=>{c2+=(h.pnl||0);return{x:i,y:c2}});
+      const mx=Math.max(...pts.map(p=>p.y),1),mn=Math.min(...pts.map(p=>p.y),0),rng=mx-mn||1;
+      const line=pts.map(p=>{const x=p.x/(pts.length-1)*200;const y=55-(p.y-mn)/rng*50;return x.toFixed(1)+','+y.toFixed(1)}).join(' ');
+      sparkSvg='<svg class="ana-hero-spark" viewBox="0 0 200 60" preserveAspectRatio="none"><polygon class="area" points="0,60 '+line+' 200,60" fill="url(#anaGreenGrad)"/><polyline points="'+line+'"/></svg>';
+    }
+    heroEl.innerHTML='<div class="ana-hero-left"><div class="ana-hero-label">Total Realized P&L</div>'+
+      '<div class="ana-hero-val '+(totalPnl>=0?'gain':'loss')+'">'+fmtD(totalPnl)+'</div>'+
+      '<div class="ana-hero-sub"><span class="tag" style="background:rgba(74,222,128,.12);color:var(--g)">'+wins+'W</span>'+
+      '<span class="tag" style="background:rgba(248,113,113,.12);color:var(--r)">'+losses+'L</span>'+
+      (rolls.length?'<span class="tag" style="background:rgba(201,169,124,.12);color:var(--ac)">'+rolls.length+' Rolled</span>':'')+
+      '<span style="color:var(--t5)">'+pos.length+' open &middot; $'+Math.round(pendingPrem).toLocaleString()+' pending</span></div></div>'+sparkSvg;
+  }
 
-  // Win/loss donut
-  const donutEl=document.querySelector('.donut');
-  const donutVal=document.querySelector('.donut-val');
-  if(donutVal)donutVal.textContent=Math.round(parseFloat(winRate))+'%';
-  if(donutEl){const deg=Math.round(parseFloat(winRate)/100*360);donutEl.style.background='conic-gradient(var(--g) 0deg '+deg+'deg,var(--r) '+deg+'deg 360deg)'}
-  const donutParent=document.querySelector('.donut')?.parentElement?.nextElementSibling;
-  if(donutParent){
+  // ── STAT CARDS ──
+  const gridEl=$('anaGrid');
+  if(gridEl){
+    const cards=[
+      {label:'Win Rate',val:wr.toFixed(1)+'%',cls:wr>=50?'gain':'loss',sub:wins+'W / '+losses+'L',trend:wr>=60?'up':''},
+      {label:'Closed Trades',val:closedTrades.length,cls:'',sub:rolls.length?'+'+rolls.length+' rolls':'All time',trend:''},
+      {label:'Avg Premium',val:'$'+avgPrem.toFixed(2),cls:'',sub:'Per contract',trend:''},
+      {label:'Win Streak',val:streak,cls:'warn',sub:'Best: '+bestStreak,trend:streak>=bestStreak&&streak>0?'up':''},
+      {label:'Avg DTE',val:avgDte+'d',cls:'',sub:pos.length+' open positions',trend:''}
+    ];
+    gridEl.innerHTML=cards.map(c=>'<div class="ana-card" onmousemove="this.style.setProperty(\'--mx\',((event.clientX-this.getBoundingClientRect().left)/this.offsetWidth*100)+\'%\');this.style.setProperty(\'--my\',((event.clientY-this.getBoundingClientRect().top)/this.offsetHeight*100)+\'%\')">'+
+      '<div class="ana-card-label">'+c.label+'</div>'+
+      '<div class="ana-card-val '+(c.cls||'')+'">'+c.val+'</div>'+
+      '<div class="ana-card-sub">'+(c.trend?'<span class="ana-card-trend '+c.trend+'">'+(c.trend==='up'?'&#9650;':'&#9660;')+'</span>':'')+c.sub+'</div></div>').join('');
+  }
+
+  // ── P&L CHART ──
+  const plCard=$('anaPlCard');
+  if(plCard){
+    let chartHtml='<div class="chart-title">Cumulative P&L Over Time</div>';
+    if(closedTrades.length>1){
+      const W=560,H=200,PAD_L=50,PAD_R=10,PAD_T=10,PAD_B=30;
+      const cW=W-PAD_L-PAD_R,cH=H-PAD_T-PAD_B;
+      let cum=0;const pts=ordered.map((h,i)=>{cum+=(h.pnl||0);return{x:i,y:cum,d:h.closeDate||h.openDate,sym:h.symbol,pnl:h.pnl||0}});
+      const maxY=Math.max(...pts.map(p=>p.y),0);const minY=Math.min(...pts.map(p=>p.y),0);
+      const range=maxY-minY||1;const n=pts.length;
+      const toX=i=>PAD_L+(i/(n-1))*cW;
+      const toY=v=>PAD_T+cH-(v-minY)/range*cH;
+      // Grid lines
+      let gridSvg='';const steps=4;
+      for(let i=0;i<=steps;i++){
+        const v=minY+(range/steps)*i;const y=toY(v);
+        gridSvg+='<line class="grid-line" x1="'+PAD_L+'" y1="'+y.toFixed(1)+'" x2="'+(W-PAD_R)+'" y2="'+y.toFixed(1)+'"/>';
+        gridSvg+='<text class="y-label" x="'+(PAD_L-6)+'" y="'+(y+3).toFixed(1)+'">'+fmtD(v)+'</text>';
+      }
+      // Zero line
+      if(minY<0&&maxY>0){const zy=toY(0);gridSvg+='<line class="zero-line" x1="'+PAD_L+'" y1="'+zy.toFixed(1)+'" x2="'+(W-PAD_R)+'" y2="'+zy.toFixed(1)+'"/>';}
+      // X-axis labels (show ~6 dates)
+      const step=Math.max(1,Math.floor(n/6));
+      for(let i=0;i<n;i+=step){
+        const d=new Date(pts[i].d||0);const lbl=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        gridSvg+='<text class="x-label" x="'+toX(i).toFixed(1)+'" y="'+(H-4)+'">'+lbl+'</text>';
+      }
+      // Line + area + dots
+      const line=pts.map((p,i)=>toX(i).toFixed(1)+','+toY(p.y).toFixed(1)).join(' ');
+      const area=''+PAD_L+','+(PAD_T+cH)+' '+line+' '+(PAD_L+(n-1)/(n-1)*cW)+','+(PAD_T+cH);
+      const dots=pts.map((p,i)=>'<circle class="pnl-dot" cx="'+toX(i).toFixed(1)+'" cy="'+toY(p.y).toFixed(1)+'"><title>'+p.sym+': '+fmtD(p.pnl)+' ('+fmtD(p.y)+' total)</title></circle>').join('');
+      chartHtml+='<div class="ana-pnl-wrap"><svg class="ana-pnl-svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">'+gridSvg+
+        '<polygon class="pnl-area" points="'+area+'"/>'+
+        '<polyline class="pnl-line" points="'+line+'" style="stroke-dasharray:2000;stroke-dashoffset:2000;animation:ana-drawLine 2s cubic-bezier(.23,1,.32,1) .5s forwards"/>'+
+        dots+'</svg></div>';
+    }else{chartHtml+='<div style="display:flex;align-items:center;justify-content:center;height:180px;color:var(--t4);font-family:var(--fm);font-size:12px">Need 2+ closed trades to chart</div>';}
+    plCard.innerHTML=chartHtml;
+    // Hover dots visible on mouseover
+    plCard.querySelectorAll('.pnl-dot').forEach(d=>{d.addEventListener('mouseenter',()=>{d.style.opacity='1';d.setAttribute('r','6')});d.addEventListener('mouseleave',()=>{d.style.opacity='0';d.setAttribute('r','4')})});
+  }
+
+  // ── DONUT ──
+  const donutCard=$('anaDonutCard');
+  if(donutCard){
+    const r=62,circ=2*Math.PI*r;const winDash=circ*(wr/100);const lossDash=circ-winDash;
     const byTicker={};closedTrades.forEach(h=>{if(!byTicker[h.symbol])byTicker[h.symbol]={w:0,l:0};if((h.pnl||0)>=0)byTicker[h.symbol].w++;else byTicker[h.symbol].l++});
-    const sorted=Object.entries(byTicker).map(([t,v])=>({t,rate:v.w/(v.w+v.l)*100})).sort((a,b)=>b.rate-a.rate);
+    const sorted=Object.entries(byTicker).map(([t,v])=>({t,rate:v.w/(v.w+v.l)*100,total:v.w+v.l})).sort((a,b)=>b.rate-a.rate);
     const best=sorted[0];const worst=sorted[sorted.length-1];
-    donutParent.innerHTML='<div><span style="display:inline-block;width:8px;height:8px;background:var(--g);border-radius:1px;margin-right:6px"></span>Winners: '+wins+'</div><div><span style="display:inline-block;width:8px;height:8px;background:var(--r);border-radius:1px;margin-right:6px"></span>Losers: '+losses+'</div>'+(best?'<div style="margin-top:8px;color:var(--t4)">Best: '+best.t+' ('+Math.round(best.rate)+'%)</div>':'')+(worst&&sorted.length>1?'<div style="color:var(--t4)">Worst: '+worst.t+' ('+Math.round(worst.rate)+'%)</div>':'');
+    donutCard.innerHTML='<div class="chart-title">Win / Loss Distribution</div>'+
+      '<div class="ana-donut-wrap"><div class="ana-donut">'+
+      '<svg viewBox="0 0 160 160"><circle cx="80" cy="80" r="'+r+'" stroke="var(--r)" stroke-dasharray="'+circ+'" stroke-dashoffset="0"/>'+
+      '<circle cx="80" cy="80" r="'+r+'" stroke="var(--g)" stroke-dasharray="'+winDash+' '+lossDash+'" stroke-dashoffset="0" style="filter:drop-shadow(0 0 4px rgba(74,222,128,.3))"/></svg>'+
+      '<div class="ana-donut-center"><div class="ana-donut-pct '+(wr>=50?'gain':'loss')+'">'+Math.round(wr)+'%</div><div class="ana-donut-lbl">Win Rate</div></div></div>'+
+      '<div class="ana-donut-legend">'+
+      '<div><span class="dot" style="background:var(--g)"></span>Winners: <strong>'+wins+'</strong></div>'+
+      '<div><span class="dot" style="background:var(--r)"></span>Losers: <strong>'+losses+'</strong></div>'+
+      (rolls.length?'<div><span class="dot" style="background:var(--ac)"></span>Rolled: <strong>'+rolls.length+'</strong></div>':'')+
+      (best?'<div class="sub" style="margin-top:8px">Best: <strong>'+best.t+'</strong> '+Math.round(best.rate)+'% ('+best.total+' trades)</div>':'')+
+      (worst&&sorted.length>1?'<div class="sub">Worst: <strong>'+worst.t+'</strong> '+Math.round(worst.rate)+'% ('+worst.total+' trades)</div>':'')+
+      '</div></div>';
   }
 
-  // Monthly breakdown table
-  const anaTbody=document.querySelector('.ana-bottom .tbl tbody');
-  if(anaTbody){
+  // ── MONTHLY TABLE ──
+  const monthlyEl=$('anaMonthly');
+  if(monthlyEl){
     const months={};
-    hist.forEach(h=>{const d=new Date(h.closeDate||h.openDate||0);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!months[k])months[k]={realized:0,trades:0,wins:0};months[k].realized+=(h.pnl||0);months[k].trades++;if(h.outcome!=='rolled'&&(h.pnl||0)>=0)months[k].wins++});
-    pos.forEach(p=>{const d=new Date(p.openDate||0);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!months[k])months[k]={realized:0,trades:0,wins:0};months[k].pending=(months[k].pending||0)+(p.premium||0)*(p.contracts||1)*100});
+    hist.forEach(h=>{const d=new Date(h.closeDate||h.openDate||0);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!months[k])months[k]={realized:0,trades:0,wins:0,losses:0};months[k].realized+=(h.pnl||0);months[k].trades++;if(h.outcome!=='rolled'){if((h.pnl||0)>=0)months[k].wins++;else months[k].losses++}});
+    pos.forEach(p=>{const d=new Date(p.openDate||0);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!months[k])months[k]={realized:0,trades:0,wins:0,losses:0};months[k].pending=(months[k].pending||0)+(p.premium||0)*(p.contracts||1)*100});
     const sorted=Object.entries(months).sort((a,b)=>b[0].localeCompare(a[0]));
+    const maxRealized=Math.max(...sorted.map(([,v])=>Math.abs(v.realized)),1);
+    let html='<div class="chart-title" style="margin-bottom:10px">Monthly Performance</div>';
     if(sorted.length>0){
-      anaTbody.innerHTML=sorted.map(([k,v])=>{
+      html+='<table class="ana-monthly-tbl"><thead><tr><th>Month</th><th>Realized</th><th>Pending</th><th>Trades</th><th>W/L</th><th>Win%</th></tr></thead><tbody>';
+      html+=sorted.map(([k,v])=>{
         const [y,m]=k.split('-');const label=new Date(y,m-1).toLocaleDateString('en-US',{month:'short',year:'2-digit'});
-        const wr=v.trades>0?Math.round(v.wins/v.trades*100):0;
-        return '<tr><td class="m">'+label+'</td><td class="m '+(v.realized>=0?'gain':'loss')+'">'+(v.realized>=0?'+':'-')+'$'+Math.abs(Math.round(v.realized)).toLocaleString()+'</td><td class="m" style="color:var(--t4)">$'+Math.round(v.pending||0).toLocaleString()+'</td><td class="m">'+v.trades+'</td><td class="m '+(wr>=70?'gain':'')+'">'+wr+'%</td></tr>';
+        const mwr=v.trades>0?Math.round(v.wins/(v.wins+v.losses||1)*100):0;
+        const barW=Math.round(Math.abs(v.realized)/maxRealized*100);
+        return '<tr><td style="font-weight:600;color:var(--t2)">'+label+'</td>'+
+          '<td class="bar-cell '+(v.realized>=0?'gain':'loss')+'">'+fmtD(v.realized)+'<div class="mini-bar" style="width:'+barW+'%;background:'+(v.realized>=0?'var(--g)':'var(--r)')+'"></div></td>'+
+          '<td style="color:var(--ac)">$'+Math.round(v.pending||0).toLocaleString()+'</td>'+
+          '<td>'+v.trades+'</td><td>'+v.wins+'W/'+v.losses+'L</td>'+
+          '<td style="color:'+(mwr>=70?'var(--g)':mwr>=50?'var(--t2)':'var(--r)')+'">'+mwr+'%</td></tr>';
       }).join('');
-    }else{anaTbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--t4);padding:20px">No trade history yet</td></tr>'}
+      html+='</tbody></table>';
+    }else{html+='<div style="text-align:center;color:var(--t4);padding:40px;font-family:var(--fm);font-size:12px">No trade history yet</div>';}
+    monthlyEl.innerHTML=html;
   }
 
-  // Top performers
-  const topEl=$('topTickers');
-  if(topEl){
-    const byTicker={};closedTrades.forEach(h=>{if(!byTicker[h.symbol])byTicker[h.symbol]=0;byTicker[h.symbol]+=(h.pnl||0)});
-    const sorted=Object.entries(byTicker).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    if(sorted.length>0){
-      topEl.innerHTML=sorted.map(([t,pnl])=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-family:var(--fm);font-size:11px"><span class="tk">'+t+'</span><span class="'+(pnl>=0?'gain':'loss')+'">'+(pnl>=0?'+':'')+' $'+Math.round(Math.abs(pnl)).toLocaleString()+'</span></div>').join('');
-    }else{topEl.innerHTML='<div style="color:var(--t4);font-size:11px">No data yet</div>'}
-  }
-
-  // CSP vs CC type split
-  const cspCount=closedTrades.filter(h=>(h.type||'csp')==='csp').length;
-  const ccCount=closedTrades.filter(h=>h.type==='cc').length;
-  const totalCount=cspCount+ccCount||1;
-  const cspPct=Math.round(cspCount/totalCount*100);
-  const typeSplit=document.querySelector('.ana-bottom .card:last-child');
-  if(typeSplit){
-    const bars=typeSplit.querySelectorAll('div[style*="flex:"]');
-    if(bars.length>=2){bars[0].style.flex=cspPct;bars[1].style.flex=100-cspPct}
-    const labels=typeSplit.querySelectorAll('span');
-    if(labels.length>=2){labels[labels.length-2].textContent='CSP '+cspPct+'%';labels[labels.length-1].textContent='CC '+(100-cspPct)+'%'}
-  }
-
-  // P&L cumulative chart — oldest to newest
-  const plChart=$('plChart');
-  if(plChart&&closedTrades.length>1){
-    let cum=0;const pts=closedTrades.slice().reverse().map((h,i)=>{cum+=(h.pnl||0);return{x:i,y:cum}});
-    const maxY=Math.max(...pts.map(p=>p.y),1);const minY=Math.min(...pts.map(p=>p.y),0);
-    const range=maxY-minY||1;
-    plChart.innerHTML='<polyline points="'+pts.map((p,i)=>{const x=p.x/(pts.length-1)*500;const y=140-(p.y-minY)/range*130;return x.toFixed(1)+','+y.toFixed(1)}).join(' ')+'" fill="none" stroke="var(--g)" stroke-width="2"/>';
-  }else if(plChart){plChart.innerHTML=''}
-
-  // Premium by month bar chart — DYNAMIC (replaces static)
-  const premChart=$('premChart');
-  if(premChart){
+  // ── PREMIUM BY MONTH BARS ──
+  const premEl=$('anaPremBars');
+  if(premEl){
     const months={};
-    hist.forEach(h=>{const d=new Date(h.closeDate||h.openDate||0);const k=d.toLocaleDateString('en-US',{month:'short'});const sk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');if(!months[sk])months[sk]={label:k,prem:0};months[sk].prem+=(h.premium||0)*(h.contracts||1)*100});
-    const sorted=Object.entries(months).sort((a,b)=>a[0].localeCompare(b[0])).slice(-6);
+    hist.forEach(h=>{const d=new Date(h.closeDate||h.openDate||0);const sk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');const label=d.toLocaleDateString('en-US',{month:'short'});if(!months[sk])months[sk]={label,prem:0};months[sk].prem+=(h.premium||0)*(h.contracts||1)*100});
+    const sorted=Object.entries(months).sort((a,b)=>a[0].localeCompare(b[0])).slice(-8);
+    let html='<div class="chart-title">Premium Collected by Month</div>';
     if(sorted.length>0){
       const pmax=Math.max(...sorted.map(([,v])=>v.prem),1);
-      premChart.innerHTML=sorted.map(([,v])=>'<div class="bar-col"><div class="bar-val">$'+(v.prem>=1000?(v.prem/1000).toFixed(1)+'k':Math.round(v.prem))+'</div><div class="bar" style="height:'+Math.round(v.prem/pmax*100)+'%"></div><div class="bar-label">'+v.label+'</div></div>').join('');
-    }else{premChart.innerHTML='<div style="color:var(--t4);font-size:11px;text-align:center;padding:20px">No data yet</div>'}
+      html+='<div class="ana-bar-chart">'+sorted.map(([,v],i)=>{
+        const h=Math.max(4,Math.round(v.prem/pmax*100));
+        return '<div class="ana-bar-col"><div class="ana-bar-val">$'+(v.prem>=1000?(v.prem/1000).toFixed(1)+'k':Math.round(v.prem))+'</div>'+
+          '<div class="ana-bar" style="height:'+h+'%;animation-delay:'+(0.5+i*0.08)+'s" title="$'+Math.round(v.prem).toLocaleString()+'"></div>'+
+          '<div class="ana-bar-label">'+v.label+'</div></div>';
+      }).join('')+'</div>';
+    }else{html+='<div style="text-align:center;color:var(--t4);padding:40px;font-family:var(--fm);font-size:12px">No data yet</div>';}
+    premEl.innerHTML=html;
   }
+
+  // ── TOP PERFORMERS ──
+  const topEl=$('anaTopPerf');
+  if(topEl){
+    const byTicker={};closedTrades.forEach(h=>{if(!byTicker[h.symbol])byTicker[h.symbol]={pnl:0,trades:0};byTicker[h.symbol].pnl+=(h.pnl||0);byTicker[h.symbol].trades++});
+    const sorted=Object.entries(byTicker).map(([t,v])=>({t,...v})).sort((a,b)=>b.pnl-a.pnl);
+    const maxPnl=Math.max(...sorted.map(s=>Math.abs(s.pnl)),1);
+    let html='<div class="chart-title">Top Performers by P&L</div>';
+    if(sorted.length>0){
+      html+=sorted.slice(0,8).map((s,i)=>{
+        const pct=Math.round(Math.abs(s.pnl)/maxPnl*100);
+        return '<div class="ana-hbar-row"><div class="ana-hbar-rank">'+(i+1)+'</div>'+
+          '<div class="ana-hbar-sym">'+s.t+'</div>'+
+          '<div class="ana-hbar-bar"><div class="ana-hbar-fill '+(s.pnl>=0?'pos':'neg')+'" style="width:'+pct+'%"></div></div>'+
+          '<div class="ana-hbar-val '+(s.pnl>=0?'gain':'loss')+'">'+fmtD(s.pnl)+'</div>'+
+          '<div class="ana-hbar-trades">'+s.trades+' trades</div></div>';
+      }).join('');
+    }else{html+='<div style="text-align:center;color:var(--t4);padding:40px;font-family:var(--fm);font-size:12px">No data yet</div>';}
+    topEl.innerHTML=html;
+  }
+
+  // ── RISK METRICS ──
+  const riskEl=$('anaRisk');
+  if(riskEl){
+    const metrics=[
+      {label:'Profit Factor',val:profitFactor,icon:'&#9878;'},
+      {label:'Avg Win',val:'<span class="gain">'+fmtD(avgWin)+'</span>',icon:'&#9650;'},
+      {label:'Avg Loss',val:'<span class="loss">'+fmtD(-avgLoss)+'</span>',icon:'&#9660;'},
+      {label:'Best Trade',val:'<span class="gain">'+fmtD(bestTrade)+'</span>',icon:'&#9733;'},
+      {label:'Worst Trade',val:'<span class="'+(worstTrade>=0?'gain':'loss')+'">'+fmtD(worstTrade)+'</span>',icon:'&#9888;'},
+      {label:'Max Drawdown',val:'<span class="loss">-$'+Math.round(maxDD).toLocaleString()+'</span>',icon:'&#8615;'},
+      {label:'Portfolio Yield',val:portfolioYield.toFixed(2)+'%',icon:'&#9733;'},
+      {label:'Collateral Deployed',val:'$'+Math.round(totalCollateral).toLocaleString(),icon:'&#9670;'}
+    ];
+    riskEl.innerHTML='<div class="chart-title">Risk & Performance</div>'+
+      metrics.map(m=>'<div class="ana-metric"><div class="ana-metric-label"><span>'+m.icon+'</span> '+m.label+'</div><div class="ana-metric-val">'+m.val+'</div></div>').join('');
+  }
+
+  // ── STRATEGY SPLIT ──
+  const stratEl=$('anaStrategy');
+  if(stratEl){
+    const all=[...closedTrades,...pos];
+    const cspT=all.filter(h=>(h.type||'csp')==='csp');const ccT=all.filter(h=>h.type==='cc');
+    const cspPnl=cspT.reduce((s,h)=>s+(h.pnl||(h.premium||0)*(h.contracts||1)*100),0);
+    const ccPnl=ccT.reduce((s,h)=>s+(h.pnl||(h.premium||0)*(h.contracts||1)*100),0);
+    const total=cspT.length+ccT.length||1;
+    const cspPct=Math.round(cspT.length/total*100);
+    stratEl.innerHTML='<div class="chart-title">Strategy Breakdown</div>'+
+      '<div class="ana-strat-bar"><div class="ana-strat-seg csp" style="flex:'+cspPct+'">CSP '+cspPct+'%</div>'+
+      '<div class="ana-strat-seg cc" style="flex:'+(100-cspPct)+'">CC '+(100-cspPct)+'%</div></div>'+
+      '<div class="ana-strat-detail">'+
+      '<div class="ana-strat-box"><div class="val gain">'+fmtD(cspPnl)+'</div><div class="lbl">CSP P&L ('+cspT.length+' trades)</div></div>'+
+      '<div class="ana-strat-box"><div class="val" style="color:var(--bl)">'+fmtD(ccPnl)+'</div><div class="lbl">CC P&L ('+ccT.length+' trades)</div></div>'+
+      '</div>'+
+      '<div style="margin-top:14px"><div class="chart-title" style="margin-bottom:8px">Avg Premium</div>'+
+      '<div class="ana-strat-detail">'+
+      '<div class="ana-strat-box"><div class="val" style="font-size:15px">$'+(cspT.length?((cspT.reduce((s,h)=>s+(h.premium||0),0)/cspT.length).toFixed(2)):'0')+'</div><div class="lbl">CSP AVG</div></div>'+
+      '<div class="ana-strat-box"><div class="val" style="font-size:15px">$'+(ccT.length?((ccT.reduce((s,h)=>s+(h.premium||0),0)/ccT.length).toFixed(2)):'0')+'</div><div class="lbl">CC AVG</div></div>'+
+      '</div></div>';
+  }
+
+  // ── ACHIEVEMENTS ──
+  const badgesEl=$('anaBadges');
+  if(badgesEl){
+    const totalPrem=closedTrades.reduce((s,h)=>s+(h.premium||0)*(h.contracts||1)*100,0)+pendingPrem;
+    const uniqueTickers=new Set([...closedTrades,...pos].map(h=>h.symbol)).size;
+    const hasCsp=closedTrades.some(h=>(h.type||'csp')==='csp');
+    const hasCc=closedTrades.some(h=>h.type==='cc');
+    const goalStreak=(()=>{let s=0;const now=new Date();for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');const earned=hist.filter(h=>{const cd=new Date(h.closeDate||h.openDate||0);return cd.getFullYear()+'-'+String(cd.getMonth()+1).padStart(2,'0')===k}).reduce((a,h)=>a+(h.pnl||0),0);if(earned>=(S.incomeGoal||500))s++;else break}return s})();
+    const badges=[
+      {icon:'&#127919;',name:'First Trade',earned:closedTrades.length>=1},
+      {icon:'&#128200;',name:'10 Trades',earned:closedTrades.length>=10},
+      {icon:'&#127942;',name:'50 Trades',earned:closedTrades.length>=50},
+      {icon:'&#9989;',name:'First Win',earned:wins>=1},
+      {icon:'&#128293;',name:'5 Win Streak',earned:bestStreak>=5},
+      {icon:'&#128176;',name:'$1K Premium',earned:totalPrem>=1000},
+      {icon:'&#128142;',name:'$5K Club',earned:totalPrem>=5000},
+      {icon:'&#127941;',name:'$10K Club',earned:totalPrem>=10000},
+      {icon:'&#128293;',name:'3mo Streak',earned:goalStreak>=3},
+      {icon:'&#127760;',name:'Diversified',earned:uniqueTickers>=5},
+      {icon:'&#127904;',name:'Full Wheeler',earned:hasCsp&&hasCc},
+      {icon:'&#9889;',name:'Profit Factor 2x',earned:parseFloat(profitFactor)>=2}
+    ];
+    const earned=badges.filter(b=>b.earned).length;
+    badgesEl.innerHTML='<div class="chart-title">Achievements <span style="color:var(--ac);font-weight:700">'+earned+'/'+badges.length+'</span></div>'+
+      '<div class="ana-badges">'+badges.map(b=>'<div class="ana-badge '+(b.earned?'earned':'locked')+'"><div class="ana-badge-icon">'+b.icon+'</div><div class="ana-badge-name">'+b.name+'</div></div>').join('')+'</div>';
+  }
+
+  // ── CARD GLOW TRACKING ──
+  document.querySelectorAll('.ana-card').forEach(c=>{
+    c.addEventListener('mousemove',e=>{const r=c.getBoundingClientRect();c.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');c.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%')});
+  });
 }
 
 // ═══════════════════════════════════════════
