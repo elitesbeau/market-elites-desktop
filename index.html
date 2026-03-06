@@ -6477,11 +6477,10 @@ function renderDashboard(){
   // Stats cards
   const statCards=document.querySelectorAll('.dash-stats .card');
   if(statCards[0]){statCards[0].querySelector('.stat-v').textContent=pos.length;statCards[0].querySelector('.stat-sub').textContent=cspCount+' CSP / '+ccCount+' CC'}
-  // Weekly return: sum PnL from history trades closed this week + pending premium from open positions opened this week
+  // Weekly return: realized PnL from trades closed this week only
   const weekStart=new Date();weekStart.setDate(weekStart.getDate()-weekStart.getDay());weekStart.setHours(0,0,0,0);
-  const weekPnl=hist.filter(h=>{const d=new Date(h.closeDate||h.openDate||0);return d>=weekStart}).reduce((s,h)=>s+(h.pnl||0),0);
-  const weekOpenPrem=pos.filter(p=>{const d=new Date(p.openDate||0);return d>=weekStart}).reduce((s,p)=>s+(p.premium||0)*(p.contracts||1)*100,0);
-  const weekTotal=weekPnl+weekOpenPrem;
+  const weekPnl=hist.filter(h=>{const d=new Date(h.closeDate||0);return h.closeDate&&d>=weekStart}).reduce((s,h)=>s+(h.pnl||0),0);
+  const weekTotal=weekPnl;
   const base=S.startingBalance||S.accSize||25000;
   const weekPct=base>0?(weekTotal/base*100).toFixed(2):'0.00';
   if(statCards[1]){statCards[1].querySelector('.card-label').textContent='This Week';const sv=statCards[1].querySelector('.stat-v');sv.textContent=(weekTotal>=0?'+':'')+'$'+Math.abs(Math.round(weekTotal)).toLocaleString();sv.className='stat-v '+(weekTotal>=0?'gain':'loss');statCards[1].querySelector('.stat-sub').textContent=weekPct+'% RETURN'}
