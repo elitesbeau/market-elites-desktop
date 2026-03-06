@@ -1500,9 +1500,9 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
       <div class="stat-sub">5 CSP / 3 CC</div>
     </div>
     <div class="card">
-      <div class="card-label">Monthly Premium</div>
-      <div class="stat-v">$2,840</div>
-      <div class="stat-sub">+12% VS LAST MONTH</div>
+      <div class="card-label">This Week</div>
+      <div class="stat-v">$0</div>
+      <div class="stat-sub">0.00% RETURN</div>
     </div>
     <div class="card">
       <div class="card-label">Win Rate</div>
@@ -1539,7 +1539,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
     </div>
     <div class="card" style="padding:0;overflow:hidden">
       <table class="tbl">
-        <thead><tr><th>Ticker</th><th>Type</th><th>Strike</th><th>Exp</th><th>DTE</th><th>Premium</th><th>P&L</th><th>Status</th></tr></thead>
+        <thead><tr><th>Ticker</th><th>Type</th><th>Strike</th><th>Exp</th><th>DTE</th><th>Premium</th><th>P&L</th><th>Yield</th><th>Status</th></tr></thead>
         <tbody>
           <!-- Populated dynamically by renderDashboard -->
         </tbody>
@@ -1600,7 +1600,7 @@ select.inp{cursor:pointer}select.inp option{background:var(--bgc);color:var(--tx
   <div class="card" style="padding:0;overflow:visible">
     <table class="tbl">
       <thead><tr>
-        <th>Ticker</th><th>Type</th><th>Strike</th><th>Expiration</th><th>DTE</th><th>Premium</th><th>Contracts</th><th>Collateral</th><th>P&L</th><th>Status</th><th>Actions</th>
+        <th>Ticker</th><th>Type</th><th>Strike</th><th>Expiration</th><th>DTE</th><th>Premium</th><th>Contracts</th><th>Collateral</th><th>P&L</th><th>Yield</th><th>Status</th><th>Actions</th>
       </tr></thead>
       <tbody>
         <!-- Populated dynamically by renderDashboard -->
@@ -3598,9 +3598,16 @@ function renderDashboard(){
   // Stats cards
   const statCards=document.querySelectorAll('.dash-stats .card');
   if(statCards[0]){statCards[0].querySelector('.stat-v').textContent=pos.length;statCards[0].querySelector('.stat-sub').textContent=cspCount+' CSP / '+ccCount+' CC'}
-  if(statCards[1]){statCards[1].querySelector('.card-label').textContent='Lifetime P&L';const sv=statCards[1].querySelector('.stat-v');sv.textContent=(lifetimePnl>=0?'+':'-')+'$'+Math.abs(Math.round(lifetimePnl)).toLocaleString();sv.className='stat-v '+(lifetimePnl>=0?'gain':'loss');statCards[1].querySelector('.stat-sub').textContent='ALL REALIZED'}
+  // Weekly return: sum PnL from history trades closed this week + pending premium from open positions opened this week
+  const weekStart=new Date();weekStart.setDate(weekStart.getDate()-weekStart.getDay());weekStart.setHours(0,0,0,0);
+  const weekPnl=hist.filter(h=>{const d=new Date(h.closeDate||h.openDate||0);return d>=weekStart}).reduce((s,h)=>s+(h.pnl||0),0);
+  const weekOpenPrem=pos.filter(p=>{const d=new Date(p.openDate||0);return d>=weekStart}).reduce((s,p)=>s+(p.premium||0)*(p.contracts||1)*100,0);
+  const weekTotal=weekPnl+weekOpenPrem;
+  const base=S.startingBalance||S.accSize||25000;
+  const weekPct=base>0?(weekTotal/base*100).toFixed(2):'0.00';
+  if(statCards[1]){statCards[1].querySelector('.card-label').textContent='This Week';const sv=statCards[1].querySelector('.stat-v');sv.textContent=(weekTotal>=0?'+':'')+'$'+Math.abs(Math.round(weekTotal)).toLocaleString();sv.className='stat-v '+(weekTotal>=0?'gain':'loss');statCards[1].querySelector('.stat-sub').textContent=weekPct+'% RETURN'}
   if(statCards[2]){const sv=statCards[2].querySelector('.stat-v');sv.textContent=winRate+'%';sv.className='stat-v '+(parseFloat(winRate)>=50?'gain':'loss');statCards[2].querySelector('.stat-sub').textContent=wins+'W / '+(hist.length-wins)+'L'}
-  if(statCards[3]){const base=S.startingBalance||S.accSize||25000;const pv=base+lifetimePnl;statCards[3].querySelector('.card-label').textContent='Portfolio Value';const sv=statCards[3].querySelector('.stat-v');sv.textContent='$'+Math.round(pv).toLocaleString();sv.className='stat-v';statCards[3].querySelector('.stat-sub').textContent='$'+Math.round(base).toLocaleString()+' BASE';const pf=statCards[3].querySelector('.prog-f');if(pf)pf.parentElement.style.display='none'}
+  if(statCards[3]){const pv=base+lifetimePnl;statCards[3].querySelector('.card-label').textContent='Portfolio Value';const sv=statCards[3].querySelector('.stat-v');sv.textContent='$'+Math.round(pv).toLocaleString();sv.className='stat-v';statCards[3].querySelector('.stat-sub').textContent='$'+Math.round(base).toLocaleString()+' BASE';const pf=statCards[3].querySelector('.prog-f');if(pf)pf.parentElement.style.display='none'}
 
   // Recent trades panel
   const tpList=document.querySelector('.tp-list');
@@ -3630,9 +3637,10 @@ function renderDashboard(){
         const dte=getDte(p.expiration);const dc=dteClass(dte);
         const type=(p.type||'csp').toUpperCase();const badge='badge-'+(p.type||'csp');
         const prem=(p.premium||0)*(p.contracts||1)*100;
-        return '<tr class="pos-glow-'+dc+'"><td style="display:flex;align-items:center;gap:8px">'+tkLogo(p.symbol)+'<span class="tk">'+p.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+p.strike+'</td><td class="m">'+(p.expiration||'-')+'</td><td class="m"><div class="dte-live"><span class="dot '+dc+'"></span><span class="dte-live-val" data-exp="'+(parseExpDate(p.expiration)?parseExpDate(p.expiration).getTime():'')+'">'+fmtDte(p.expiration)+'</span></div></td><td class="m">$'+(p.premium||0).toFixed(2)+'</td><td class="m gain">+$'+Math.round(prem).toLocaleString()+'</td><td style="color:var(--t4)">Open</td></tr>';
+        const yld=p.strike>0?((p.premium||0)/p.strike*100).toFixed(2):'0.00';
+        return '<tr class="pos-glow-'+dc+'"><td style="display:flex;align-items:center;gap:8px">'+tkLogo(p.symbol)+'<span class="tk">'+p.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+p.strike+'</td><td class="m">'+(p.expiration||'-')+'</td><td class="m"><div class="dte-live"><span class="dot '+dc+'"></span><span class="dte-live-val" data-exp="'+(parseExpDate(p.expiration)?parseExpDate(p.expiration).getTime():'')+'">'+fmtDte(p.expiration)+'</span></div></td><td class="m">$'+(p.premium||0).toFixed(2)+'</td><td class="m gain">+$'+Math.round(prem).toLocaleString()+'</td><td class="m" style="color:var(--g)">'+yld+'%</td><td style="color:var(--t4)">Open</td></tr>';
       }).join('');
-    }else{dashTbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--t4);padding:20px">No open positions — add one on the main site</td></tr>'}
+    }else{dashTbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--t4);padding:20px">No open positions — add one on the main site</td></tr>'}
   }
 
   // Full positions page table — with live countdown + glow
@@ -3643,6 +3651,7 @@ function renderDashboard(){
         const dte=getDte(p.expiration);const dc=dteClass(dte);
         const type=(p.type||'csp').toUpperCase();const badge='badge-'+(p.type||'csp');
         const prem=(p.premium||0)*(p.contracts||1)*100;
+        const yld=p.strike>0?((p.premium||0)/p.strike*100).toFixed(2):'0.00';
         const collateral=type==='CSP'?'$'+(p.strike*(p.contracts||1)*100).toLocaleString():(p.contracts||1)*100+' sh';
         // Status: pill badges with tooltips
         let status='Open',sCls='s-open',sTip='Theta is working — plenty of time';
@@ -3651,9 +3660,9 @@ function renderDashboard(){
         else if(dte===0){status='Exp Today';sCls='s-today';sTip='Expires today — close or let expire'}
         else if(dte===1){status='Tomorrow';sCls='s-tomorrow';sTip='Expiring tomorrow — decision time'}
         else if(dte<=7){status=dte+'d left';sCls=dte<=3?'s-urgent':'s-soon';sTip=dte<=3?'Approaching fast — monitor closely':'Getting close — stay alert'}
-        return '<tr class="pos-glow-'+dc+'" data-type="'+(p.type||'csp')+'" data-status="'+(p.status||'open')+'"><td class="tk-cell">'+tkLogo(p.symbol,28)+'<span class="tk">'+p.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+Number(p.strike).toFixed(2)+'</td><td class="m">'+(p.expiration||'-')+'</td><td class="m"><div class="dte-live"><span class="dot '+dc+'"></span><span class="dte-live-val" data-exp="'+(parseExpDate(p.expiration)?parseExpDate(p.expiration).getTime():'')+'">'+fmtDte(p.expiration)+'</span></div></td><td class="m">$'+(p.premium||0).toFixed(2)+'</td><td class="m">'+(p.contracts||1)+'</td><td class="m">'+collateral+'</td><td class="m"><span class="prem-shimmer gain">+$'+Math.round(prem).toLocaleString()+'</span></td><td><span class="status-pill '+sCls+'" data-tip="'+sTip+'">'+status+'</span></td><td><button class="btn btn-sm" onclick="event.stopPropagation();viewPos(\''+p.id+'\')">Manage</button></td></tr>';
+        return '<tr class="pos-glow-'+dc+'" data-type="'+(p.type||'csp')+'" data-status="'+(p.status||'open')+'"><td class="tk-cell">'+tkLogo(p.symbol,28)+'<span class="tk">'+p.symbol+'</span></td><td><span class="badge '+badge+'">'+type+'</span></td><td class="m">$'+Number(p.strike).toFixed(2)+'</td><td class="m">'+(p.expiration||'-')+'</td><td class="m"><div class="dte-live"><span class="dot '+dc+'"></span><span class="dte-live-val" data-exp="'+(parseExpDate(p.expiration)?parseExpDate(p.expiration).getTime():'')+'">'+fmtDte(p.expiration)+'</span></div></td><td class="m">$'+(p.premium||0).toFixed(2)+'</td><td class="m">'+(p.contracts||1)+'</td><td class="m">'+collateral+'</td><td class="m"><span class="prem-shimmer gain">+$'+Math.round(prem).toLocaleString()+'</span></td><td class="m" style="color:var(--g);font-family:var(--fm)">'+yld+'%</td><td><span class="status-pill '+sCls+'" data-tip="'+sTip+'">'+status+'</span></td><td><button class="btn btn-sm" onclick="event.stopPropagation();viewPos(\''+p.id+'\')">Manage</button></td></tr>';
       }).join('');
-    }else{posTbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:48px 20px"><div style="font-size:36px;opacity:.08;margin-bottom:8px">✦</div><div style="font-family:var(--fd);font-size:16px;color:var(--t5);letter-spacing:3px">NO OPEN POSITIONS</div><div style="font-family:var(--fm);font-size:9px;color:var(--t5);margin-top:6px;letter-spacing:1px;opacity:.5">Add from signals or manually</div></td></tr>'}
+    }else{posTbody.innerHTML='<tr><td colspan="12" style="text-align:center;padding:48px 20px"><div style="font-size:36px;opacity:.08;margin-bottom:8px">✦</div><div style="font-family:var(--fd);font-size:16px;color:var(--t5);letter-spacing:3px">NO OPEN POSITIONS</div><div style="font-family:var(--fm);font-size:9px;color:var(--t5);margin-top:6px;letter-spacing:1px;opacity:.5">Add from signals or manually</div></td></tr>'}
   }
 
   // Positions page summary cards — all 5
@@ -3671,7 +3680,6 @@ function renderDashboard(){
     // Card 4: Capital Deployed
     if(cards[4]){
       const deployed=pos.reduce((s,p)=>{const t=(p.type||'csp').toLowerCase();return s+(t==='csp'?(p.strike||0)*(p.contracts||1)*100:0)},0);
-      const base=S.startingBalance||S.accSize||25000;
       const pct=base>0?Math.min(100,Math.round(deployed/base*100)):0;
       cards[4].querySelector('.stat-v').textContent='$'+(deployed>=1000?(deployed/1000).toFixed(1)+'k':Math.round(deployed).toLocaleString());
       cards[4].querySelector('.stat-sub').textContent='OF $'+Math.round(base).toLocaleString();
