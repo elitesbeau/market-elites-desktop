@@ -3,6 +3,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>
+window.__meErrs=[];
+window.onerror=function(msg,src,line,col,err){window.__meErrs.push(msg);if(window.__meErrs.length>5)return;var box=document.getElementById("me-diag-box");if(!box){box=document.createElement("div");box.id="me-diag-box";box.style.cssText="position:fixed;bottom:10px;left:10px;z-index:999999;max-width:80vw;font:11px monospace";document.body?document.body.appendChild(box):document.addEventListener("DOMContentLoaded",function(){document.body.appendChild(box)})}var d=document.createElement("div");d.style.cssText="background:#1a0505;color:#ff6b6b;padding:6px 12px;border:1px solid #ff6b6b;border-radius:6px;margin-top:4px;cursor:pointer";d.textContent="Error L"+line+": "+msg;d.onclick=function(){this.remove()};box.appendChild(d)};
+setTimeout(function(){var lbl=document.querySelector(".hero-lbl");if(lbl&&lbl.textContent.indexOf("Portfolio Value")>-1){var box=document.getElementById("me-diag-box");if(!box){box=document.createElement("div");box.id="me-diag-box";box.style.cssText="position:fixed;bottom:10px;left:10px;z-index:999999;max-width:80vw;font:11px monospace";document.body.appendChild(box)}var d=document.createElement("div");d.style.cssText="background:#1a1005;color:#fbbf24;padding:8px 14px;border:1px solid #fbbf24;border-radius:6px;margin-top:4px";d.innerHTML="JS issue. Errors: "+(window.__meErrs.length||"none")+"<br>UA: "+navigator.userAgent;box.appendChild(d)}},5000);
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
