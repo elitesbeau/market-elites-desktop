@@ -69,6 +69,22 @@ window.onerror=function(msg,src,line,col,err){
 .pex-sum-lbl{color:var(--t5);font-size:9px;letter-spacing:1px}
 .pex-sum-val{font-weight:600;font-size:12px}
 .pex-sum-div{width:1px;height:18px;background:var(--bd2)}
+
+/* ── Announcement: Kanji Anchor ── */
+.ann-e{display:flex;align-items:stretch;margin-bottom:16px;position:relative;overflow:hidden}
+.ann-e .e-kanji-col{width:64px;flex-shrink:0;background:rgba(201,169,124,.03);border:1px solid rgba(201,169,124,.06);border-right:none;border-radius:3px 0 0 3px;display:flex;align-items:center;justify-content:center;position:relative}
+.ann-e .e-kanji{font-size:32px;font-weight:700;color:var(--ac);opacity:.2;user-select:none;line-height:1}
+.ann-e .e-kanji-col::after{content:'';position:absolute;right:0;top:8px;bottom:8px;width:1px;background:linear-gradient(180deg,transparent,rgba(201,169,124,.15),transparent)}
+.ann-e .e-body{flex:1;background:var(--bgc);border:1px solid var(--bd);border-left:none;border-radius:0 3px 3px 0;padding:14px 18px;display:flex;flex-direction:column;justify-content:center;position:relative}
+.ann-e .e-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ann-e .e-num{font-family:var(--fm);font-size:18px;font-weight:700;color:rgba(232,224,208,.06);letter-spacing:-1px;line-height:1}
+.ann-e .e-title{font-family:var(--fd);font-size:14px;font-weight:600;color:rgba(232,224,208,.82);letter-spacing:-.2px}
+.ann-e .e-row{display:flex;align-items:center;gap:10px}
+.ann-e .e-msg{font-family:var(--fb);font-size:12px;color:var(--t3);flex:1}
+.ann-e .e-time{font-family:var(--fm);font-size:9px;color:var(--t5);letter-spacing:.5px;flex-shrink:0}
+.ann-e .e-idx{font-family:var(--fm);font-size:8px;color:var(--t5);border:1px solid var(--bd);padding:2px 6px;border-radius:2px;flex-shrink:0}
+.ann-e .e-vert{position:absolute;right:6px;top:50%;transform:translateY(-50%) rotate(90deg);font-family:var(--fm);font-size:6px;letter-spacing:4px;text-transform:uppercase;color:var(--ac);opacity:.06;white-space:nowrap;pointer-events:none;user-select:none}
+@keyframes annFadeE{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
@@ -234,6 +250,25 @@ window.onerror=function(msg,src,line,col,err){
   </div>
 
 </section>
+
+<!-- ────────── ANNOUNCEMENT: KANJI ANCHOR ────────── -->
+<div id="annKanji" class="ann-e" style="display:none;margin:0 0 16px 0">
+  <div class="e-kanji-col">
+    <span class="e-kanji">報</span>
+  </div>
+  <div class="e-body">
+    <div class="e-top">
+      <span class="e-num" id="annKanjiNum">01</span>
+      <span class="e-title" id="annKanjiTitle">—</span>
+    </div>
+    <div class="e-row">
+      <span class="e-msg" id="annKanjiMsg"></span>
+      <span class="e-time" id="annKanjiTime"></span>
+      <span class="e-idx" id="annKanjiIdx"></span>
+    </div>
+    <span class="e-vert">Broadcast</span>
+  </div>
+</div>
 
 <!-- ────────── POSITIONS ────────── -->
 <section id="positions" class="page">
@@ -1319,13 +1354,7 @@ window.onerror=function(msg,src,line,col,err){
 <!-- Global Toast Container -->
 <div class="toast-container"><div class="toast" id="globalToast"></div></div>
 
-<!-- ═══════════════ TICKER ═══════════════ -->
-<div id="annTicker" style="display:none;position:fixed;top:0;left:var(--sw);right:0;height:36px;z-index:200;background:linear-gradient(90deg,rgba(139,92,246,.12) 0%,rgba(139,92,246,.06) 100%);border-bottom:1px solid rgba(139,92,246,.2);overflow:hidden;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)">
-<div style="position:absolute;left:0;top:0;width:3px;height:100%;background:#8B5CF6"></div>
-<div id="annTickerInner" style="display:flex;align-items:center;height:100%;white-space:nowrap;padding-left:12px;padding-right:40px">
-</div>
-<button id="annTickerClose" onclick="document.getElementById('annTicker').style.display='none'" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(232,224,208,.3);cursor:pointer;font-size:14px;padding:4px 6px;line-height:1">✕</button>
-</div>
+
 <div class="ticker-wrap" id="tickerWrap"></div>
 
 <!-- ═══════════════ SCRIPTS ═══════════════ -->
@@ -1733,6 +1762,7 @@ window.addEventListener('load',function(){
   else setTimeout(initPex,500);
 })();
 </script>
+
 <script>
 (function(){
   var _annIdx=0;
@@ -1743,37 +1773,35 @@ window.addEventListener('load',function(){
     if(dy<7)return dy+'d ago';
     return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
   }
-  function updateAnnTicker(){
+  function updateKanjiAnn(){
     try{
       var s=JSON.parse(localStorage.getItem('meDesktop')||'{}');
       var anns=(s.adminPosts||[]).filter(function(p){return'announcement'===p.kind}).slice(0,5);
-      var bar=document.getElementById('annTicker');
-      var inner=document.getElementById('annTickerInner');
-      if(!bar||!inner)return;
-      if(!anns.length){bar.style.display='none';document.querySelector('.main').style.paddingTop='';return}
-      bar.style.display='flex';
-      document.querySelector('.main').style.paddingTop='36px';
+      var wrap=document.getElementById('annKanji');
+      if(!wrap)return;
+      if(!anns.length){wrap.style.display='none';return}
+      wrap.style.display='flex';
+      wrap.style.animation='none';wrap.offsetHeight;wrap.style.animation='annFadeE .4s ease';
       _annIdx=_annIdx%anns.length;
       var a=anns[_annIdx];
-      var isLatest=_annIdx===0;
-      inner.style.animation='none';inner.offsetHeight;inner.style.animation='annFade .4s ease';
-      inner.innerHTML=''
-        +'<span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px">'
-        +'<span style="background:#8B5CF6;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;font-family:var(--fm,monospace);letter-spacing:0.5px">'+(isLatest?'NEW':'ANN')+'</span>'
-        +'</span>'
-        +'<span style="color:'+(isLatest?'#C4B5FD':'rgba(232,224,208,.6)')+';font-weight:600;font-size:13px;font-family:var(--fd,sans-serif);letter-spacing:0.3px">'+(a.title||'Announcement')+'</span>'
-        +(a.message?'<span style="color:rgba(232,224,208,'+(isLatest?'.55':'.3')+');font-size:12px;font-family:var(--fb,sans-serif);margin-left:10px">'
-          +a.message.slice(0,120)+(a.message.length>120?'...':'')+'</span>':'')
-        +'<span style="color:rgba(139,92,246,.5);font-family:var(--fm,monospace);font-size:10px;margin-left:12px">'+fmtTime(a.timestamp)+'</span>'
-        +(anns.length>1?'<span style="color:rgba(232,224,208,.2);font-family:var(--fm,monospace);font-size:10px;margin-left:8px;border:1px solid rgba(232,224,208,.1);padding:1px 5px;border-radius:3px">'+(_annIdx+1)+'/'+anns.length+'</span>':'');
+      var num=document.getElementById('annKanjiNum');
+      var title=document.getElementById('annKanjiTitle');
+      var msg=document.getElementById('annKanjiMsg');
+      var time=document.getElementById('annKanjiTime');
+      var idx=document.getElementById('annKanjiIdx');
+      if(num)num.textContent=String(_annIdx+1).padStart(2,'0');
+      if(title)title.textContent=a.title||'Announcement';
+      if(msg)msg.textContent=a.message?a.message.slice(0,140)+(a.message.length>140?'...':''):'';
+      if(time)time.textContent=fmtTime(a.timestamp);
+      if(idx)idx.textContent=(_annIdx+1)+'/'+anns.length;
+      if(anns.length<=1&&idx)idx.style.display='none';
     }catch(e){}
   }
-  updateAnnTicker();
-  setInterval(function(){_annIdx++;updateAnnTicker()},6000);
+  updateKanjiAnn();
+  setInterval(function(){_annIdx++;updateKanjiAnn()},6000);
   var _origRS=window.renderSignals;
-  if(_origRS){window.renderSignals=function(){_origRS.apply(this,arguments);updateAnnTicker()}}
+  if(_origRS){window.renderSignals=function(){_origRS.apply(this,arguments);updateKanjiAnn()}}
 })();
 </script>
-<style>@keyframes annFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}</style>
 </body>
 </html>
