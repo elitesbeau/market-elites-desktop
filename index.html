@@ -1320,9 +1320,12 @@ window.onerror=function(msg,src,line,col,err){
 <div class="toast-container"><div class="toast" id="globalToast"></div></div>
 
 <!-- ═══════════════ TICKER ═══════════════ -->
-<div id="annTicker" style="display:none;position:fixed;bottom:var(--th);left:var(--sw);right:0;height:24px;z-index:99;background:var(--bg);border-top:1px solid rgba(139,92,246,.12);overflow:hidden">
-<div id="annTickerInner" style="display:flex;align-items:center;height:100%;white-space:nowrap">
-</div></div>
+<div id="annTicker" style="display:none;position:fixed;top:0;left:var(--sw);right:0;height:36px;z-index:200;background:linear-gradient(90deg,rgba(139,92,246,.12) 0%,rgba(139,92,246,.06) 100%);border-bottom:1px solid rgba(139,92,246,.2);overflow:hidden;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)">
+<div style="position:absolute;left:0;top:0;width:3px;height:100%;background:#8B5CF6"></div>
+<div id="annTickerInner" style="display:flex;align-items:center;height:100%;white-space:nowrap;padding-left:12px;padding-right:40px">
+</div>
+<button id="annTickerClose" onclick="document.getElementById('annTicker').style.display='none'" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(232,224,208,.3);cursor:pointer;font-size:14px;padding:4px 6px;line-height:1">✕</button>
+</div>
 <div class="ticker-wrap" id="tickerWrap"></div>
 
 <!-- ═══════════════ SCRIPTS ═══════════════ -->
@@ -1743,32 +1746,34 @@ window.addEventListener('load',function(){
   function updateAnnTicker(){
     try{
       var s=JSON.parse(localStorage.getItem('meDesktop')||'{}');
-      var anns=(s.adminPosts||[]).filter(function(p){return'announcement'===p.kind}).slice(0,3);
+      var anns=(s.adminPosts||[]).filter(function(p){return'announcement'===p.kind}).slice(0,5);
       var bar=document.getElementById('annTicker');
       var inner=document.getElementById('annTickerInner');
       if(!bar||!inner)return;
-      if(!anns.length){bar.style.display='none';return}
-      bar.style.display='block';
+      if(!anns.length){bar.style.display='none';document.querySelector('.main').style.paddingTop='';return}
+      bar.style.display='flex';
+      document.querySelector('.main').style.paddingTop='36px';
       _annIdx=_annIdx%anns.length;
       var a=anns[_annIdx];
       var isLatest=_annIdx===0;
-      var dot=isLatest?'#8B5CF6':'rgba(232,224,208,.25)';
-      var titleColor=isLatest?'#8B5CF6':'rgba(232,224,208,.5)';
-      var msgColor=isLatest?'rgba(232,224,208,.7)':'rgba(232,224,208,.3)';
       inner.style.animation='none';inner.offsetHeight;inner.style.animation='annFade .4s ease';
-      inner.innerHTML='<span style="display:inline-flex;align-items:center;gap:8px;padding:0 16px;font-size:11px;height:100%">'
-        +'<span style="color:'+dot+';font-size:8px">\u25cf</span>'
-        +'<span style="color:'+titleColor+';font-weight:600;font-family:var(--fd,sans-serif);letter-spacing:0.5px">'+(a.title||'Announcement')+'</span>'
-        +(a.message?'<span style="color:'+msgColor+';font-family:var(--fb,sans-serif)">\u2014 '+a.message.slice(0,100)+(a.message.length>100?'...':'')+'</span>':'')
-        +'<span style="color:rgba(232,224,208,.2);font-family:var(--fm,monospace);font-size:9px;margin-left:8px">'+fmtTime(a.timestamp)+'</span>'
-        +(anns.length>1?'<span style="color:rgba(232,224,208,.15);font-family:var(--fm,monospace);font-size:9px;margin-left:auto">'+(_annIdx+1)+'/'+anns.length+'</span>':'')
-        +'</span>';
+      inner.innerHTML=''
+        +'<span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px">'
+        +'<span style="background:#8B5CF6;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;font-family:var(--fm,monospace);letter-spacing:0.5px">'+(isLatest?'NEW':'ANN')+'</span>'
+        +'</span>'
+        +'<span style="color:'+(isLatest?'#C4B5FD':'rgba(232,224,208,.6)')+';font-weight:600;font-size:13px;font-family:var(--fd,sans-serif);letter-spacing:0.3px">'+(a.title||'Announcement')+'</span>'
+        +(a.message?'<span style="color:rgba(232,224,208,'+(isLatest?'.55':'.3')+');font-size:12px;font-family:var(--fb,sans-serif);margin-left:10px">'
+          +a.message.slice(0,120)+(a.message.length>120?'...':'')+'</span>':'')
+        +'<span style="color:rgba(139,92,246,.5);font-family:var(--fm,monospace);font-size:10px;margin-left:12px">'+fmtTime(a.timestamp)+'</span>'
+        +(anns.length>1?'<span style="color:rgba(232,224,208,.2);font-family:var(--fm,monospace);font-size:10px;margin-left:8px;border:1px solid rgba(232,224,208,.1);padding:1px 5px;border-radius:3px">'+(_annIdx+1)+'/'+anns.length+'</span>':'');
     }catch(e){}
   }
   updateAnnTicker();
-  setInterval(function(){_annIdx++;updateAnnTicker()},5000);
+  setInterval(function(){_annIdx++;updateAnnTicker()},6000);
+  var _origRS=window.renderSignals;
+  if(_origRS){window.renderSignals=function(){_origRS.apply(this,arguments);updateAnnTicker()}}
 })();
 </script>
-<style>@keyframes annFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}</style>
+<style>@keyframes annFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}</style>
 </body>
 </html>
