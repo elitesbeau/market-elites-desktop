@@ -1530,11 +1530,9 @@ window.addEventListener('load',function(){
       +'<div class="pex-summary">'
       +'<div class="pex-sum-item"><span class="pex-sum-lbl">PRICE</span><span class="pex-sum-val" id="pex-sp-'+id+'">\u2014</span></div>'
       +'<div class="pex-sum-div"></div>'
-      +'<div class="pex-sum-item"><span class="pex-sum-lbl">STRIKE</span><span class="pex-sum-val" style="color:var(--ac)">
-</html>+Number(p.strike).toFixed(2)+'</span></div>'
+      +'<div class="pex-sum-item"><span class="pex-sum-lbl">STRIKE</span><span class="pex-sum-val" style="color:var(--ac)">$'+Number(p.strike).toFixed(2)+'</span></div>'
       +'<div class="pex-sum-div"></div>'
-      +'<div class="pex-sum-item"><span class="pex-sum-lbl">PREMIUM</span><span class="pex-sum-val" style="color:var(--g)">+
-</html>+Math.round(totalPrem)+'</span></div>'
+      +'<div class="pex-sum-item"><span class="pex-sum-lbl">PREMIUM</span><span class="pex-sum-val" style="color:var(--g)">+$'+Math.round(totalPrem)+'</span></div>'
       +'<div class="pex-sum-div"></div>'
       +'<div class="pex-sum-item"><span class="pex-sum-lbl">P&L EST</span><span class="pex-sum-val" id="pex-pl-'+id+'">\u2014</span></div>'
       +'<div class="pex-sum-div"></div>'
@@ -1684,8 +1682,7 @@ window.addEventListener('load',function(){
       var isItm=type==='cc'?o.strike<price:o.strike>price;
       var rc=isMatch?'pex-strike':'';
       var tc=isItm&&!isMatch?' class="pex-itm"':'';
-      h+='<tr class="'+rc+'"><td'+tc+'>
-</html>+o.strike.toFixed(2)+'</td><td'+tc+'>'+o.bid.toFixed(2)+'</td><td'+tc+'>'+o.ask.toFixed(2)+'</td><td'+tc+'>'+(o.last?o.last.toFixed(2):'\u2014')+'</td><td'+tc+'>'+(o.iv*100).toFixed(0)+'%</td><td'+tc+'>'+(o.oi?o.oi.toLocaleString():'\u2014')+'</td><td'+tc+'>'+(o.vol||'\u2014')+'</td>'+(hasDelta?'<td'+tc+'>'+o.delta.toFixed(2)+'</td>':'')+'</tr>';
+      h+='<tr class="'+rc+'"><td'+tc+'>$'+o.strike.toFixed(2)+'</td><td'+tc+'>'+o.bid.toFixed(2)+'</td><td'+tc+'>'+o.ask.toFixed(2)+'</td><td'+tc+'>'+(o.last?o.last.toFixed(2):'\u2014')+'</td><td'+tc+'>'+(o.iv*100).toFixed(0)+'%</td><td'+tc+'>'+(o.oi?o.oi.toLocaleString():'\u2014')+'</td><td'+tc+'>'+(o.vol||'\u2014')+'</td>'+(hasDelta?'<td'+tc+'>'+o.delta.toFixed(2)+'</td>':'')+'</tr>';
     });
     h+='</tbody></table>';
     body.innerHTML=h;
@@ -1700,8 +1697,7 @@ window.addEventListener('load',function(){
     if(priceEl&&price>0){
       var cs=change>=0?'+'+change.toFixed(2):change.toFixed(2);
       var cp=((change/Math.max(0.01,price-change))*100).toFixed(2);
-      priceEl.innerHTML='
-</html>+price.toFixed(2)+' <span style="font-size:10px;color:'+(change>=0?'var(--g)':'var(--r)')+'">'+cs+' ('+cp+'%)</span>';
+      priceEl.innerHTML='$'+price.toFixed(2)+' <span style="font-size:10px;color:'+(change>=0?'var(--g)':'var(--r)')+'">'+cs+' ('+cp+'%)</span>';
       priceEl.style.color=change>=0?'var(--g)':'var(--r)';
     }
     var plEl=document.getElementById('pex-pl-'+id);
@@ -1709,8 +1705,7 @@ window.addEventListener('load',function(){
       var pnl=totalPrem;
       if(type==='csp'&&price<p.strike)pnl-=(p.strike-price)*contracts*100;
       var pc=pnl>=0?'var(--g)':'var(--r)';var ps=pnl>=0?'+':'';
-      plEl.innerHTML='<span style="color:'+pc+'">'+ps+'
-</html>+Math.round(Math.abs(pnl)).toLocaleString()+'</span>';
+      plEl.innerHTML='<span style="color:'+pc+'">'+ps+'$'+Math.round(Math.abs(pnl)).toLocaleString()+'</span>';
     }
   }
 
