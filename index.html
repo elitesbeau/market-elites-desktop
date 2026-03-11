@@ -1796,7 +1796,7 @@ window.addEventListener('load',function(){
   updateKanjiAnn();
   setInterval(function(){_annIdx++;updateKanjiAnn()},6000);
   var _origRS=window.renderSignals;
-  if(_origRS){window.renderSignals=function(){_origRS.apply(this,arguments);updateKanjiAnn()};window.fe=fe}
+  if(_origRS){window.renderSignals=function(){_origRS.apply(this,arguments);updateKanjiAnn()}}
 })();
 </script>
 </body>
