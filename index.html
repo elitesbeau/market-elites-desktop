@@ -1445,8 +1445,7 @@ function _renderSigPerf(){
     return{ticker:p.ticker||"?",pnl:pnl,prem:rawPrem};
   });
   var totalPnl=Math.round(cs.totalPremiumCollected);
-  var closedCount=cs.closedTrades||results.length;
-  var avgPnl=closedCount>0?Math.round(totalPnl/closedCount):0;
+  var avgPnl=cs.totalSignals>0?Math.round(cs.totalPremiumCollected/cs.totalSignals):0;
   var best=results.length>0?results.reduce(function(a,b){return a.pnl>b.pnl?a:b}):{ticker:"--",pnl:0};
   var T=cs.totalSignals,W=cs.winners+(cs.called||0),A=cs.assigned,R=cs.rolled;
   var mx=results.length>0?Math.max.apply(null,results.map(function(r){return r.pnl})):1;
