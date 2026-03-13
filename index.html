@@ -1809,7 +1809,19 @@ function deleteWtWheel(id){
     var data=JSON.parse(localStorage.getItem(WT_KEY))||{wheels:[]};
     data.wheels=data.wheels.filter(function(w){return w.id!==id});
     localStorage.setItem(WT_KEY,JSON.stringify(data));
-    if(typeof renderAll==='function')renderAll();
+    // Sync deletion to Firebase so it doesn't come back
+    var state=JSON.parse(localStorage.getItem('meDesktop')||'{}');
+    if(state.firebaseUid&&window.firebase){
+      try{
+        firebase.database().ref('users/'+state.firebaseUid+'/wheelTracker').set(
+          Object.assign({_meta:{lastWriteAt:Date.now(),lastWriteBy:'desktop',schemaVersion:2}},data)
+        );
+      }catch(e2){console.warn('Firebase sync failed:',e2)}
+    }
+    // Re-render using the IIFE's exposed archiveWheel path won't work since we already deleted
+    // Force re-render by triggering the tab click
+    var activeTab=document.querySelector('#wtFilterPills .pill.active');
+    if(activeTab)activeTab.click();
     if(typeof showToast==='function')showToast('Wheel deleted','');
   }catch(e){console.error('deleteWtWheel:',e)}
 }
