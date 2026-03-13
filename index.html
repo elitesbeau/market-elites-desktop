@@ -1799,5 +1799,48 @@ window.addEventListener('load',function(){
   if(_origRS){window.renderSignals=function(){_origRS.apply(this,arguments);updateKanjiAnn()}}
 })();
 </script>
+
+<script>
+// Wheel Tracker: Delete button for closed/archived wheels
+function deleteWtWheel(id){
+  if(!confirm('Delete this wheel permanently?'))return;
+  var WT_KEY='wheelTracker';
+  try{
+    var data=JSON.parse(localStorage.getItem(WT_KEY))||{wheels:[]};
+    data.wheels=data.wheels.filter(function(w){return w.id!==id});
+    localStorage.setItem(WT_KEY,JSON.stringify(data));
+    if(typeof renderAll==='function')renderAll();
+    if(typeof showToast==='function')showToast('Wheel deleted','');
+  }catch(e){console.error('deleteWtWheel:',e)}
+}
+// Inject delete buttons on non-active wheel cards
+(function(){
+  var grid=document.getElementById('wtGrid');
+  if(!grid)return;
+  function addDeleteBtns(){
+    grid.querySelectorAll('.wt-card').forEach(function(card){
+      if(card.querySelector('.wt-del-btn'))return;
+      var badge=card.querySelector('.badge');
+      if(!badge)return;
+      var txt=(badge.textContent||'').toLowerCase();
+      if(txt==='csp'||txt==='cc'||txt==='assigned')return;
+      var footer=card.querySelector('.wt-card-footer');
+      if(!footer)return;
+      var onclick=card.getAttribute('onclick')||'';
+      var m=onclick.match(/openWtDetail\('([^']+)'\)/);
+      if(!m)return;
+      var btn=document.createElement('button');
+      btn.className='btn btn-sm wt-del-btn';
+      btn.style.cssText='border-color:var(--r);color:var(--r)';
+      btn.textContent='Delete';
+      btn.onclick=function(ev){ev.stopPropagation();deleteWtWheel(m[1])};
+      footer.appendChild(btn);
+    });
+  }
+  var obs=new MutationObserver(addDeleteBtns);
+  obs.observe(grid,{childList:true,subtree:true});
+  addDeleteBtns();
+})();
+</script>
 </body>
 </html>
