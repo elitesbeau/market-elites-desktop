@@ -1445,7 +1445,7 @@ function _renderSigPerf(){
     return{ticker:p.ticker||"?",pnl:pnl,prem:rawPrem};
   });
   var totalPnl=Math.round(cs.totalPnl);
-  var closedCount=cs.winners+cs.called;
+  var closedCount=results.length;
   var avgPnl=closedCount>0?Math.round(totalPnl/closedCount):0;
   var best=results.length>0?results.reduce(function(a,b){return a.pnl>b.pnl?a:b}):{ticker:"--",pnl:0};
   var T=cs.totalSignals,W=cs.winners+(cs.called||0),A=cs.assigned,R=cs.rolled;
@@ -1453,11 +1453,11 @@ function _renderSigPerf(){
 
   // Stat cards
   var g=document.getElementById("sigPerfStats");
-  if(g){g.innerHTML='<div class="sp-cell"><div class="sp-lb">TOTAL SIGNALS</div><div class="sp-vl" id="spT">'+T+'</div><div class="sp-sb">'+W+'W / '+A+'A / '+R+'R</div></div><div class="sp-cell"><div class="sp-lb">TOTAL P&L</div><div class="sp-vl" id="spP">+\u0024'+totalPnl.toLocaleString()+'</div><div class="sp-sb">1 CONTRACT</div></div><div class="sp-cell"><div class="sp-lb">AVG RETURN</div><div class="sp-vl" id="spA">\u0024'+avgPnl.toLocaleString()+'</div><div class="sp-sb">PER SIGNAL</div></div><div class="sp-cell"><div class="sp-lb">BEST SIGNAL</div><div class="sp-vl" id="spB">+\u0024'+best.pnl.toLocaleString()+'</div><div class="sp-sb">'+best.ticker+'</div></div>'}
+  if(g){g.innerHTML='<div class="sp-cell"><div class="sp-lb">TOTAL SIGNALS</div><div class="sp-vl" id="spT">'+T+'</div><div class="sp-sb">'+results.length+'W / '+A+'A / '+R+'R</div></div><div class="sp-cell"><div class="sp-lb">TOTAL P&L</div><div class="sp-vl" id="spP">+\u0024'+totalPnl.toLocaleString()+'</div><div class="sp-sb">1 CONTRACT</div></div><div class="sp-cell"><div class="sp-lb">AVG RETURN</div><div class="sp-vl" id="spA">\u0024'+avgPnl.toLocaleString()+'</div><div class="sp-sb">PER SIGNAL</div></div><div class="sp-cell"><div class="sp-lb">BEST SIGNAL</div><div class="sp-vl" id="spB">+\u0024'+best.pnl.toLocaleString()+'</div><div class="sp-sb">'+best.ticker+'</div></div>'}
 
   // Top 3 podium
   var pod=document.getElementById("spPodium");
-  if(pod&&results.length>0){var t3=results.slice(0,3);pod.innerHTML=t3.map(function(r,i){var pct=Math.max(10,Math.round(r.pnl/mx*100));return'<div class="sp-pod '+(i===0?"sp-first":"")+'"><div style="font-family:var(--fm);font-size:7px;color:rgba(74,222,128,.25);letter-spacing:2px;margin-bottom:4px">'+(i===0?"#1 BEST":i===1?"#2":"#3")+'</div><div class="glitch-hover" style="font-family:var(--fm);font-size:14px;font-weight:700;color:var(--g);text-shadow:0 0 8px rgba(74,222,128,.25)">'+r.ticker+'</div><div style="font-family:var(--fm);font-size:11px;color:var(--g);margin-top:3px;opacity:.7">+\u0024'+r.pnl+'</div><div style="height:3px;background:rgba(74,222,128,.1);border-radius:1px;margin-top:6px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--g);border-radius:1px;box-shadow:0 0 6px var(--g)"></div></div></div>'}).join("")}
+  if(pod&&results.length>0){var t3=results.slice().sort(function(a,b){return b.pnl-a.pnl}).slice(0,3);pod.innerHTML=t3.map(function(r,i){var pct=Math.max(10,Math.round(r.pnl/mx*100));return'<div class="sp-pod '+(i===0?"sp-first":"")+'"><div style="font-family:var(--fm);font-size:7px;color:rgba(74,222,128,.25);letter-spacing:2px;margin-bottom:4px">'+(i===0?"#1 BEST":i===1?"#2":"#3")+'</div><div class="glitch-hover" style="font-family:var(--fm);font-size:14px;font-weight:700;color:var(--g);text-shadow:0 0 8px rgba(74,222,128,.25)">'+r.ticker+'</div><div style="font-family:var(--fm);font-size:11px;color:var(--g);margin-top:3px;opacity:.7">+\u0024'+r.pnl+'</div><div style="height:3px;background:rgba(74,222,128,.1);border-radius:1px;margin-top:6px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--g);border-radius:1px;box-shadow:0 0 6px var(--g)"></div></div></div>'}).join("")}
   else if(pod){pod.style.display="none"}
 
   // Chart bars
