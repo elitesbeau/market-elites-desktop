@@ -1373,8 +1373,9 @@ window.onerror=function(msg,src,line,col,err){
   var assigned=signals.filter(function(p){return p.status==="assigned"});
   var rolled=signals.filter(function(p){return p.status==="rolled"});
   var results=wins.map(function(p){
-    var prem=parseFloat(String(p.prem||"0").replace(/[\u0024,]/g,""))||0;
-    return{ticker:p.ticker||"?",pnl:Math.round(prem*100),prem:prem};
+    var rawPrem=parseFloat(String(p.prem||"0").replace(/[\u0024,]/g,""))||0;
+    var pnl=p.totalPremiumCollected?Math.round(p.totalPremiumCollected*100*(p.assignedContracts||1)):Math.round(rawPrem*100*(p.assignedContracts||1));
+    return{ticker:p.ticker||"?",pnl:pnl,prem:rawPrem};
   });
   var totalPnl=results.reduce(function(s,r){return s+r.pnl},0);
   var avgPnl=results.length>0?Math.round(totalPnl/results.length):0;
