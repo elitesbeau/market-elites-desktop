@@ -2075,10 +2075,7 @@ setInterval(function(){var s=document.getElementById("apExp");if(s&&s.tagName===
 (function(){
 var _done=false,_q=[];
 
-function _checkExpired(){
-  var _S=JSON.parse(localStorage.getItem("meDesktop")||"{}");var _wd=JSON.parse(localStorage.getItem("wheelTracker")||"{}");var _posCount=(_S.positions||[]).length;var _whlCount=((_wd.wheels||[]).filter(function(w){return w.status==="active"})).length;var _msg="Expired check running. Positions: "+_posCount+", Active wheels: "+_whlCount;(_S.positions||[]).forEach(function(p){_msg+="
-"+p.symbol+" exp="+p.expiration+" dte="+getDte(p.expiration)+" openDays="+(p.openDate?Math.round((Date.now()-new Date(p.openDate).getTime())/864e5):"?")});((_wd.wheels||[]).filter(function(w){return w.status==="active"})).forEach(function(w){var txs=(w.transactions||[]);var last=txs[txs.length-1];_msg+="
-Wheel "+w.sym+" txs="+txs.length+" lastExp="+(last?last.expiration:"none")+" lastDate="+(last?last.date:"none")});alert(_msg);
+function _checkExpired(){try{var _S=JSON.parse(localStorage.getItem("meDesktop")||"{}");var _wd=JSON.parse(localStorage.getItem("wheelTracker")||"{}");var _p=(_S.positions||[]);var _w=((_wd.wheels||[]).filter(function(w){return w.status==="active"}));var _l=["CHECK","pos:"+_p.length,"whl:"+_w.length];_p.forEach(function(p){var od=p.openDate?Math.round((Date.now()-new Date(p.openDate).getTime())/864e5):"?";_l.push(p.symbol+":exp="+p.expiration+":dte="+getDte(p.expiration)+":d="+od)});_w.forEach(function(w){var t=w.transactions||[];var lt=t.length?t[t.length-1]:null;_l.push("W:"+w.sym+":txs="+t.length+":lExp="+(lt?lt.expiration:"")+":lDt="+(lt?lt.date:""))});alert(_l.join(" | "));}catch(ex){alert("ERR:"+ex.message)}
   if(_done)return;_done=true;
   var items=[];
   // Check positions
