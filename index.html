@@ -1536,7 +1536,7 @@ async function sendEmailNotifications(post){
     if(sent||fail)showToast("Email: "+sent+" sent"+(fail?", "+fail+" failed":""),fail?"error":"success");
   }catch(e){console.error("Email error:",e);showToast("Email alerts failed","error")}
 }
-async async function sendSmsNotifications(post){
+async function sendSmsNotifications(post){
   var pk=localStorage.getItem("emailjsPublicKey")||EMAILJS_DEFAULTS.publicKey;
   var sid=localStorage.getItem("emailjsServiceId")||EMAILJS_DEFAULTS.serviceId;
   var tid=localStorage.getItem("emailjsTemplateId")||EMAILJS_DEFAULTS.templateId;
