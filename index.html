@@ -1596,7 +1596,7 @@ window._getExpPositions=function(){
   (st.positions||[]).forEach(function(p){
     var d=_dte(p.expiration);
     var od=p.openDate?Math.round((Date.now()-new Date(p.openDate).getTime())/864e5):999;
-    if(d<0||(d===999&&od>3))items.push({type:"pos",id:p.id,symbol:p.symbol,strike:p.strike,pType:(p.type||"csp"),exp:p.expiration||"unknown"});
+    if(d<0||(d===999&&od>1))items.push({type:"pos",id:p.id,symbol:p.symbol,strike:p.strike,pType:(p.type||"csp"),exp:p.expiration||"unknown"});
   });
   var wd=JSON.parse(localStorage.getItem("wheelTracker")||"{}");
   (wd.wheels||[]).filter(function(w){return w.status==="active"}).forEach(function(w){
@@ -1606,7 +1606,7 @@ window._getExpPositions=function(){
     var isExp=lt&&_dte(lt.expiration)<0;
     var noExp=!lt&&(w.transactions||[]).length>0;
     var fd=noExp?((w.transactions[0].date||w.createdAt)):null;
-    var old2=fd?Math.round((Date.now()-new Date(fd).getTime())/864e5)>3:false;
+    var old2=fd?Math.round((Date.now()-new Date(fd).getTime())/864e5)>1:false;
     if(isExp||(noExp&&old2)){
       var lastTx=lt||w.transactions[w.transactions.length-1];
       items.push({type:"whl",id:w.id,symbol:w.sym,strike:lastTx?lastTx.strike:"?",pType:lastTx&&lastTx.type==="sell_cc"?"cc":"csp",exp:lastTx?lastTx.expiration||"unknown":"unknown"});
@@ -2186,6 +2186,6 @@ setTimeout(function(){
   next();
 },4000);
 </script>
-<script>alert("SCRIPT WORKS")</script>
+
 </body>
 </html>
