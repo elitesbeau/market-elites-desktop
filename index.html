@@ -2224,14 +2224,7 @@ function _showExpModal(title,msg,pType,onWorthless,onAssign){
   openModal("confirmModal");
 }
 
-// Trigger: poll for dashboard ready, then check after 2s
-var _ti=setInterval(function(){
-  var h=document.querySelector(".hero-val");
-  if(h&&h.textContent&&h.textContent!=="$0"){
-    clearInterval(_ti);
-    setTimeout(_checkExpired,2000);
-  }
-},1000);
+setTimeout(_checkExpired,3000);
 
 })();
 </script>
