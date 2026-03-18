@@ -2071,5 +2071,98 @@ function _populateExpDropdown(){
 }
 setInterval(function(){var s=document.getElementById("apExp");if(s&&s.tagName==="SELECT"&&s.options.length<=1)_populateExpDropdown()},1000);
 </script>
+
+<script>
+// Expired position check — prompts user for each expired position
+var _expCheckDone=false;
+var _expQueue=[];
+function _checkExpiredPositions(){
+  if(_expCheckDone)return;
+  var S=JSON.parse(localStorage.getItem("meDesktop")||"{}");
+  if(!S.positions||S.positions.length===0)return;
+  var expired=S.positions.filter(function(p){return getDte(p.expiration)<0});
+  if(expired.length===0)return;
+  _expCheckDone=true;
+  _expQueue=expired.map(function(p){return p.id});
+  _processNextExpired();
+}
+function _processNextExpired(){
+  if(_expQueue.length===0){renderDashboard();renderAll();return}
+  var pid=_expQueue.shift();
+  var S=JSON.parse(localStorage.getItem("meDesktop")||"{}");
+  var p=(S.positions||[]).find(function(x){return x.id===pid});
+  if(!p){_processNextExpired();return}
+  var contracts=p.contracts||1;
+  var pType=(p.type||"csp").toLowerCase();
+  var totalPrem=(p.premium||0)*contracts*100;
+  var fpc=S.feePerContract||0;
+  var totalFees=(p.fees||0)+fpc*contracts;
+  var title=p.symbol+" "+pType.toUpperCase()+" $"+p.strike+" expired";
+  var msg="This position expired on "+p.expiration+". What happened?";
+  document.getElementById("confirmTitle").textContent=title;
+  document.getElementById("confirmMessage").textContent=msg;
+  var okBtn=document.getElementById("confirmAction");
+  okBtn.textContent="Expired Worthless \u2713";
+  okBtn.onclick=function(){
+    var grossPnl=totalPrem;
+    var pnl=grossPnl-totalFees;
+    S=JSON.parse(localStorage.getItem("meDesktop")||"{}");
+    S.history=S.history||[];
+    S.history.unshift(Object.assign({},p,{closeDate:new Date().toISOString(),pnl:pnl,grossPnl:grossPnl,fees:totalFees,outcome:"expired"}));
+    S.positions=S.positions.filter(function(x){return x.id!==pid});
+    localStorage.setItem("meDesktop",JSON.stringify(S));
+    if(typeof syncPositionsToFirebase==="function")syncPositionsToFirebase();
+    // Close wheel cycle
+    try{
+      var wdata=wtLoad();var wh=wdata.wheels.find(function(x){return x.sym===p.symbol&&x.status==="active"});
+      if(wh){var ac=(wh.cycles||[]).find(function(c){return c.status==="active"});if(ac){ac.status="completed";ac.endDate=new Date().toISOString().slice(0,10);ac.daysOpen=daysBetween(ac.startDate,ac.endDate)}wtSave(wdata)}
+    }catch(e){}
+    closeModal("confirmModal");
+    showToast(p.symbol+" expired worthless: +$"+Math.round(pnl),"success");
+    setTimeout(_processNextExpired,400);
+  };
+  var footer=document.getElementById("confirmModal").querySelector(".modal-footer");
+  var cancelBtn=footer.querySelector(".btn:first-child");
+  cancelBtn.textContent="Skip for now";
+  cancelBtn.onclick=function(){closeModal("confirmModal");setTimeout(_processNextExpired,400)};
+  // Remove old assign button if exists
+  var old=document.getElementById("_expAssignBtn");
+  if(old)old.remove();
+  if(pType==="csp"){
+    var assignBtn=document.createElement("button");
+    assignBtn.id="_expAssignBtn";
+    assignBtn.className="btn btn-sm";
+    assignBtn.style.cssText="width:100%;margin-top:12px;border-color:var(--w);color:var(--w)";
+    assignBtn.textContent="Got Assigned (100 shares)";
+    assignBtn.onclick=function(){
+      closeModal("confirmModal");
+      _selPosId=pid;
+      var origRA=window.renderAll;
+      window.renderAll=function(){origRA();window.renderAll=origRA;setTimeout(_processNextExpired,400)};
+      markAssigned();
+    };
+    var msgEl=document.getElementById("confirmMessage");
+    msgEl.parentNode.insertBefore(assignBtn,msgEl.nextSibling);
+  }
+  openModal("confirmModal");
+}
+<\/script>
+
+<script>
+(function(){
+  var _expTriggerDone=false;
+  var _expInterval=setInterval(function(){
+    if(_expTriggerDone)return;
+    var hero=document.querySelector(".hero-val");
+    if(hero&&hero.textContent&&hero.textContent!=="$0"){
+      _expTriggerDone=true;
+      clearInterval(_expInterval);
+      setTimeout(function(){
+        if(typeof _checkExpiredPositions==="function")_checkExpiredPositions();
+      },2000);
+    }
+  },1000);
+})();
+<\/script>
 </body>
 </html>
