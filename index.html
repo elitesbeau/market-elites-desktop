@@ -1560,7 +1560,7 @@ var _xD=false,_xQ=[];
 function _xCheck(){
 if(_xD)return;_xD=true;
 var items=[];
-(S.positions||[]).forEach(function(p){
+(t.positions||[]).forEach(function(p){
 var d=ge(p.expiration);
 var od=p.openDate?Math.round((Date.now()-new Date(p.openDate).getTime())/864e5):999;
 if(d<0||(d===999&&od>3))items.push({s:"p",id:p.id,d:p})
@@ -1587,17 +1587,17 @@ var ok=document.getElementById("confirmAction");
 ok.textContent="Expired Worthless";
 ok.onclick=function(){
 closeModal("confirmModal");
-if(it.s==="p"){var p2=(S.positions||[]).find(function(x){return x.id===pid});
-if(p2){var c2=p2.contracts||1;var fees=(p2.fees||0)+(S.feePerContract||0)*c2;var gp=(p2.premium||0)*c2*100;
-S.history=S.history||[];S.history.unshift(Object.assign({},p2,{closeDate:new Date().toISOString(),pnl:gp-fees,grossPnl:gp,fees:fees,outcome:"expired"}));
-S.positions=S.positions.filter(function(x){return x.id!==pid});save();Le()}}
+if(it.s==="p"){var p2=(t.positions||[]).find(function(x){return x.id===pid});
+if(p2){var c2=p2.contracts||1;var fees=(p2.fees||0)+(t.feePerContract||0)*c2;var gp=(p2.premium||0)*c2*100;
+t.history=t.history||[];t.history.unshift(Object.assign({},p2,{closeDate:new Date().toISOString(),pnl:gp-fees,grossPnl:gp,fees:fees,outcome:"expired"}));
+t.positions=t.positions.filter(function(x){return x.id!==pid});save();Le()}}
 try{var wd3=wt();var wh=wd3.wheels.find(function(x){return x.sym===sym&&x.status==="active"});
 if(wh){var ac=(wh.cycles||[]).find(function(c){return c.status==="active"});
 if(ac){ac.status="completed";ac.endDate=new Date().toISOString().slice(0,10);ac.daysOpen=Dt(ac.startDate,ac.endDate)}kt(wd3)}}catch(e){}
-if(it.s==="w"){var mp=(S.positions||[]).find(function(x){return x.symbol===sym});
-if(mp){var c3=mp.contracts||1;var f3=(mp.fees||0)+(S.feePerContract||0)*c3;var g3=(mp.premium||0)*c3*100;
-S.history=S.history||[];S.history.unshift(Object.assign({},mp,{closeDate:new Date().toISOString(),pnl:g3-f3,grossPnl:g3,fees:f3,outcome:"expired"}));
-S.positions=S.positions.filter(function(x){return x.id!==mp.id});save();Le()}}
+if(it.s==="w"){var mp=(t.positions||[]).find(function(x){return x.symbol===sym});
+if(mp){var c3=mp.contracts||1;var f3=(mp.fees||0)+(t.feePerContract||0)*c3;var g3=(mp.premium||0)*c3*100;
+t.history=t.history||[];t.history.unshift(Object.assign({},mp,{closeDate:new Date().toISOString(),pnl:g3-f3,grossPnl:g3,fees:f3,outcome:"expired"}));
+t.positions=t.positions.filter(function(x){return x.id!==mp.id});save();Le()}}
 showToast(sym+" expired worthless: +$"+Math.round(tp),"success");
 setTimeout(_xNext,400)};
 var ft=document.getElementById("confirmModal").querySelector(".modal-footer");
@@ -1610,9 +1610,9 @@ var ab=document.createElement("button");ab.id="_xAB";ab.className="btn btn-sm";
 ab.style.cssText="width:100%;margin-top:12px;border-color:var(--w);color:var(--w)";
 ab.textContent="Got Assigned (100 shares)";
 ab.onclick=function(){closeModal("confirmModal");
-var tgt=pid||(function(){var m=(S.positions||[]).find(function(x){return x.symbol===sym&&(x.type||"csp")==="csp"});return m?m.id:null})();
+var tgt=pid||(function(){var m=(t.positions||[]).find(function(x){return x.symbol===sym&&(x.type||"csp")==="csp"});return m?m.id:null})();
 if(!tgt){showToast("No position found","error");setTimeout(_xNext,400);return}
-_selPosId=tgt;var oRA=renderAll;renderAll=function(){oRA();renderAll=oRA;setTimeout(_xNext,400)};markAssigned()};
+_selPosId=tgt;markAssigned();setTimeout(_xNext,2000)};
 document.getElementById("confirmMessage").parentNode.insertBefore(ab,document.getElementById("confirmMessage").nextSibling)}
 openModal("confirmModal")}
 setTimeout(_xCheck,3000);
