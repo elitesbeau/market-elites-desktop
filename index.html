@@ -2071,98 +2071,157 @@ function _populateExpDropdown(){
 }
 setInterval(function(){var s=document.getElementById("apExp");if(s&&s.tagName==="SELECT"&&s.options.length<=1)_populateExpDropdown()},1000);
 </script>
-
 <script>
-// Expired position check — prompts user for each expired position
-var _expCheckDone=false;
-var _expQueue=[];
-function _checkExpiredPositions(){
-  if(_expCheckDone)return;
-  var S=JSON.parse(localStorage.getItem("meDesktop")||"{}");
-  if(!S.positions||S.positions.length===0)return;
-  var expired=S.positions.filter(function(p){return getDte(p.expiration)<0});
-  if(expired.length===0)return;
-  _expCheckDone=true;
-  _expQueue=expired.map(function(p){return p.id});
-  _processNextExpired();
+(function(){
+var _done=false,_q=[];
+
+function _checkExpired(){
+  if(_done)return;_done=true;
+  var items=[];
+  // Check positions
+  try{
+    var S=JSON.parse(localStorage.getItem("meDesktop")||"{}");
+    (S.positions||[]).forEach(function(p){
+      if(getDte(p.expiration)<0)items.push({src:"pos",id:p.id,d:p})
+    });
+  }catch(e){}
+  // Check wheel tracker
+  try{
+    var wd=JSON.parse(localStorage.getItem("wheelTracker")||"{}");
+    (wd.wheels||[]).filter(function(w){return w.status==="active"}).forEach(function(w){
+      var txs=(w.transactions||[]).filter(function(t){
+        return(t.type==="sell_csp"||t.type==="sell_cc")&&t.expiration
+      });
+      if(!txs.length)return;
+      var last=txs[txs.length-1];
+      if(getDte(last.expiration)<0){
+        var dup=items.some(function(x){return x.d&&x.d.symbol===w.sym});
+        if(!dup)items.push({src:"whl",wid:w.id,sym:w.sym,tx:last,w:w})
+      }
+    });
+  }catch(e){}
+  if(!items.length)return;
+  _q=items;_next();
 }
-function _processNextExpired(){
-  if(_expQueue.length===0){renderDashboard();renderAll();return}
-  var pid=_expQueue.shift();
+
+function _next(){
+  if(!_q.length){try{renderDashboard();renderAll()}catch(e){}return}
+  var it=_q.shift();
+  if(it.src==="pos")_posPrompt(it.d);
+  else _whlPrompt(it);
+}
+
+function _posPrompt(p){
+  var c=p.contracts||1,pt=(p.type||"csp").toLowerCase();
+  var tp=(p.premium||0)*c*100;
   var S=JSON.parse(localStorage.getItem("meDesktop")||"{}");
-  var p=(S.positions||[]).find(function(x){return x.id===pid});
-  if(!p){_processNextExpired();return}
-  var contracts=p.contracts||1;
-  var pType=(p.type||"csp").toLowerCase();
-  var totalPrem=(p.premium||0)*contracts*100;
-  var fpc=S.feePerContract||0;
-  var totalFees=(p.fees||0)+fpc*contracts;
-  var title=p.symbol+" "+pType.toUpperCase()+" $"+p.strike+" expired";
-  var msg="This position expired on "+p.expiration+". What happened?";
+  var fees=(p.fees||0)+(S.feePerContract||0)*c;
+  _showExpModal(
+    p.symbol+" "+pt.toUpperCase()+" $"+p.strike+" expired",
+    "Expired on "+(p.expiration||"?")+". What happened?",
+    pt,
+    function onWorthless(){
+      S=JSON.parse(localStorage.getItem("meDesktop")||"{}");
+      var pnl=tp-fees;
+      S.history=S.history||[];
+      S.history.unshift(Object.assign({},p,{closeDate:new Date().toISOString(),pnl:pnl,grossPnl:tp,fees:fees,outcome:"expired"}));
+      S.positions=S.positions.filter(function(x){return x.id!==p.id});
+      localStorage.setItem("meDesktop",JSON.stringify(S));
+      try{syncPositionsToFirebase()}catch(e){}
+      try{var wd=wtLoad();var wh=wd.wheels.find(function(x){return x.sym===p.symbol&&x.status==="active"});
+        if(wh){var ac=(wh.cycles||[]).find(function(c){return c.status==="active"});
+          if(ac){ac.status="completed";ac.endDate=new Date().toISOString().slice(0,10);ac.daysOpen=daysBetween(ac.startDate,ac.endDate)}
+          wtSave(wd)}
+      }catch(e){}
+      showToast(p.symbol+" expired worthless: +$"+Math.round(pnl),"success");
+    },
+    function onAssign(){
+      _selPosId=p.id;
+      var orig=window.renderAll;
+      window.renderAll=function(){orig();window.renderAll=orig;setTimeout(_next,400)};
+      markAssigned();
+    }
+  );
+}
+
+function _whlPrompt(it){
+  var tx=it.tx,sym=it.sym,tt=tx.type==="sell_cc"?"CC":"CSP";
+  var c=tx.contracts||1,tp=(tx.premium||0)*c*100;
+  _showExpModal(
+    sym+" "+tt+" $"+(tx.strike||"?")+" expired",
+    "Wheel position expired on "+(tx.expiration||"?")+". What happened?",
+    tt.toLowerCase(),
+    function onWorthless(){
+      try{var wd=wtLoad();var wh=wd.wheels.find(function(x){return x.id===it.wid});
+        if(wh){
+          autoAddWheelTx(wh.id,"exp_csp",{strike:tx.strike,contracts:c,totalValue:0,notes:"Expired worthless"});
+          var ac=(wh.cycles||[]).find(function(c){return c.status==="active"});
+          if(ac){ac.status="completed";ac.endDate=new Date().toISOString().slice(0,10);ac.daysOpen=daysBetween(ac.startDate,ac.endDate)}
+          wtSave(wd)
+        }
+      }catch(e){}
+      // Also close matching position
+      try{var S=JSON.parse(localStorage.getItem("meDesktop")||"{}");
+        var mp=(S.positions||[]).find(function(p){return p.symbol===sym});
+        if(mp){
+          var fees=(mp.fees||0)+(S.feePerContract||0)*(mp.contracts||1);
+          var gp=(mp.premium||0)*(mp.contracts||1)*100;
+          S.history=S.history||[];
+          S.history.unshift(Object.assign({},mp,{closeDate:new Date().toISOString(),pnl:gp-fees,grossPnl:gp,fees:fees,outcome:"expired"}));
+          S.positions=S.positions.filter(function(x){return x.id!==mp.id});
+          localStorage.setItem("meDesktop",JSON.stringify(S));
+          try{syncPositionsToFirebase()}catch(e){}
+        }
+      }catch(e){}
+      showToast(sym+" expired worthless: +$"+Math.round(tp),"success");
+    },
+    function onAssign(){
+      var S=JSON.parse(localStorage.getItem("meDesktop")||"{}");
+      var mp=(S.positions||[]).find(function(p){return p.symbol===sym&&(p.type||"csp")==="csp"});
+      if(!mp){showToast("No position found for "+sym,"error");setTimeout(_next,400);return}
+      _selPosId=mp.id;
+      var orig=window.renderAll;
+      window.renderAll=function(){orig();window.renderAll=orig;setTimeout(_next,400)};
+      markAssigned();
+    }
+  );
+}
+
+function _showExpModal(title,msg,pType,onWorthless,onAssign){
+  var cm=document.getElementById("confirmModal");
   document.getElementById("confirmTitle").textContent=title;
   document.getElementById("confirmMessage").textContent=msg;
   var okBtn=document.getElementById("confirmAction");
   okBtn.textContent="Expired Worthless \u2713";
-  okBtn.onclick=function(){
-    var grossPnl=totalPrem;
-    var pnl=grossPnl-totalFees;
-    S=JSON.parse(localStorage.getItem("meDesktop")||"{}");
-    S.history=S.history||[];
-    S.history.unshift(Object.assign({},p,{closeDate:new Date().toISOString(),pnl:pnl,grossPnl:grossPnl,fees:totalFees,outcome:"expired"}));
-    S.positions=S.positions.filter(function(x){return x.id!==pid});
-    localStorage.setItem("meDesktop",JSON.stringify(S));
-    if(typeof syncPositionsToFirebase==="function")syncPositionsToFirebase();
-    // Close wheel cycle
-    try{
-      var wdata=wtLoad();var wh=wdata.wheels.find(function(x){return x.sym===p.symbol&&x.status==="active"});
-      if(wh){var ac=(wh.cycles||[]).find(function(c){return c.status==="active"});if(ac){ac.status="completed";ac.endDate=new Date().toISOString().slice(0,10);ac.daysOpen=daysBetween(ac.startDate,ac.endDate)}wtSave(wdata)}
-    }catch(e){}
-    closeModal("confirmModal");
-    showToast(p.symbol+" expired worthless: +$"+Math.round(pnl),"success");
-    setTimeout(_processNextExpired,400);
-  };
-  var footer=document.getElementById("confirmModal").querySelector(".modal-footer");
+  okBtn.onclick=function(){closeModal("confirmModal");onWorthless();setTimeout(_next,400)};
+  var footer=cm.querySelector(".modal-footer");
   var cancelBtn=footer.querySelector(".btn:first-child");
   cancelBtn.textContent="Skip for now";
-  cancelBtn.onclick=function(){closeModal("confirmModal");setTimeout(_processNextExpired,400)};
-  // Remove old assign button if exists
+  cancelBtn.onclick=function(){closeModal("confirmModal");setTimeout(_next,400)};
   var old=document.getElementById("_expAssignBtn");
   if(old)old.remove();
   if(pType==="csp"){
-    var assignBtn=document.createElement("button");
-    assignBtn.id="_expAssignBtn";
-    assignBtn.className="btn btn-sm";
-    assignBtn.style.cssText="width:100%;margin-top:12px;border-color:var(--w);color:var(--w)";
-    assignBtn.textContent="Got Assigned (100 shares)";
-    assignBtn.onclick=function(){
-      closeModal("confirmModal");
-      _selPosId=pid;
-      var origRA=window.renderAll;
-      window.renderAll=function(){origRA();window.renderAll=origRA;setTimeout(_processNextExpired,400)};
-      markAssigned();
-    };
-    var msgEl=document.getElementById("confirmMessage");
-    msgEl.parentNode.insertBefore(assignBtn,msgEl.nextSibling);
+    var ab=document.createElement("button");
+    ab.id="_expAssignBtn";ab.className="btn btn-sm";
+    ab.style.cssText="width:100%;margin-top:12px;border-color:var(--w);color:var(--w)";
+    ab.textContent="Got Assigned (100 shares)";
+    ab.onclick=function(){closeModal("confirmModal");onAssign()};
+    var me=document.getElementById("confirmMessage");
+    me.parentNode.insertBefore(ab,me.nextSibling);
   }
   openModal("confirmModal");
 }
-<\/script>
 
-<script>
-(function(){
-  var _expTriggerDone=false;
-  var _expInterval=setInterval(function(){
-    if(_expTriggerDone)return;
-    var hero=document.querySelector(".hero-val");
-    if(hero&&hero.textContent&&hero.textContent!=="$0"){
-      _expTriggerDone=true;
-      clearInterval(_expInterval);
-      setTimeout(function(){
-        if(typeof _checkExpiredPositions==="function")_checkExpiredPositions();
-      },2000);
-    }
-  },1000);
+// Trigger: poll for dashboard ready, then check after 2s
+var _ti=setInterval(function(){
+  var h=document.querySelector(".hero-val");
+  if(h&&h.textContent&&h.textContent!=="$0"){
+    clearInterval(_ti);
+    setTimeout(_checkExpired,2000);
+  }
+},1000);
+
 })();
-<\/script>
+</script>
 </body>
 </html>
