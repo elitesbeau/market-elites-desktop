@@ -2086,16 +2086,13 @@ setInterval(function(){var s=document.getElementById("apExp");if(s&&s.tagName===
 </style>
 <script>
 (function(){
-  var ME="meDesktop", WT="wheelTracker";
-
-  function readME(){try{return JSON.parse(localStorage.getItem(ME)||"{}")}catch(e){return {}}}
-  function writeME(s){localStorage.setItem(ME,JSON.stringify(s))}
+  var ME="meDesktop",WT="wheelTracker";
+  function readME(){try{return JSON.parse(localStorage.getItem(ME)||"{}")}catch(e){return{}}}
   function readWT(){try{return JSON.parse(localStorage.getItem(WT)||'{"wheels":[]}')}catch(e){return{wheels:[]}}}
   function writeWT(s){localStorage.setItem(WT,JSON.stringify(s))}
 
   function parsExp(exp){
-    if(!exp)return null;
-    var s=String(exp).trim();
+    if(!exp)return null;var s=String(exp).trim();
     var iso=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if(iso)return new Date(+iso[1],+iso[2]-1,+iso[3]);
     var d=new Date(s);
@@ -2104,20 +2101,14 @@ setInterval(function(){var s=document.getElementById("apExp");if(s&&s.tagName===
     if(isNaN(d.getTime()))return null;
     return new Date(d.getFullYear(),d.getMonth(),d.getDate());
   }
-
   function dte(exp){
-    var d=parsExp(exp);
-    if(!d)return 999;
-    var now=new Date();
-    var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    var d=parsExp(exp);if(!d)return 999;
+    var now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
     return Math.round((d-today)/864e5);
   }
 
-  function daysBtwn(a,b){return Math.round((new Date(b)-new Date(a))/864e5)}
-
   function findExpired(){
-    var items=[];
-    var s=readME();
+    var items=[],s=readME();
     (s.positions||[]).forEach(function(p){
       var d=dte(p.expiration);
       var od=p.openDate?Math.round((Date.now()-new Date(p.openDate).getTime())/864e5):999;
@@ -2125,40 +2116,21 @@ setInterval(function(){var s=document.getElementById("apExp");if(s&&s.tagName===
     });
     var w=readWT();
     (w.wheels||[]).filter(function(wh){return wh.status==="active"}).forEach(function(wh){
+      var hasPosItem=items.some(function(x){return x.pos&&x.pos.symbol===wh.sym});
+      if(hasPosItem)return;
       var optTx=(wh.transactions||[]).filter(function(tx){return(tx.type==="sell_csp"||tx.type==="sell_cc")&&tx.expiration});
       var lastTx=optTx.length?optTx[optTx.length-1]:null;
       var isExpired=lastTx&&dte(lastTx.expiration)<0;
       var noExp=!lastTx&&(wh.transactions||[]).length>0;
       var firstDate=noExp?(wh.transactions[0].date||wh.createdAt):null;
       var oldEnough=firstDate?Math.round((Date.now()-new Date(firstDate).getTime())/864e5)>3:false;
-      if(isExpired||(noExp&&oldEnough)){
-        if(!items.some(function(x){return(x.pos&&x.pos.symbol===wh.sym)||(x.whl&&x.whl.sym===wh.sym)}))
-          items.push({type:"whl",whl:wh,tx:lastTx||(wh.transactions||[])[wh.transactions.length-1]});
-      }
+      if(isExpired||(noExp&&oldEnough))
+        items.push({type:"whl",whl:wh,tx:lastTx||(wh.transactions||[])[wh.transactions.length-1]});
     });
     return items;
   }
 
-  function closeAsExpired(sym,posId){
-    var s=readME();
-    var p=posId?(s.positions||[]).find(function(x){return x.id===posId}):(s.positions||[]).find(function(x){return x.symbol===sym});
-    var pnl=0;
-    if(p){
-      var c=p.contracts||1;
-      var fees=(p.fees||0)+(s.feePerContract||0)*c;
-      var gp=(p.premium||0)*c*100;
-      pnl=gp-fees;
-      s.history=s.history||[];
-      s.history.unshift({
-        id:p.id,symbol:p.symbol,type:p.type,strike:p.strike,expiration:p.expiration,
-        premium:p.premium,contracts:p.contracts,openDate:p.openDate,fromSignal:p.fromSignal,
-        signalId:p.signalId,fees:fees,closeDate:new Date().toISOString(),
-        pnl:pnl,grossPnl:gp,outcome:"expired"
-      });
-      s.positions=(s.positions||[]).filter(function(x){return x.id!==p.id});
-    }
-    writeME(s);
-
+  function closeWheelCycle(sym){
     var w=readWT();
     var wh=(w.wheels||[]).find(function(x){return x.sym===sym&&x.status==="active"});
     if(wh){
@@ -2166,29 +2138,18 @@ setInterval(function(){var s=document.getElementById("apExp");if(s&&s.tagName===
       if(ac){
         ac.status="completed";
         ac.endDate=new Date().toISOString().slice(0,10);
-        ac.daysOpen=daysBtwn(ac.startDate,ac.endDate);
+        var sd=ac.startDate||wh.createdAt||ac.endDate;
+        ac.daysOpen=Math.round((new Date(ac.endDate)-new Date(sd))/864e5);
       }
+      writeWT(w);
     }
-    writeWT(w);
-    return pnl;
-  }
-
-  function syncApp(){
-    try{if(typeof loadState==="function")loadState()}catch(e){}
-    try{if(typeof save==="function")save()}catch(e){}
   }
 
   function showPrompts(items){
     if(!items.length)return;
     var idx=0;
-
-    function showNext(){
-      if(idx>=items.length){
-        syncApp();
-        // Force reload to refresh all UI
-        setTimeout(function(){location.reload()},500);
-        return;
-      }
+    function next(){
+      if(idx>=items.length)return;
       var it=items[idx];
       var sym,strike,pType,expStr,posId;
       if(it.type==="pos"){
@@ -2199,60 +2160,77 @@ setInterval(function(){var s=document.getElementById("apExp");if(s&&s.tagName===
         pType=it.tx&&it.tx.type==="sell_cc"?"CC":"CSP";
         expStr=it.tx?it.tx.expiration||"unknown":"unknown";posId=null;
       }
-
       var overlay=document.createElement("div");
       overlay.className="_xo";
       overlay.innerHTML='<div class="_xm">'
         +'<h3>'+sym+' '+pType+' $'+strike+' expired</h3>'
         +'<p>Expired on '+expStr+'. What happened?</p>'
         +'<div class="_xb">'
-        +'<button class="xg" id="_xExpBtn">Expired Worthless \u2713</button>'
-        +(pType==="CSP"?'<button class="xw" id="_xAssBtn">Got Assigned (100 shares)</button>':'')
-        +'<button class="xs" id="_xSkipBtn">Skip for now</button>'
+        +'<button class="xg" id="_xExp">Expired Worthless \u2713</button>'
+        +(pType==="CSP"?'<button class="xw" id="_xAss">Got Assigned (100 shares)</button>':'')
+        +'<button class="xs" id="_xSkp">Skip for now</button>'
         +'</div></div>';
       document.body.appendChild(overlay);
 
-      document.getElementById("_xExpBtn").onclick=function(){
-        var pnl=closeAsExpired(sym,posId);
-        syncApp();
+      document.getElementById("_xExp").onclick=function(){
         overlay.remove();
-        idx++;
-        showNext();
+        if(posId){
+          // Use app's viewPos to set _selPosId, then trigger closePosition flow
+          viewPos(posId);
+          // Hide the position modal immediately
+          setTimeout(function(){
+            closeModal("posModal");
+            // Now call closePosition which opens confirmModal
+            closePosition();
+            // Auto-click "Yes" (expire worthless) after a tick
+            setTimeout(function(){
+              var okBtn=document.getElementById("confirmAction");
+              if(okBtn)okBtn.click();
+              // Also close wheel cycle
+              closeWheelCycle(sym);
+              idx++;
+              setTimeout(next,600);
+            },200);
+          },100);
+        }else{
+          // Wheel only, no position — just close the wheel cycle
+          closeWheelCycle(sym);
+          idx++;
+          setTimeout(next,400);
+        }
       };
 
-      var assBtn=document.getElementById("_xAssBtn");
+      var assBtn=document.getElementById("_xAss");
       if(assBtn){
         assBtn.onclick=function(){
           overlay.remove();
-          syncApp();
-          // Find position and use app's markAssigned
-          var s=readME();
-          var mp=(s.positions||[]).find(function(x){return x.symbol===sym&&(x.type||"csp")==="csp"});
-          if(mp&&typeof markAssigned==="function"){
-            window._selPosId=mp.id;
-            markAssigned();
+          if(posId){
+            viewPos(posId);
+            setTimeout(function(){
+              closeModal("posModal");
+              markAssigned();
+              idx++;
+              setTimeout(next,2000);
+            },100);
+          }else{
+            idx++;next();
           }
-          idx++;
-          setTimeout(showNext,1500);
         };
       }
 
-      document.getElementById("_xSkipBtn").onclick=function(){
+      document.getElementById("_xSkp").onclick=function(){
         overlay.remove();
         idx++;
-        showNext();
+        next();
       };
     }
-
-    showNext();
+    next();
   }
 
-  // Run 4 seconds after page load
   setTimeout(function(){
     var items=findExpired();
     if(items.length>0)showPrompts(items);
   },4000);
-
 })();
 <\/script>
 </body>
