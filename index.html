@@ -1581,9 +1581,9 @@ var it=_xQ.shift();
 var sym,strike,pT,expS,con,tp,pid;
 if(it.s==="p"){var p=it.d;pid=p.id;sym=p.symbol;strike=p.strike;pT=(p.type||"csp").toLowerCase();expS=p.expiration||"unknown";con=p.contracts||1;tp=(p.premium||0)*con*100}
 else{var tx=it.tx;pid=null;sym=it.sym;strike=tx.strike||"?";pT=tx.type==="sell_cc"?"cc":"csp";expS=tx.expiration||"unknown";con=tx.contracts||1;tp=(tx.premium||0)*con*100}
-$("confirmTitle").textContent=sym+" "+pT.toUpperCase()+" $"+strike+" expired";
-$("confirmMessage").textContent="Expired on "+expS+". What happened?";
-var ok=$("confirmAction");
+document.getElementById("confirmTitle").textContent=sym+" "+pT.toUpperCase()+" $"+strike+" expired";
+document.getElementById("confirmMessage").textContent="Expired on "+expS+". What happened?";
+var ok=document.getElementById("confirmAction");
 ok.textContent="Expired Worthless";
 ok.onclick=function(){
 closeModal("confirmModal");
@@ -1600,7 +1600,7 @@ S.history=S.history||[];S.history.unshift(Object.assign({},mp,{closeDate:new Dat
 S.positions=S.positions.filter(function(x){return x.id!==mp.id});save();Le()}}
 showToast(sym+" expired worthless: +$"+Math.round(tp),"success");
 setTimeout(_xNext,400)};
-var ft=$("confirmModal").querySelector(".modal-footer");
+var ft=document.getElementById("confirmModal").querySelector(".modal-footer");
 var cb=ft.querySelector(".btn:first-child");
 cb.textContent="Skip for now";
 cb.onclick=function(){closeModal("confirmModal");setTimeout(_xNext,400)};
@@ -1613,7 +1613,7 @@ ab.onclick=function(){closeModal("confirmModal");
 var tgt=pid||(function(){var m=(S.positions||[]).find(function(x){return x.symbol===sym&&(x.type||"csp")==="csp"});return m?m.id:null})();
 if(!tgt){showToast("No position found","error");setTimeout(_xNext,400);return}
 _selPosId=tgt;var oRA=renderAll;renderAll=function(){oRA();renderAll=oRA;setTimeout(_xNext,400)};markAssigned()};
-$("confirmMessage").parentNode.insertBefore(ab,$("confirmMessage").nextSibling)}
+document.getElementById("confirmMessage").parentNode.insertBefore(ab,document.getElementById("confirmMessage").nextSibling)}
 openModal("confirmModal")}
 setTimeout(_xCheck,3000);
 })();</script>
