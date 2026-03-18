@@ -2082,7 +2082,7 @@ function _checkExpired(){
   try{
     var S=JSON.parse(localStorage.getItem("meDesktop")||"{}");
     (S.positions||[]).forEach(function(p){
-      if(getDte(p.expiration)<0)items.push({src:"pos",id:p.id,d:p})
+      var dte=getDte(p.expiration);var openDays=p.openDate?Math.round((Date.now()-new Date(p.openDate).getTime())/864e5):999;if(dte<0||( dte===999&&openDays>3))items.push({src:"pos",id:p.id,d:p})
     });
   }catch(e){}
   // Check wheel tracker
@@ -2092,7 +2092,19 @@ function _checkExpired(){
       var txs=(w.transactions||[]).filter(function(t){
         return(t.type==="sell_csp"||t.type==="sell_cc")&&t.expiration
       });
-      if(!txs.length)return;
+      // Also check if wheel has been active > 3 days with no expiration data
+if(!txs.length){
+  var allTxs=w.transactions||[];
+  if(allTxs.length>0){
+    var firstDate=allTxs[0].date||w.createdAt;
+    var wDays=firstDate?Math.round((Date.now()-new Date(firstDate).getTime())/864e5):0;
+    if(wDays>3){
+      var dup2=items.some(function(x){return(x.d&&x.d.symbol===w.sym)||(x.sym===w.sym)});
+      if(!dup2)items.push({src:"whl",wid:w.id,sym:w.sym,tx:allTxs[allTxs.length-1],w:w})
+    }
+  }
+  return;
+}
       var last=txs[txs.length-1];
       if(getDte(last.expiration)<0){
         var dup=items.some(function(x){return x.d&&x.d.symbol===w.sym});
