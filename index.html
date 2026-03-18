@@ -2186,5 +2186,15 @@ setTimeout(function(){
   next();
 },4000);
 </script>
+<script>
+setTimeout(function(){
+  var s=JSON.parse(localStorage.getItem("meDesktop")||"{}");
+  var msg="POSITIONS: "+(s.positions||[]).length;
+  (s.positions||[]).slice(0,4).forEach(function(p){
+    msg+=" | "+p.symbol+":exp="+p.expiration+":open="+p.openDate;
+  });
+  alert(msg);
+},2000);
+</script>
 </body>
 </html>
