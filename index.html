@@ -2205,17 +2205,39 @@ function _reopenSignal(id) {
   setTimeout(addButtons, 5000);
 })();
 
-// One-time fix: add PnL to rolled history entries missing it
+// One-time fix: clean up rolled history entries
 (function() {
   var st = JSON.parse(localStorage.getItem("meDesktop") || "{}");
   var changed = false;
+
+  // Fix rolled entries with missing or bad PnL
   (st.history || []).forEach(function(h) {
-    if (h.outcome === "rolled" && !h.pnl && h.premium) {
-      h.pnl = (h.premium || 0) * (h.contracts || 1) * 100;
-      h.grossPnl = h.pnl;
-      changed = true;
+    if (h.outcome === "rolled") {
+      var correctPnl = (h.premium || 0) * (h.contracts || 1) * 100;
+      // Cap at reasonable amount (no single CSP trade makes $1000+)
+      if (correctPnl > 1000) correctPnl = 0;
+      if (h.pnl !== correctPnl) {
+        h.pnl = correctPnl;
+        h.grossPnl = correctPnl;
+        changed = true;
+      }
     }
   });
+
+  // Remove duplicate history entries (same symbol + same outcome + same date)
+  var seen = {};
+  var clean = [];
+  (st.history || []).forEach(function(h) {
+    var key = (h.symbol||'') + '|' + (h.outcome||'') + '|' + (h.closeDate||'').slice(0,10);
+    if (h.outcome === 'rolled' && seen[key]) {
+      changed = true; // skip duplicate
+    } else {
+      seen[key] = true;
+      clean.push(h);
+    }
+  });
+  if (changed) st.history = clean;
+
   if (changed) {
     localStorage.setItem("meDesktop", JSON.stringify(st));
     if (typeof loadState === "function") loadState();
