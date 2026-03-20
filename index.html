@@ -2128,76 +2128,106 @@ showToast(os.ticker+' rolled to $'+ns,'success');
 typeof renderAdminPosts=='function'&&renderAdminPosts();
 typeof renderSignals=='function'&&renderSignals();
 typeof Be=='function'&&Be();typeof Jt=='function'&&Jt()}
+// Reopen signal function
+function _reopenSignal(id) {
+  var st = JSON.parse(localStorage.getItem("meDesktop") || "{}");
+  var p = (st.adminPosts || []).find(function(x) { return x.id === id });
+  if (!p) return;
+  p.status = "open";
+  p.closedAt = null;
+  localStorage.setItem("meDesktop", JSON.stringify(st));
+  if (typeof firebase !== "undefined" && st.firebaseUid) {
+    firebase.database().ref("posts/" + id).update({ status: "open", closedAt: null })
+      .then(function() { console.log("Reopened in Firebase") })
+      .catch(function(e) { console.warn(e) });
+  }
+  showToast("Signal reopened", "success");
+  if (typeof renderAdminPosts === "function") renderAdminPosts();
+  if (typeof renderSignals === "function") renderSignals();
+  if (typeof Be === "function") Be();
+  if (typeof Jt === "function") Jt();
+}
 
-function _reopenSignal(id){
-var st=JSON.parse(localStorage.getItem("meDesktop")||"{}");
-var p=(st.adminPosts||[]).find(function(x){return x.id===id});
-if(!p)return;
-p.status="open";p.closedAt=null;
-localStorage.setItem("meDesktop",JSON.stringify(st));
-if(typeof firebase!=="undefined"&&st.firebaseUid){
-firebase.database().ref("posts/"+id).update({status:"open",closedAt:null})
-.then(function(){console.log("Reopened in Firebase")})
-.catch(function(e){console.warn(e)})}
-showToast("Signal reopened","success");
-if(typeof renderAdminPosts==="function")renderAdminPosts();
-if(typeof renderSignals==="function")renderSignals();
-if(typeof Be==="function")Be();
-if(typeof Jt==="function")Jt()}
+// DOM injection: add ROLLED button after Called, REOPEN button next to Delete
+(function() {
+  function addButtons() {
+    // ROLLED: find every "Called" button and add "Rolled" after it
+    document.querySelectorAll("button").forEach(function(btn) {
+      if (btn.textContent.trim() !== "Called") return;
+      if (btn.nextElementSibling && btn.nextElementSibling.textContent.trim() === "Rolled") return;
+      var oc = btn.getAttribute("onclick") || "";
+      if (oc.indexOf("updatePostStatus") === -1) return;
+      // Extract signal ID from onclick
+      var parts = oc.split("'");
+      var signalId = parts[1] || "";
+      if (!signalId) return;
+      var rb = document.createElement("button");
+      rb.className = btn.className;
+      rb.style.cssText = "border-color:rgba(168,85,247,.3);color:#a855f7";
+      rb.textContent = "Rolled";
+      rb.onclick = function() { updatePostStatus(signalId, "rolled") };
+      btn.parentNode.insertBefore(rb, btn.nextSibling);
+    });
 
-(function(){
-function addRollButtons(){
-document.querySelectorAll(".adm-signal-actions").forEach(function(div){
-if(div.dataset.rollPatched)return;
-div.dataset.rollPatched="1";
-var deleteBtn=div.querySelector("button");
-if(!deleteBtn)return;
-var onclick=deleteBtn.getAttribute("onclick")||"";
-var signalId=onclick.replace(/.*Post\(/,"").replace(/[\)\s'"]/g,"").split(",")[0];
-if(!signalId)return;
-var st=JSON.parse(localStorage.getItem("meDesktop")||"{}");
-var sig=(st.adminPosts||[]).find(function(x){return x.id===signalId});
-if(!sig)return;
-if(sig.status==="open"){
-var rb=document.createElement("button");
-rb.className="btn btn-sm";
-rb.style.cssText="border-color:rgba(168,85,247,.3);color:#a855f7";
-rb.textContent="Rolled";
-rb.onclick=function(){updatePostStatus(signalId,"rolled")};
-div.insertBefore(rb,deleteBtn)}
-if(sig.status!=="open"){
-var reb=document.createElement("button");
-reb.className="btn btn-sm";
-reb.style.cssText="border-color:rgba(34,197,94,.3);color:#22c55e";
-reb.textContent="Reopen";
-reb.onclick=function(){_reopenSignal(signalId)};
-div.insertBefore(reb,deleteBtn)}
-})}
-var obs=new MutationObserver(function(){setTimeout(addRollButtons,100)});
-obs.observe(document.body,{childList:true,subtree:true});
-setTimeout(addRollButtons,2000);
-setTimeout(addRollButtons,5000);
+    // REOPEN: add to non-open signals next to Delete
+    document.querySelectorAll("button").forEach(function(btn) {
+      if (btn.textContent.trim() !== "Delete") return;
+      var parent = btn.closest(".adm-signal-actions");
+      if (!parent || parent.dataset.reopenDone) return;
+      parent.dataset.reopenDone = "1";
+      var oc = btn.getAttribute("onclick") || "";
+      var parts = oc.split("'");
+      var signalId = parts[1] || "";
+      if (!signalId) return;
+      var st = JSON.parse(localStorage.getItem("meDesktop") || "{}");
+      var sig = (st.adminPosts || []).find(function(x) { return x.id === signalId });
+      if (!sig || sig.status === "open") return;
+      var reb = document.createElement("button");
+      reb.className = btn.className;
+      reb.style.cssText = "border-color:rgba(34,197,94,.3);color:#22c55e";
+      reb.textContent = "Reopen";
+      reb.onclick = function() { _reopenSignal(signalId) };
+      parent.insertBefore(reb, btn);
+    });
+  }
+
+  var obs = new MutationObserver(function() { setTimeout(addButtons, 100) });
+  obs.observe(document.body, { childList: true, subtree: true });
+  setTimeout(addButtons, 2000);
+  setTimeout(addButtons, 5000);
 })();
-(function(){
-var u=new URLSearchParams(location.search);
-var fix=u.get("fix");
-if(!fix)return;
-var ticker=fix.toUpperCase();
-var st=JSON.parse(localStorage.getItem("meDesktop")||"{}");
-var ids=[];
-(st.adminPosts||[]).forEach(function(p){
-if(p.ticker===ticker&&p.status!=="open"){p.status="open";p.closedAt=null;ids.push(p.id)}});
-if(ids.length>0)localStorage.setItem("meDesktop",JSON.stringify(st));
-var attempts=0;
-var iv=setInterval(function(){
-attempts++;
-if(attempts>10){clearInterval(iv);location.href=location.pathname;return}
-if(typeof firebase==="undefined"||!firebase.database)return;
-ids.forEach(function(id){
-firebase.database().ref("posts/"+id).update({status:"open",closedAt:null})
-.then(function(){clearInterval(iv);alert(ticker+" fixed!");location.href=location.pathname})
-.catch(function(e){console.warn(e)})})},2000);
+
+// URL ?fix=TICKER handler
+(function() {
+  var u = new URLSearchParams(location.search);
+  var fix = u.get("fix");
+  if (!fix) return;
+  var ticker = fix.toUpperCase();
+  var st = JSON.parse(localStorage.getItem("meDesktop") || "{}");
+  var ids = [];
+  (st.adminPosts || []).forEach(function(p) {
+    if (p.ticker === ticker && p.status !== "open") {
+      p.status = "open"; p.closedAt = null; ids.push(p.id);
+    }
+  });
+  if (ids.length > 0) localStorage.setItem("meDesktop", JSON.stringify(st));
+  var attempts = 0;
+  var iv = setInterval(function() {
+    attempts++;
+    if (attempts > 10) { clearInterval(iv); location.href = location.pathname; return }
+    if (typeof firebase === "undefined" || !firebase.database) return;
+    ids.forEach(function(id) {
+      firebase.database().ref("posts/" + id).update({ status: "open", closedAt: null })
+        .then(function() {
+          clearInterval(iv);
+          alert(ticker + " fixed!");
+          location.href = location.pathname;
+        })
+        .catch(function(e) { console.warn(e) });
+    });
+  }, 2000);
 })();
+
 </script>
 </body>
 </html>
