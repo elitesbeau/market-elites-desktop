@@ -2125,6 +2125,7 @@ try{var db=firebase.database(),uid=st.firebaseUid;
 uid&&db&&(await db.ref('posts/'+os.id).update({status:'rolled',closedAt:Date.now(),rollCount:old?old.rollCount:1}),
 await db.ref('posts/'+sig.id).set(sig))}catch(e){console.warn('Roll sync:',e)}
 showToast(os.ticker+' rolled to $'+ns,'success');
+typeof loadState=='function'&&loadState();
 typeof renderAdminPosts=='function'&&renderAdminPosts();
 typeof renderSignals=='function'&&renderSignals();
 typeof Be=='function'&&Be();typeof Jt=='function'&&Jt()}
@@ -2142,6 +2143,7 @@ function _reopenSignal(id) {
       .catch(function(e) { console.warn(e) });
   }
   showToast("Signal reopened", "success");
+  if (typeof loadState === "function") loadState();
   if (typeof renderAdminPosts === "function") renderAdminPosts();
   if (typeof renderSignals === "function") renderSignals();
   if (typeof Be === "function") Be();
