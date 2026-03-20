@@ -2223,16 +2223,21 @@ function _reopenSignal(id) {
         }
       }
     });
-    // Dedup ALL history entries (same symbol + outcome + closeDate)
+    // Dedup history: only one entry per symbol+outcome combo
+    // Sort oldest first so we keep the original
+    var sorted = st.history.slice().sort(function(a,b) {
+      return (a.closeDate||a.openDate||'') < (b.closeDate||b.openDate||'') ? -1 : 1;
+    });
     var seen = {};
     var clean = [];
-    st.history.forEach(function(h) {
-      var key = (h.symbol||'') + '|' + (h.outcome||'') + '|' + Math.round((h.pnl||0)*100);
+    sorted.forEach(function(h) {
+      var key = (h.symbol||'') + '|' + (h.outcome||'');
       if (seen[key]) { changed = true; return; }
       seen[key] = true;
       clean.push(h);
     });
-    if (changed) st.history = clean;
+    // Restore newest-first order
+    if (changed) st.history = clean.reverse();
     if (changed) {
       localStorage.setItem("meDesktop", JSON.stringify(st));
       if (typeof loadState === "function") loadState();
