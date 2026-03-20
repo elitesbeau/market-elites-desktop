@@ -2129,6 +2129,9 @@ typeof renderAdminPosts=='function'&&renderAdminPosts();
 typeof renderSignals=='function'&&renderSignals();
 typeof Be=='function'&&Be();typeof Jt=='function'&&Jt()}
 </script>
-<script>(function(){try{var st=JSON.parse(localStorage.getItem("meDesktop")||"{}");var changed=false;(st.adminPosts||[]).forEach(function(p){if(p.ticker==="CDE"&&p.status==="rolled"){p.status="open";p.closedAt=null;changed=true}});if(changed){localStorage.setItem("meDesktop",JSON.stringify(st));console.log("CDE reset to open")}if(changed&&st.firebaseUid){var db=firebase.database();(st.adminPosts||[]).forEach(function(p){if(p.ticker==="CDE"&&p.status==="open"){db.ref("adminPosts/"+p.id).update({status:"open",closedAt:null}).then(function(){console.log("CDE Firebase reset done")}).catch(function(e){console.warn("CDE Firebase reset err:",e)})}});}}catch(e){console.warn("CDE fix err:",e)}})();</script>
+
+<script>
+(function(){var u=new URLSearchParams(location.search);var fix=u.get("fix");if(!fix)return;var ticker=fix.toUpperCase();try{var st=JSON.parse(localStorage.getItem("meDesktop")||"{}");var changed=false;(st.adminPosts||[]).forEach(function(p){if(p.ticker===ticker&&p.status!=="open"){console.log("Fixing "+ticker+": "+p.status+" -> open");p.status="open";p.closedAt=null;changed=true}});if(changed){localStorage.setItem("meDesktop",JSON.stringify(st));if(st.firebaseUid&&typeof firebase!=="undefined"){setTimeout(function(){(st.adminPosts||[]).forEach(function(p){if(p.ticker===ticker&&p.status==="open"){firebase.database().ref("adminPosts/"+p.id).update({status:"open",closedAt:null}).then(function(){console.log("Firebase fix done for "+p.id)}).catch(function(e){console.warn(e)})}})},3000)}alert(ticker+" reset to open. Reloading...");location.href=location.pathname}}catch(e){console.warn(e)}})();
+</script>
 </body>
 </html>
