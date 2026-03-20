@@ -2205,16 +2205,26 @@ function _reopenSignal(id) {
   setTimeout(addButtons, 5000);
 })();
 
-// One-time fix: correct rolled history entries — use actual premium * contracts
+// One-time fix: correct rolled history entries
 (function() {
+  var u = new URLSearchParams(location.search);
   var st = JSON.parse(localStorage.getItem("meDesktop") || "{}");
   if (!st.history) return;
+
+  // If ?debug=1, show rolled entries data
+  if (u.get("debug")) {
+    var rolled = (st.history || []).filter(function(h) { return h.outcome === "rolled" });
+    alert("Rolled entries: " + rolled.length + "\n" + rolled.map(function(h) {
+      return h.symbol + " prem=" + h.premium + " contracts=" + h.contracts + " pnl=" + h.pnl
+    }).join("\n"));
+  }
+
   var changed = false;
   st.history.forEach(function(h) {
     if (h.outcome === "rolled") {
-      var prem = h.premium || 0;
-      var contracts = h.contracts || 1;
-      var correct = prem * contracts * 100;
+      var prem = parseFloat(h.premium) || 0;
+      var contracts = parseInt(h.contracts) || 1;
+      var correct = Math.round(prem * contracts * 100);
       if (h.pnl !== correct) {
         h.pnl = correct;
         h.grossPnl = correct;
