@@ -2125,6 +2125,12 @@ try{var db=firebase.database(),uid=st.firebaseUid;
 uid&&db&&(await db.ref('posts/'+os.id).update({status:'rolled',closedAt:Date.now(),rollCount:old?old.rollCount:1}),
 await db.ref('posts/'+sig.id).set(sig))}catch(e){console.warn('Roll sync:',e)}
 showToast(os.ticker+' rolled to $'+ns,'success');
+try{var wh=localStorage.getItem('discordWebhook');
+if(wh){var roleId=localStorage.getItem('discordRoleId');
+var mention=roleId?'<@&'+roleId+'> ':'';
+fetch(wh,{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({content:mention+'\uD83D\uDD04 **'+os.ticker+' Rolled** $'+os.strike+' \u2192 $'+ns+' | Exp: '+ne+' | Prem: $'+np,
+username:'Market Elites Bot'})}).catch(function(e){console.warn('Discord:',e)})}}catch(e){}
 typeof loadState=='function'&&loadState();
 typeof renderAdminPosts=='function'&&renderAdminPosts();
 typeof renderSignals=='function'&&renderSignals();
