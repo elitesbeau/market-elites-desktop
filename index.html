@@ -2252,12 +2252,9 @@ function _reopenSignal(id) {
     }
     return changed;
   }
-  // Run at multiple delays to catch post-Firebase-sync state
-  setTimeout(fixRolled, 1000);
+  // Run after Firebase sync settles
   setTimeout(fixRolled, 3000);
-  setTimeout(fixRolled, 6000);
-  setTimeout(fixRolled, 10000);
-  setTimeout(fixRolled, 15000);
+  setTimeout(fixRolled, 8000);
 })();
 
 // URL ?fix=TICKER handler
