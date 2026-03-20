@@ -2253,6 +2253,15 @@ function _reopenSignal(id) {
   if (changed) {
     localStorage.setItem("meDesktop", JSON.stringify(st));
     if (typeof loadState === "function") loadState();
+    // Also fix in Firebase so sync doesn't overwrite
+    if (st.firebaseUid && typeof firebase !== "undefined") {
+      try {
+        firebase.database().ref("users/" + st.firebaseUid + "/tradingData/history")
+          .set(st.history)
+          .then(function() { console.log("Rolled PnL fixed in Firebase") })
+          .catch(function(e) { console.warn("Firebase fix err:", e) });
+      } catch(e) {}
+    }
   }
 })();
 
