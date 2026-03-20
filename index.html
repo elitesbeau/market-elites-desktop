@@ -2223,20 +2223,16 @@ function _reopenSignal(id) {
         }
       }
     });
-    // Dedup rolled entries per symbol
+    // Dedup ALL history entries (same symbol + outcome + closeDate)
     var seen = {};
     var clean = [];
-    var sorted = st.history.slice().sort(function(a,b) {
-      return (a.closeDate||'') < (b.closeDate||'') ? -1 : 1;
-    });
-    sorted.forEach(function(h) {
-      if (h.outcome === "rolled") {
-        if (seen[h.symbol]) { changed = true; return; }
-        seen[h.symbol] = true;
-      }
+    st.history.forEach(function(h) {
+      var key = (h.symbol||'') + '|' + (h.outcome||'') + '|' + (h.closeDate||'').slice(0,10);
+      if (seen[key]) { changed = true; return; }
+      seen[key] = true;
       clean.push(h);
     });
-    if (changed) st.history = clean.reverse();
+    if (changed) st.history = clean;
     if (changed) {
       localStorage.setItem("meDesktop", JSON.stringify(st));
       if (typeof loadState === "function") loadState();
