@@ -2227,7 +2227,7 @@ function _reopenSignal(id) {
     var seen = {};
     var clean = [];
     st.history.forEach(function(h) {
-      var key = (h.symbol||'') + '|' + (h.outcome||'') + '|' + (h.closeDate||'').slice(0,10);
+      var key = (h.symbol||'') + '|' + (h.outcome||'') + '|' + Math.round((h.pnl||0)*100);
       if (seen[key]) { changed = true; return; }
       seen[key] = true;
       clean.push(h);
