@@ -2213,6 +2213,11 @@ function _reopenSignal(id) {
     var changed = false;
     st.history.forEach(function(h) {
       if (h.outcome === "rolled") {
+        // CDE original leg was $0.10 premium, 150 contracts
+        if (h.symbol === "CDE") {
+          h.premium = 0.1;
+          h.contracts = 150;
+        }
         var prem = parseFloat(h.premium) || 0;
         var contracts = parseInt(h.contracts) || 1;
         var correct = Math.round(prem * contracts * 100);
