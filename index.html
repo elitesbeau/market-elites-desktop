@@ -2205,28 +2205,22 @@ function _reopenSignal(id) {
   setTimeout(addButtons, 5000);
 })();
 
-// One-time fix: correct CDE rolled history entry PnL ($0.10 premium = $10/contract)
+// One-time fix: correct rolled history entries — use actual premium * contracts
 (function() {
   var st = JSON.parse(localStorage.getItem("meDesktop") || "{}");
   if (!st.history) return;
   var changed = false;
-  // Fix PnL on CDE rolled entries
   st.history.forEach(function(h) {
-    if (h.symbol === "CDE" && h.outcome === "rolled" && h.pnl !== 10) {
-      h.pnl = 10;
-      h.grossPnl = 10;
-      h.premium = 0.1;
-      changed = true;
+    if (h.outcome === "rolled") {
+      var prem = h.premium || 0;
+      var contracts = h.contracts || 1;
+      var correct = prem * contracts * 100;
+      if (h.pnl !== correct) {
+        h.pnl = correct;
+        h.grossPnl = correct;
+        changed = true;
+      }
     }
-  });
-  // Remove duplicates — keep only the first CDE rolled entry
-  var seenCdeRoll = false;
-  st.history = st.history.filter(function(h) {
-    if (h.symbol === "CDE" && h.outcome === "rolled") {
-      if (seenCdeRoll) { changed = true; return false; }
-      seenCdeRoll = true;
-    }
-    return true;
   });
   if (changed) {
     localStorage.setItem("meDesktop", JSON.stringify(st));
