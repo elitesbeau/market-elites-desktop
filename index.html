@@ -2073,33 +2073,65 @@ setInterval(function(){var s=document.getElementById("apExp");if(s&&s.tagName===
 </script>
 <script>
 function _handleAdminRoll(sig){
-var m=document.getElementById("promptModal"),tt=document.getElementById("promptTitle"),bd=m.querySelector(".modal-body");
-tt.textContent="Roll "+(sig.ticker||"")+" CSP";
-var fr=[],d=new Date;d.setDate(d.getDate()+((5-d.getDay()+7)%7||7));
-for(var ms=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],i=0;i<12;i++)
-fr.push({l:ms[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear(),v:(d.getMonth()+1)+"/"+d.getDate()+"/"+d.getFullYear()}),d.setDate(d.getDate()+7);
-var oh=fr.map(function(f){return'<option value="'+f.v+'">'+f.l+"</option>"}).join("");
-bd.innerHTML='<div style="display:flex;flex-direction:column;gap:12px"><div style="font-size:13px;color:var(--t3)">Rolling <strong>'+sig.ticker+"</strong> $"+sig.strike+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label style="font-size:10px;color:var(--t4);letter-spacing:1px">NEW STRIKE</label><input class="inp" id="rollStrike" type="number" step="0.5" value="'+sig.strike+'"></div><div><label style="font-size:10px;color:var(--t4);letter-spacing:1px">PREMIUM</label><input class="inp" id="rollPrem" type="number" step="0.01" placeholder="Per contract"></div></div><div><label style="font-size:10px;color:var(--t4);letter-spacing:1px">EXPIRATION</label><select class="inp" id="rollExp" style="width:100%">'+oh+"</select></div></div>";
-var ok=m.querySelector(".btn-g"),ca=m.querySelector(".btn:not(.btn-g)"),oO=ok.onclick,oC=ca.onclick;
+var m=document.getElementById('promptModal');
+var tt=document.getElementById('promptTitle');
+var bd=m.querySelector('.modal-body');
+tt.textContent='Roll '+(sig.ticker||'')+' CSP';
+var fr=[],d=new Date;
+d.setDate(d.getDate()+((5-d.getDay()+7)%7||7));
+for(var ms=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],i=0;i<12;i++)
+fr.push({l:ms[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear(),
+v:(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear()}),
+d.setDate(d.getDate()+7);
+var oh=fr.map(function(f){return'<option value="'+f.v+'">'+f.l+'</option>'}).join('');
+bd.innerHTML='<div style="display:flex;flex-direction:column;gap:12px">'+
+'<div style="font-size:13px;color:var(--t3)">Rolling <strong>'+sig.ticker+'</strong> 
+</html>+sig.strike+'</div>'+
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+'<div><label style="font-size:10px;color:var(--t4);letter-spacing:1px">NEW STRIKE</label>'+
+'<input class="inp" id="rollStrike" type="number" step="0.5" value="'+sig.strike+'"></div>'+
+'<div><label style="font-size:10px;color:var(--t4);letter-spacing:1px">PREMIUM</label>'+
+'<input class="inp" id="rollPrem" type="number" step="0.01" placeholder="Per contract"></div></div>'+
+'<div><label style="font-size:10px;color:var(--t4);letter-spacing:1px">EXPIRATION</label>'+
+'<select class="inp" id="rollExp" style="width:100%">'+oh+'</select></div></div>';
+var ok=m.querySelector('.btn-g');
+var ca=m.querySelector('.btn:not(.btn-g)');
+var oO=ok.onclick,oC=ca.onclick;
 function cl(){bd.innerHTML='<input class="inp" id="promptInput" style="width:100%">';ok.onclick=oO;ca.onclick=oC}
-ok.onclick=function(){var s=parseFloat(document.getElementById("rollStrike").value),p=document.getElementById("rollPrem").value,x=document.getElementById("rollExp").value;
-if(!s||!p||!x)return showToast("Fill all fields","error");closeModal("promptModal");cl();_createRolledSignal(sig,s,p,x)};
-ca.onclick=function(){closeModal("promptModal");cl();sig.status="open";sig.closedAt=null;
-var st=JSON.parse(localStorage.getItem("meDesktop")||"{}"),pp=(st.adminPosts||[]).find(function(x){return x.id===sig.id});
-pp&&(pp.status="open",pp.closedAt=null);localStorage.setItem("meDesktop",JSON.stringify(st))};
-openModal("promptModal")}
+ok.onclick=function(){
+var s=parseFloat(document.getElementById('rollStrike').value);
+var p=document.getElementById('rollPrem').value;
+var x=document.getElementById('rollExp').value;
+if(!s||!p||!x)return showToast('Fill all fields','error');
+closeModal('promptModal');cl();_createRolledSignal(sig,s,p,x)};
+ca.onclick=function(){closeModal('promptModal');cl();
+sig.status='open';sig.closedAt=null;
+var st=JSON.parse(localStorage.getItem('meDesktop')||'{}');
+var pp=(st.adminPosts||[]).find(function(x){return x.id===sig.id});
+pp&&(pp.status='open',pp.closedAt=null);
+localStorage.setItem('meDesktop',JSON.stringify(st))};
+openModal('promptModal')}
 async function _createRolledSignal(os,ns,np,ne){
-var st=JSON.parse(localStorage.getItem("meDesktop")||"{}");st.adminPosts=st.adminPosts||[];
-var old=st.adminPosts.find(function(x){return x.id===os.id});old&&(old.rollCount=(old.rollCount||0)+1);
-var sig={id:Date.now().toString(),kind:"signal",type:os.type||"csp",ticker:os.ticker,strike:String(ns),prem:"$"+np,exp:ne,delta:os.delta||"",contracts:os.contracts||1,status:"open",note:"Rolled from $"+(os.strike||"?"),rolledFromId:os.id,ts:Date.now()};
-st.adminPosts.push(sig);localStorage.setItem("meDesktop",JSON.stringify(st));
+var st=JSON.parse(localStorage.getItem('meDesktop')||'{}');
+st.adminPosts=st.adminPosts||[];
+var old=st.adminPosts.find(function(x){return x.id===os.id});
+old&&(old.rollCount=(old.rollCount||0)+1);
+var sig={id:Date.now().toString(),kind:'signal',type:os.type||'csp',
+ticker:os.ticker,strike:String(ns),prem:'
+</html>+np,exp:ne,
+delta:os.delta||'',contracts:os.contracts||1,status:'open',
+note:'Rolled from 
+</html>+(os.strike||'?'),rolledFromId:os.id,ts:Date.now()};
+st.adminPosts.push(sig);
+localStorage.setItem('meDesktop',JSON.stringify(st));
 try{var db=firebase.database(),uid=st.firebaseUid;
-uid&&db&&(await db.ref("adminPosts/"+os.id).update({status:"rolled",closedAt:Date.now(),rollCount:old?old.rollCount:1}),
-await db.ref("adminPosts/"+sig.id).set(sig))}catch(e){console.warn("Roll sync:",e)}
-showToast(os.ticker+" rolled to $"+ns,"success");
-"function"==typeof renderAdminPosts&&renderAdminPosts();
-"function"==typeof renderSignals&&renderSignals();
-"function"==typeof Be&&Be();"function"==typeof Jt&&Jt()}
+uid&&db&&(await db.ref('adminPosts/'+os.id).update({status:'rolled',closedAt:Date.now(),rollCount:old?old.rollCount:1}),
+await db.ref('adminPosts/'+sig.id).set(sig))}catch(e){console.warn('Roll sync:',e)}
+showToast(os.ticker+' rolled to 
+</html>+ns,'success');
+typeof renderAdminPosts=='function'&&renderAdminPosts();
+typeof renderSignals=='function'&&renderSignals();
+typeof Be=='function'&&Be();typeof Jt=='function'&&Jt()}
 </script>
 </body>
 </html>
