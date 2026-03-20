@@ -2122,8 +2122,8 @@ note:'Rolled from $'+(os.strike||'?'),rolledFromId:os.id,ts:Date.now()};
 st.adminPosts.push(sig);
 localStorage.setItem('meDesktop',JSON.stringify(st));
 try{var db=firebase.database(),uid=st.firebaseUid;
-uid&&db&&(await db.ref('adminPosts/'+os.id).update({status:'rolled',closedAt:Date.now(),rollCount:old?old.rollCount:1}),
-await db.ref('adminPosts/'+sig.id).set(sig))}catch(e){console.warn('Roll sync:',e)}
+uid&&db&&(await db.ref('posts/'+os.id).update({status:'rolled',closedAt:Date.now(),rollCount:old?old.rollCount:1}),
+await db.ref('posts/'+sig.id).set(sig))}catch(e){console.warn('Roll sync:',e)}
 showToast(os.ticker+' rolled to $'+ns,'success');
 typeof renderAdminPosts=='function'&&renderAdminPosts();
 typeof renderSignals=='function'&&renderSignals();
@@ -2136,7 +2136,7 @@ if(!p)return;
 p.status="open";p.closedAt=null;
 localStorage.setItem("meDesktop",JSON.stringify(st));
 if(typeof firebase!=="undefined"&&st.firebaseUid){
-firebase.database().ref("adminPosts/"+id).update({status:"open",closedAt:null})
+firebase.database().ref("posts/"+id).update({status:"open",closedAt:null})
 .then(function(){console.log("Reopened in Firebase")})
 .catch(function(e){console.warn(e)})}
 showToast("Signal reopened","success");
@@ -2194,7 +2194,7 @@ attempts++;
 if(attempts>10){clearInterval(iv);location.href=location.pathname;return}
 if(typeof firebase==="undefined"||!firebase.database)return;
 ids.forEach(function(id){
-firebase.database().ref("adminPosts/"+id).update({status:"open",closedAt:null})
+firebase.database().ref("posts/"+id).update({status:"open",closedAt:null})
 .then(function(){clearInterval(iv);alert(ticker+" fixed!");location.href=location.pathname})
 .catch(function(e){console.warn(e)})})},2000);
 })();
