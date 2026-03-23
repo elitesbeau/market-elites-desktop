@@ -2297,30 +2297,39 @@ window._loadDemoData=function(d){if(d&&typeof d==="object"){Object.assign(t,d)}}
 </script>
 
 <div id="demoBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#7A5AF8,#F59E0B);color:#fff;text-align:center;padding:8px 16px;font-size:13px;font-weight:600;letter-spacing:0.5px;font-family:inherit;">
-  DEMO MODE — This is sample data. <a href="#" onclick="document.getElementById('demoBanner').style.display='none';document.getElementById('authScreen').style.display='flex';document.querySelector('.sidebar').style.display='none';document.querySelector('.main').style.display='none';return false;" style="color:#fff;text-decoration:underline;margin-left:8px;">Sign up for live signals</a>
+  \u26A0 DEMO MODE — All data shown is fake sample data. Nothing here is real. <a href="#" onclick="document.getElementById('demoBanner').style.display='none';document.getElementById('authScreen').style.display='flex';document.querySelector('.sidebar').style.display='none';document.querySelector('.main').style.display='none';return false;" style="color:#fff;text-decoration:underline;margin-left:8px;">Sign up for live signals</a>
 </div>
 <script>
 (function(){
   // Demo data — completely fake, no real user/admin data
+  // All entries marked as SAMPLE so users know it's not real
+
   var DEMO_SIGNALS = [
-    {id:'demo-1',kind:'signal',ticker:'PLTR',type:'csp',strike:'22',exp:'2026-04-03',prem:'0.85',delta:'0.25',confidence:'high',status:'open',notes:'Strong support at $22, good premium.',createdAt:new Date(Date.now()-86400000*2).toISOString()},
-    {id:'demo-2',kind:'signal',ticker:'SOFI',type:'csp',strike:'12',exp:'2026-04-03',prem:'0.52',delta:'0.20',confidence:'medium',status:'open',notes:'Earnings next month, collecting theta.',createdAt:new Date(Date.now()-86400000*1).toISOString()},
-    {id:'demo-3',kind:'signal',ticker:'NIO',type:'csp',strike:'5',exp:'2026-03-28',prem:'0.30',delta:'0.18',confidence:'medium',status:'open',notes:'Tight range, low risk entry.',createdAt:new Date(Date.now()-3600000*6).toISOString()},
-    {id:'demo-4',kind:'signal',ticker:'RIVN',type:'csp',strike:'14',exp:'2026-03-21',prem:'0.65',delta:'0.22',status:'closed',outcome:'winner',closeDate:new Date(Date.now()-86400000*3).toISOString(),notes:'Expired worthless. Easy win.',createdAt:new Date(Date.now()-86400000*10).toISOString()},
-    {id:'demo-5',kind:'signal',ticker:'MARA',type:'csp',strike:'18',exp:'2026-03-21',prem:'1.10',delta:'0.30',status:'closed',outcome:'winner',closeDate:new Date(Date.now()-86400000*4).toISOString(),notes:'Closed early at 50% profit.',createdAt:new Date(Date.now()-86400000*12).toISOString()},
-    {id:'demo-6',kind:'announcement',title:'Welcome to Market Elites',message:'This is a demo of the platform. Sign up to get live signals and track your trades!',createdAt:new Date().toISOString()}
+    {id:'demo-1',kind:'signal',ticker:'PLTR',type:'csp',strike:'22',exp:'2026-04-03',prem:'1.25',delta:'0.22',confidence:'high',status:'open',notes:'[SAMPLE] Strong support at $22. High premium zone.',createdAt:new Date(Date.now()-86400000*1).toISOString()},
+    {id:'demo-2',kind:'signal',ticker:'SOFI',type:'csp',strike:'12',exp:'2026-04-03',prem:'0.78',delta:'0.18',confidence:'high',status:'open',notes:'[SAMPLE] Bullish breakout above $11.50. Safe strike.',createdAt:new Date(Date.now()-86400000*0.5).toISOString()},
+    {id:'demo-3',kind:'signal',ticker:'NIO',type:'csp',strike:'5.50',exp:'2026-04-03',prem:'0.42',delta:'0.15',confidence:'medium',status:'open',notes:'[SAMPLE] Accumulation zone. Great risk/reward.',createdAt:new Date(Date.now()-3600000*3).toISOString()},
+    {id:'demo-4',kind:'signal',ticker:'RIVN',type:'csp',strike:'14',exp:'2026-03-21',prem:'0.95',delta:'0.20',status:'closed',outcome:'winner',closeDate:new Date(Date.now()-86400000*3).toISOString(),notes:'[SAMPLE] Expired worthless. Full premium collected!',createdAt:new Date(Date.now()-86400000*10).toISOString()},
+    {id:'demo-5',kind:'signal',ticker:'MARA',type:'csp',strike:'18',exp:'2026-03-21',prem:'1.40',delta:'0.25',status:'closed',outcome:'winner',closeDate:new Date(Date.now()-86400000*4).toISOString(),notes:'[SAMPLE] Closed at 65% profit. Bitcoin momentum helped.',createdAt:new Date(Date.now()-86400000*12).toISOString()},
+    {id:'demo-6',kind:'signal',ticker:'F',type:'csp',strike:'10',exp:'2026-03-14',prem:'0.55',delta:'0.20',status:'closed',outcome:'winner',closeDate:new Date(Date.now()-86400000*8).toISOString(),notes:'[SAMPLE] Easy winner. Stayed well above strike.',createdAt:new Date(Date.now()-86400000*16).toISOString()},
+    {id:'demo-7',kind:'signal',ticker:'LCID',type:'csp',strike:'3',exp:'2026-03-14',prem:'0.22',delta:'0.15',status:'closed',outcome:'winner',closeDate:new Date(Date.now()-86400000*7).toISOString(),notes:'[SAMPLE] Low risk play. Never threatened.',createdAt:new Date(Date.now()-86400000*18).toISOString()},
+    {id:'demo-8',kind:'signal',ticker:'AMD',type:'csp',strike:'145',exp:'2026-03-07',prem:'3.20',delta:'0.20',status:'closed',outcome:'winner',closeDate:new Date(Date.now()-86400000*14).toISOString(),notes:'[SAMPLE] Premium play before earnings run-up.',createdAt:new Date(Date.now()-86400000*22).toISOString()},
+    {id:'demo-9',kind:'announcement',title:'Welcome to Market Elites',message:'You are viewing SAMPLE DATA. Sign up to receive real live signals and track your actual trades!',createdAt:new Date().toISOString()}
   ];
 
   var DEMO_POSITIONS = [
-    {id:'demo-pos-1',symbol:'PLTR',type:'csp',strike:22,exp:'2026-04-03',premium:0.85,contracts:2,openDate:new Date(Date.now()-86400000*2).toISOString(),signalId:'demo-1',fees:1.30},
-    {id:'demo-pos-2',symbol:'SOFI',type:'csp',strike:12,exp:'2026-04-03',premium:0.52,contracts:5,openDate:new Date(Date.now()-86400000*1).toISOString(),signalId:'demo-2',fees:3.25}
+    {id:'demo-pos-1',symbol:'PLTR',type:'csp',strike:22,exp:'2026-04-03',premium:1.25,contracts:3,openDate:new Date(Date.now()-86400000*1).toISOString(),signalId:'demo-1',fees:1.95,notes:'[SAMPLE]'},
+    {id:'demo-pos-2',symbol:'SOFI',type:'csp',strike:12,exp:'2026-04-03',premium:0.78,contracts:5,openDate:new Date(Date.now()-86400000*0.5).toISOString(),signalId:'demo-2',fees:3.25,notes:'[SAMPLE]'},
+    {id:'demo-pos-3',symbol:'NIO',type:'csp',strike:5.50,exp:'2026-04-03',premium:0.42,contracts:10,openDate:new Date(Date.now()-3600000*3).toISOString(),signalId:'demo-3',fees:6.50,notes:'[SAMPLE]'}
   ];
 
   var DEMO_HISTORY = [
-    {id:'demo-h-1',symbol:'RIVN',type:'csp',strike:14,exp:'2026-03-21',premium:0.65,contracts:3,openDate:new Date(Date.now()-86400000*10).toISOString(),closeDate:new Date(Date.now()-86400000*3).toISOString(),pnl:195,outcome:'winner',signalId:'demo-4',fees:1.95},
-    {id:'demo-h-2',symbol:'MARA',type:'csp',strike:18,exp:'2026-03-21',premium:1.10,contracts:2,openDate:new Date(Date.now()-86400000*12).toISOString(),closeDate:new Date(Date.now()-86400000*4).toISOString(),pnl:220,outcome:'winner',signalId:'demo-5',fees:1.30},
-    {id:'demo-h-3',symbol:'F',type:'csp',strike:10,exp:'2026-03-14',premium:0.35,contracts:5,openDate:new Date(Date.now()-86400000*20).toISOString(),closeDate:new Date(Date.now()-86400000*8).toISOString(),pnl:175,outcome:'winner',signalId:null,fees:3.25},
-    {id:'demo-h-4',symbol:'LCID',type:'csp',strike:3,exp:'2026-03-14',premium:0.15,contracts:10,openDate:new Date(Date.now()-86400000*18).toISOString(),closeDate:new Date(Date.now()-86400000*7).toISOString(),pnl:150,outcome:'winner',signalId:null,fees:6.50}
+    {id:'demo-h-1',symbol:'RIVN',type:'csp',strike:14,exp:'2026-03-21',premium:0.95,contracts:3,openDate:new Date(Date.now()-86400000*10).toISOString(),closeDate:new Date(Date.now()-86400000*3).toISOString(),pnl:285,outcome:'winner',signalId:'demo-4',fees:1.95,notes:'[SAMPLE]'},
+    {id:'demo-h-2',symbol:'MARA',type:'csp',strike:18,exp:'2026-03-21',premium:1.40,contracts:2,openDate:new Date(Date.now()-86400000*12).toISOString(),closeDate:new Date(Date.now()-86400000*4).toISOString(),pnl:280,outcome:'winner',signalId:'demo-5',fees:1.30,notes:'[SAMPLE]'},
+    {id:'demo-h-3',symbol:'F',type:'csp',strike:10,exp:'2026-03-14',premium:0.55,contracts:5,openDate:new Date(Date.now()-86400000*16).toISOString(),closeDate:new Date(Date.now()-86400000*8).toISOString(),pnl:275,outcome:'winner',signalId:'demo-6',fees:3.25,notes:'[SAMPLE]'},
+    {id:'demo-h-4',symbol:'LCID',type:'csp',strike:3,exp:'2026-03-14',premium:0.22,contracts:10,openDate:new Date(Date.now()-86400000*18).toISOString(),closeDate:new Date(Date.now()-86400000*7).toISOString(),pnl:220,outcome:'winner',signalId:'demo-7',fees:6.50,notes:'[SAMPLE]'},
+    {id:'demo-h-5',symbol:'AMD',type:'csp',strike:145,exp:'2026-03-07',premium:3.20,contracts:1,openDate:new Date(Date.now()-86400000*22).toISOString(),closeDate:new Date(Date.now()-86400000*14).toISOString(),pnl:320,outcome:'winner',signalId:'demo-8',fees:0.65,notes:'[SAMPLE]'},
+    {id:'demo-h-6',symbol:'COIN',type:'csp',strike:200,exp:'2026-02-28',premium:4.50,contracts:1,openDate:new Date(Date.now()-86400000*30).toISOString(),closeDate:new Date(Date.now()-86400000*20).toISOString(),pnl:450,outcome:'winner',signalId:null,fees:0.65,notes:'[SAMPLE]'},
+    {id:'demo-h-7',symbol:'SHOP',type:'csp',strike:90,exp:'2026-02-21',premium:2.80,contracts:2,openDate:new Date(Date.now()-86400000*35).toISOString(),closeDate:new Date(Date.now()-86400000*25).toISOString(),pnl:560,outcome:'winner',signalId:null,fees:1.30,notes:'[SAMPLE]'}
   ];
 
   // Intercept guest login to inject demo data
@@ -2335,10 +2344,14 @@ window._loadDemoData=function(d){if(d&&typeof d==="object"){Object.assign(t,d)}}
         adminPosts: DEMO_SIGNALS,
         positions: DEMO_POSITIONS,
         history: DEMO_HISTORY,
-        watchlist: ['PLTR','SOFI','NIO','RIVN','MARA','F'],
-        incomeGoal: 500,
-        startingBalance: 25000,
-        accSize: 25000
+        watchlist: ['PLTR','SOFI','NIO','RIVN','MARA','AMD','COIN'],
+        incomeGoal: 1000,
+        startingBalance: 50000,
+        accSize: 50000,
+        incomeGoalHistory: [
+          {month:'2026-01',earned:1850},{month:'2026-02',earned:2210},{month:'2026-03',earned:1680}
+        ],
+        user:{name:'Demo User',email:'',avatar:'',phone:'',carrier:''}
       });
     }
 
