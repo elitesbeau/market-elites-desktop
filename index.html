@@ -2332,79 +2332,94 @@ window._loadDemoData=function(d){if(d&&typeof d==="object"){Object.assign(t,d)}}
     {id:'demo-h-7',symbol:'SHOP',type:'csp',strike:90,exp:'2026-02-21',premium:2.80,contracts:2,openDate:new Date(Date.now()-86400000*35).toISOString(),closeDate:new Date(Date.now()-86400000*25).toISOString(),pnl:560,outcome:'winner',signalId:null,fees:1.30,notes:'[SAMPLE]'}
   ];
 
-  // Intercept guest login to inject demo data
-  var _origGuest = window.handleGuestLogin;
-  window.handleGuestLogin = function(){
-    // Call original guest login (sets isGuest=true, hides auth screen)
-    if(_origGuest) _origGuest();
+  // Inject demo data when guest mode is active
+  function _injectDemo() {
+    if (!window._loadDemoData) return false;
 
-    // Inject demo data into state via the safe export
-    if(window._loadDemoData){
-      window._loadDemoData({
-        adminPosts: DEMO_SIGNALS,
-        positions: DEMO_POSITIONS,
-        history: DEMO_HISTORY,
-        watchlist: ['PLTR','SOFI','NIO','RIVN','MARA','AMD','COIN'],
-        incomeGoal: 1000,
-        startingBalance: 50000,
-        accSize: 50000,
-        incomeGoalHistory: [
-          {month:'2026-01',earned:1850},{month:'2026-02',earned:2210},{month:'2026-03',earned:1680}
-        ],
-        user:{name:'Demo User',email:'',avatar:'',phone:'',carrier:''}
-      });
-    }
+    window._loadDemoData({
+      adminPosts: DEMO_SIGNALS,
+      positions: DEMO_POSITIONS,
+      history: DEMO_HISTORY,
+      watchlist: ['PLTR','SOFI','NIO','RIVN','MARA','AMD','COIN'],
+      incomeGoal: 1000,
+      startingBalance: 50000,
+      accSize: 50000,
+      incomeGoalHistory: [
+        {month:'2026-01',earned:1850},{month:'2026-02',earned:2210},{month:'2026-03',earned:1680}
+      ],
+      user:{name:'Demo User',email:'',avatar:'',phone:'',carrier:''}
+    });
 
-    // Save to localStorage (local only, guests can't write to Firebase)
-    if(window.save) window.save();
+    if (window.save) window.save();
+    if (window.renderDashboard) window.renderDashboard();
+    if (window.renderSignals) window.renderSignals();
+    if (window.renderAll) window.renderAll();
 
-    // Render all views with demo data
-    if(window.renderDashboard) window.renderDashboard();
-    if(window.renderSignals) window.renderSignals();
-    if(window.renderAll) window.renderAll();
-
-    // Show demo banner
+    // Show banner
     var banner = document.getElementById('demoBanner');
-    if(banner) banner.style.display = 'block';
-
-    // Adjust main content to not overlap banner
+    if (banner) banner.style.display = 'block';
     var main = document.querySelector('.main');
-    if(main) main.style.marginTop = '36px';
+    if (main) main.style.marginTop = '36px';
     var sidebar = document.querySelector('.sidebar');
-    if(sidebar) sidebar.style.top = '36px';
-  };
+    if (sidebar) sidebar.style.top = '36px';
 
-  // If page loads and user is already a guest (from localStorage), show demo state
-  // Check after a short delay to let the app initialize
-  setTimeout(function(){
+    return true;
+  }
+
+  // Method 1: Override the onclick on the guest button directly
+  // This is more reliable than overriding window.handleGuestLogin
+  var guestBtn = document.querySelector('[onclick*="handleGuestLogin"]');
+  if (guestBtn) {
+    guestBtn.removeAttribute('onclick');
+    guestBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      // Call the original guest login via window export
+      if (window.handleGuestLogin) window.handleGuestLogin();
+      // Give it a tick to process, then inject demo data
+      setTimeout(_injectDemo, 100);
+    });
+  }
+
+  // Method 2: For returning guests (already isGuest in localStorage)
+  // Check periodically until app is ready, then inject if needed
+  var _demoCheckCount = 0;
+  var _demoCheck = setInterval(function() {
+    _demoCheckCount++;
+    if (_demoCheckCount > 20) { clearInterval(_demoCheck); return; }
     try {
       var stored = JSON.parse(localStorage.getItem('meDesktop') || '{}');
-      if(stored.isGuest && !stored.firebaseUid){
-        // Already in guest mode from a previous visit — show banner
-        var banner = document.getElementById('demoBanner');
-        if(banner) banner.style.display = 'block';
-        var main = document.querySelector('.main');
-        if(main) main.style.marginTop = '36px';
-        var sidebar = document.querySelector('.sidebar');
-        if(sidebar) sidebar.style.top = '36px';
+      if (stored.isGuest && !stored.firebaseUid) {
+        // Guest mode active — check if demo data is missing
+        var hasData = stored.adminPosts && stored.adminPosts.length > 0 &&
+                      stored.adminPosts[0].id && stored.adminPosts[0].id.indexOf('demo') === 0;
+        if (!hasData && window._loadDemoData) {
+          _injectDemo();
+          clearInterval(_demoCheck);
+        } else if (hasData) {
+          // Data exists, just show banner and fix margins
+          var banner = document.getElementById('demoBanner');
+          if (banner) banner.style.display = 'block';
+          var main = document.querySelector('.main');
+          if (main) main.style.marginTop = '36px';
+          var sidebar = document.querySelector('.sidebar');
+          if (sidebar) sidebar.style.top = '36px';
+          clearInterval(_demoCheck);
+        }
       }
-    } catch(e){}
+    } catch(e) {}
   }, 500);
 
-  // When user signs in for real, clean up demo state
+  // Clean up demo state on real login
   var _origLogin = window.handleLogin;
-  if(_origLogin){
-    window.handleLogin = function(){
-      // Hide demo banner
+  if (_origLogin) {
+    window.handleLogin = function() {
       var banner = document.getElementById('demoBanner');
-      if(banner) banner.style.display = 'none';
+      if (banner) banner.style.display = 'none';
       var main = document.querySelector('.main');
-      if(main) main.style.marginTop = '';
+      if (main) main.style.marginTop = '';
       var sidebar = document.querySelector('.sidebar');
-      if(sidebar) sidebar.style.top = '';
-      // Clear demo data from localStorage
+      if (sidebar) sidebar.style.top = '';
       localStorage.removeItem('meDesktop');
-      // Call original login
       return _origLogin.apply(this, arguments);
     };
   }
