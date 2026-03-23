@@ -2292,8 +2292,110 @@ function _reopenSignal(id) {
         .catch(function(e) { console.warn(e) });
     });
   }, 2000);
-})();
+window._loadDemoData=function(d){if(d&&typeof d==="object"){Object.assign(t,d)}};})();
 
+</script>
+
+<div id="demoBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#7A5AF8,#F59E0B);color:#fff;text-align:center;padding:8px 16px;font-size:13px;font-weight:600;letter-spacing:0.5px;font-family:inherit;">
+  DEMO MODE — This is sample data. <a href="#" onclick="document.getElementById('demoBanner').style.display='none';document.getElementById('authScreen').style.display='flex';document.querySelector('.sidebar').style.display='none';document.querySelector('.main').style.display='none';return false;" style="color:#fff;text-decoration:underline;margin-left:8px;">Sign up for live signals</a>
+</div>
+<script>
+(function(){
+  // Demo data — completely fake, no real user/admin data
+  var DEMO_SIGNALS = [
+    {id:'demo-1',kind:'signal',ticker:'PLTR',type:'csp',strike:'22',exp:'2026-04-03',prem:'0.85',delta:'0.25',confidence:'high',status:'open',notes:'Strong support at $22, good premium.',createdAt:new Date(Date.now()-86400000*2).toISOString()},
+    {id:'demo-2',kind:'signal',ticker:'SOFI',type:'csp',strike:'12',exp:'2026-04-03',prem:'0.52',delta:'0.20',confidence:'medium',status:'open',notes:'Earnings next month, collecting theta.',createdAt:new Date(Date.now()-86400000*1).toISOString()},
+    {id:'demo-3',kind:'signal',ticker:'NIO',type:'csp',strike:'5',exp:'2026-03-28',prem:'0.30',delta:'0.18',confidence:'medium',status:'open',notes:'Tight range, low risk entry.',createdAt:new Date(Date.now()-3600000*6).toISOString()},
+    {id:'demo-4',kind:'signal',ticker:'RIVN',type:'csp',strike:'14',exp:'2026-03-21',prem:'0.65',delta:'0.22',status:'closed',outcome:'winner',closeDate:new Date(Date.now()-86400000*3).toISOString(),notes:'Expired worthless. Easy win.',createdAt:new Date(Date.now()-86400000*10).toISOString()},
+    {id:'demo-5',kind:'signal',ticker:'MARA',type:'csp',strike:'18',exp:'2026-03-21',prem:'1.10',delta:'0.30',status:'closed',outcome:'winner',closeDate:new Date(Date.now()-86400000*4).toISOString(),notes:'Closed early at 50% profit.',createdAt:new Date(Date.now()-86400000*12).toISOString()},
+    {id:'demo-6',kind:'announcement',title:'Welcome to Market Elites',message:'This is a demo of the platform. Sign up to get live signals and track your trades!',createdAt:new Date().toISOString()}
+  ];
+
+  var DEMO_POSITIONS = [
+    {id:'demo-pos-1',symbol:'PLTR',type:'csp',strike:22,exp:'2026-04-03',premium:0.85,contracts:2,openDate:new Date(Date.now()-86400000*2).toISOString(),signalId:'demo-1',fees:1.30},
+    {id:'demo-pos-2',symbol:'SOFI',type:'csp',strike:12,exp:'2026-04-03',premium:0.52,contracts:5,openDate:new Date(Date.now()-86400000*1).toISOString(),signalId:'demo-2',fees:3.25}
+  ];
+
+  var DEMO_HISTORY = [
+    {id:'demo-h-1',symbol:'RIVN',type:'csp',strike:14,exp:'2026-03-21',premium:0.65,contracts:3,openDate:new Date(Date.now()-86400000*10).toISOString(),closeDate:new Date(Date.now()-86400000*3).toISOString(),pnl:195,outcome:'winner',signalId:'demo-4',fees:1.95},
+    {id:'demo-h-2',symbol:'MARA',type:'csp',strike:18,exp:'2026-03-21',premium:1.10,contracts:2,openDate:new Date(Date.now()-86400000*12).toISOString(),closeDate:new Date(Date.now()-86400000*4).toISOString(),pnl:220,outcome:'winner',signalId:'demo-5',fees:1.30},
+    {id:'demo-h-3',symbol:'F',type:'csp',strike:10,exp:'2026-03-14',premium:0.35,contracts:5,openDate:new Date(Date.now()-86400000*20).toISOString(),closeDate:new Date(Date.now()-86400000*8).toISOString(),pnl:175,outcome:'winner',signalId:null,fees:3.25},
+    {id:'demo-h-4',symbol:'LCID',type:'csp',strike:3,exp:'2026-03-14',premium:0.15,contracts:10,openDate:new Date(Date.now()-86400000*18).toISOString(),closeDate:new Date(Date.now()-86400000*7).toISOString(),pnl:150,outcome:'winner',signalId:null,fees:6.50}
+  ];
+
+  // Intercept guest login to inject demo data
+  var _origGuest = window.handleGuestLogin;
+  window.handleGuestLogin = function(){
+    // Call original guest login (sets isGuest=true, hides auth screen)
+    if(_origGuest) _origGuest();
+
+    // Inject demo data into state via the safe export
+    if(window._loadDemoData){
+      window._loadDemoData({
+        adminPosts: DEMO_SIGNALS,
+        positions: DEMO_POSITIONS,
+        history: DEMO_HISTORY,
+        watchlist: ['PLTR','SOFI','NIO','RIVN','MARA','F'],
+        incomeGoal: 500,
+        startingBalance: 25000,
+        accSize: 25000
+      });
+    }
+
+    // Save to localStorage (local only, guests can't write to Firebase)
+    if(window.save) window.save();
+
+    // Render all views with demo data
+    if(window.renderDashboard) window.renderDashboard();
+    if(window.renderSignals) window.renderSignals();
+    if(window.renderAll) window.renderAll();
+
+    // Show demo banner
+    var banner = document.getElementById('demoBanner');
+    if(banner) banner.style.display = 'block';
+
+    // Adjust main content to not overlap banner
+    var main = document.querySelector('.main');
+    if(main) main.style.marginTop = '36px';
+    var sidebar = document.querySelector('.sidebar');
+    if(sidebar) sidebar.style.top = '36px';
+  };
+
+  // If page loads and user is already a guest (from localStorage), show demo state
+  // Check after a short delay to let the app initialize
+  setTimeout(function(){
+    try {
+      var stored = JSON.parse(localStorage.getItem('meDesktop') || '{}');
+      if(stored.isGuest && !stored.firebaseUid){
+        // Already in guest mode from a previous visit — show banner
+        var banner = document.getElementById('demoBanner');
+        if(banner) banner.style.display = 'block';
+        var main = document.querySelector('.main');
+        if(main) main.style.marginTop = '36px';
+        var sidebar = document.querySelector('.sidebar');
+        if(sidebar) sidebar.style.top = '36px';
+      }
+    } catch(e){}
+  }, 500);
+
+  // When user signs in for real, clean up demo state
+  var _origLogin = window.handleLogin;
+  if(_origLogin){
+    window.handleLogin = function(){
+      // Hide demo banner
+      var banner = document.getElementById('demoBanner');
+      if(banner) banner.style.display = 'none';
+      var main = document.querySelector('.main');
+      if(main) main.style.marginTop = '';
+      var sidebar = document.querySelector('.sidebar');
+      if(sidebar) sidebar.style.top = '';
+      // Clear demo data from localStorage
+      localStorage.removeItem('meDesktop');
+      // Call original login
+      return _origLogin.apply(this, arguments);
+    };
+  }
+})();
 </script>
 </body>
 </html>
