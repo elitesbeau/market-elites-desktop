@@ -3117,5 +3117,188 @@ window._loadDemoData=function(d){if(d&&typeof d==="object"){Object.assign(t,d)}}
   },500);
   })();
 </script>
+<script>
+/* Onboarding Tour — first-time user walkthrough */
+(function(){
+  'use strict';
+  var DONE_KEY='meOnboardDone';var STATE_KEY='meDesktop';
+  var styleTag=document.createElement('style');
+  styleTag.textContent='\
+    #tour-help-btn{position:fixed;bottom:56px;right:20px;z-index:9998;width:40px;height:40px;border-radius:50%;background:var(--acbg);border:1px solid var(--acbr);color:var(--ac);font-family:var(--fd);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 12px rgba(0,0,0,.3)}\
+    #tour-help-btn:hover{transform:scale(1.08);box-shadow:0 0 20px rgba(201,169,124,.3);border-color:var(--ac)}\
+    #tour-help-btn.pulse{animation:tourPulse 2.4s ease-in-out infinite}\
+    @keyframes tourPulse{0%,100%{box-shadow:0 4px 12px rgba(0,0,0,.3),0 0 0 0 rgba(201,169,124,.5)}50%{box-shadow:0 4px 12px rgba(0,0,0,.3),0 0 0 12px rgba(201,169,124,0)}}\
+    .tour-overlay{position:fixed;inset:0;z-index:99990;pointer-events:none;background:rgba(5,5,5,.75);opacity:0;transition:opacity .3s ease}\
+    .tour-overlay.show{opacity:1;pointer-events:auto}\
+    .tour-spotlight{position:absolute;border-radius:6px;box-shadow:0 0 0 9999px rgba(5,5,5,.75),0 0 0 2px var(--ac),0 0 30px rgba(201,169,124,.3);transition:all .4s cubic-bezier(.4,0,.2,1);pointer-events:none}\
+    .tour-card{position:absolute;background:var(--bgc);border:1px solid var(--bd2);border-radius:6px;padding:22px 24px;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.6);transition:all .3s cubic-bezier(.4,0,.2,1)}\
+    .tour-card::before{content:"";position:absolute;top:-8px;left:32px;width:14px;height:14px;background:var(--bgc);border-left:1px solid var(--bd2);border-top:1px solid var(--bd2);transform:rotate(45deg)}\
+    .tour-step{font-family:var(--fm);font-size:10px;letter-spacing:2px;color:var(--t4);margin-bottom:10px;text-transform:uppercase}\
+    .tour-step b{color:var(--ac)}\
+    .tour-title{font-family:var(--fd);font-size:19px;font-weight:700;color:var(--tx);margin-bottom:8px;line-height:1.3}\
+    .tour-body{font-size:14px;color:var(--t2);line-height:1.55;margin-bottom:18px}\
+    .tour-actions{display:flex;justify-content:space-between;align-items:center;gap:10px}\
+    .tour-skip{font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t4);background:none;border:none;cursor:pointer;padding:6px 10px}\
+    .tour-skip:hover{color:var(--t2)}\
+    .tour-next-group{display:flex;gap:8px}\
+    .tour-next,.tour-back{font-family:var(--fm);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:9px 18px;border:1px solid var(--acbr);background:var(--acbg);color:var(--ac);cursor:pointer;border-radius:3px;transition:all .15s}\
+    .tour-next:hover{background:rgba(201,169,124,.18);border-color:var(--ac)}\
+    .tour-back{background:none;color:var(--t3);border-color:var(--bd)}\
+    .tour-back:hover{color:var(--t2);border-color:var(--bd2)}\
+    .tour-welcome-card{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bgc);border:1px solid var(--bd2);border-radius:8px;padding:40px 44px;max-width:480px;width:92%;box-shadow:0 30px 80px rgba(0,0,0,.7);z-index:99999;text-align:center;animation:tourWelcome .5s cubic-bezier(.34,1.56,.64,1)}\
+    @keyframes tourWelcome{from{transform:translate(-50%,-45%);opacity:0}to{transform:translate(-50%,-50%);opacity:1}}\
+    .tour-welcome-card .tour-title{font-size:26px;margin-bottom:14px}\
+    .tour-welcome-card .tour-body{font-size:15px;margin-bottom:24px}\
+    .tour-welcome-card .tour-actions{justify-content:center}\
+    .tour-welcome-hero{font-family:var(--fd);font-size:14px;letter-spacing:8px;color:var(--ac);margin-bottom:18px;text-transform:uppercase}\
+    @media(max-width:768px){#tour-help-btn{bottom:76px;right:14px}.tour-card{max-width:calc(100vw - 40px);left:20px!important;right:20px}.tour-welcome-card{padding:28px 22px}}\
+  ';
+  document.head.appendChild(styleTag);
+  var steps=[
+    {welcome:true,title:'Welcome to Market Elites',body:'Take a 90-second tour so you know where everything lives. You can retake it anytime from the help button in the bottom-right.',hero:'ORIENTATION'},
+    {tab:'dashboard',title:'Your command center',body:'Today\u2019s P&L, active positions, and monthly goal progress live here. This is where you start your day.'},
+    {tab:'signals',title:'Daily trade ideas',body:'Our team posts vetted CSP and CC setups here. Hit <b>Copy Trade</b> on any signal and we\u2019ll auto-add it to your Wheel Tracker with the right strike, expiration, and premium.'},
+    {tab:'calculator',title:'Run the numbers',body:'Type a ticker, browse live option chains, and see exactly how much premium you\u2019ll collect before you place a trade. Add to portfolio in one click.'},
+    {tab:'wheels',title:'Your wheel lifecycle',body:'Every wheel lives here: CSP \u2192 Assigned \u2192 Sell CC \u2192 Called Away. Watch each cycle play out with full math \u2014 premium kept, days held, total P&L.'},
+    {tab:'profile',title:'Set your monthly goal',body:'Pick a monthly income target and we\u2019ll track your progress. You can also turn on alerts, update your info, and see your lifetime win rate.'},
+    {finish:true,title:'You\u2019re ready',body:'Press <b>1\u20139</b> to jump between tabs fast. Tap the <b>?</b> button any time to retake this tour. Go make some premium.'}
+  ];
+  var cur=0,overlay=null,spotlight=null,card=null;
+  function isAuthed(){try{var s=JSON.parse(localStorage.getItem(STATE_KEY)||'{}');return !!(s.firebaseUid||s.isGuest||s.user&&s.user.email)}catch(e){return false}}
+  function isNewUser(){try{var s=JSON.parse(localStorage.getItem(STATE_KEY)||'{}');return (!(s.history&&s.history.length)&&!(s.positions&&s.positions.length)&&!(s.wheelPositions&&s.wheelPositions.length))}catch(e){return true}}
+  function hasDone(){return localStorage.getItem(DONE_KEY)==='true'}
+  function markDone(){try{localStorage.setItem(DONE_KEY,'true')}catch(e){}var b=document.getElementById('tour-help-btn');if(b)b.classList.remove('pulse')}
+  function buildHelpBtn(){
+    if(document.getElementById('tour-help-btn'))return;
+    var b=document.createElement('button');
+    b.id='tour-help-btn';b.type='button';b.textContent='?';b.title='Take the site tour';
+    b.setAttribute('aria-label','Start site tour');
+    if(!hasDone())b.classList.add('pulse');
+    b.addEventListener('click',function(){startTour()});
+    document.body.appendChild(b);
+  }
+  function getTarget(step){
+    if(step.tab)return document.querySelector('.nav-item[data-tab="'+step.tab+'"]');
+    return null;
+  }
+  function positionCard(target){
+    if(!card)return;
+    if(!target){card.style.left='50%';card.style.top='50%';card.style.transform='translate(-50%,-50%)';return}
+    var r=target.getBoundingClientRect();
+    card.style.transform='';
+    var cardW=Math.min(380,window.innerWidth-40);
+    var leftSide=r.left+r.width+20;
+    var topSide=r.top;
+    if(leftSide+cardW>window.innerWidth){leftSide=Math.max(20,window.innerWidth-cardW-20)}
+    if(topSide+240>window.innerHeight){topSide=Math.max(20,window.innerHeight-260)}
+    card.style.left=leftSide+'px';
+    card.style.top=topSide+'px';
+  }
+  function positionSpotlight(target){
+    if(!spotlight)return;
+    if(!target){spotlight.style.display='none';return}
+    spotlight.style.display='block';
+    var r=target.getBoundingClientRect();
+    spotlight.style.left=(r.left-6)+'px';
+    spotlight.style.top=(r.top-4)+'px';
+    spotlight.style.width=(r.width+12)+'px';
+    spotlight.style.height=(r.height+8)+'px';
+  }
+  function renderStep(){
+    if(cur<0)cur=0;if(cur>=steps.length){finish();return}
+    var s=steps[cur];
+    if(s.tab){
+      var navItem=document.querySelector('.nav-item[data-tab="'+s.tab+'"]');
+      if(navItem){navItem.click()}
+    }
+    if(s.welcome||s.finish){
+      if(spotlight)spotlight.style.display='none';
+      card.className='tour-welcome-card';
+      card.style.left='';card.style.top='';
+    }else{
+      card.className='tour-card';
+    }
+    var stepStr=s.welcome||s.finish?'':'Step <b>'+cur+'</b> of '+(steps.length-2);
+    card.innerHTML=
+      (s.hero?'<div class="tour-welcome-hero">'+s.hero+'</div>':'')+
+      (stepStr?'<div class="tour-step">'+stepStr+'</div>':'')+
+      '<div class="tour-title">'+s.title+'</div>'+
+      '<div class="tour-body">'+s.body+'</div>'+
+      '<div class="tour-actions">'+
+        (s.welcome?'<button class="tour-skip" data-act="skip">Skip tour</button>':
+         s.finish?'<span></span>':
+         '<button class="tour-skip" data-act="skip">Skip</button>')+
+        '<div class="tour-next-group">'+
+          (cur>0&&!s.welcome?'<button class="tour-back" data-act="back">Back</button>':'')+
+          '<button class="tour-next" data-act="next">'+(s.welcome?'Start tour':s.finish?'Done':'Next')+'</button>'+
+        '</div>'+
+      '</div>';
+    card.querySelectorAll('[data-act]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var a=b.getAttribute('data-act');
+        if(a==='skip')finish();
+        else if(a==='back'){cur--;renderStep()}
+        else if(a==='next'){cur++;renderStep()}
+      });
+    });
+    setTimeout(function(){
+      var t=getTarget(s);
+      positionSpotlight(t);
+      if(!s.welcome&&!s.finish)positionCard(t);
+    },180);
+  }
+  function startTour(){
+    cur=0;
+    if(!overlay){
+      overlay=document.createElement('div');overlay.className='tour-overlay';
+      spotlight=document.createElement('div');spotlight.className='tour-spotlight';
+      card=document.createElement('div');card.className='tour-card';
+      overlay.appendChild(spotlight);overlay.appendChild(card);
+      document.body.appendChild(overlay);
+    }
+    requestAnimationFrame(function(){overlay.classList.add('show');renderStep()});
+    document.addEventListener('keydown',keyHandler);
+  }
+  function keyHandler(e){
+    if(!overlay||!overlay.classList.contains('show'))return;
+    if(e.key==='Escape'){e.preventDefault();finish()}
+    else if(e.key==='Enter'){e.preventDefault();cur++;renderStep()}
+    else if(e.key==='ArrowRight'){cur++;renderStep()}
+    else if(e.key==='ArrowLeft'&&cur>0){cur--;renderStep()}
+  }
+  function finish(){
+    if(overlay)overlay.classList.remove('show');
+    setTimeout(function(){if(overlay&&overlay.parentNode)overlay.parentNode.removeChild(overlay);overlay=null},320);
+    document.removeEventListener('keydown',keyHandler);
+    markDone();
+  }
+  window.startOnboardingTour=startTour;
+  function tryAutoStart(){
+    if(hasDone())return;
+    if(!isAuthed())return;
+    if(!isNewUser())return;
+    var sb=document.querySelector('.sidebar');
+    if(sb&&sb.style.display==='none')return;
+    startTour();
+  }
+  function init(){
+    buildHelpBtn();
+    setTimeout(tryAutoStart,2500);
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',init);
+  }else{
+    setTimeout(init,500);
+  }
+  window.addEventListener('resize',function(){
+    if(overlay&&overlay.classList.contains('show')){
+      var s=steps[cur];
+      var t=getTarget(s);
+      positionSpotlight(t);
+      if(!s.welcome&&!s.finish)positionCard(t);
+    }
+  });
+})();
+</script>
 </body>
 </html>
