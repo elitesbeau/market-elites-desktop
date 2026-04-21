@@ -3,115 +3,391 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Market Elites — Access Gate Test</title>
+<title>Market Elites — Access</title>
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; }
+  :root {
+    --bg: #050505;
+    --bgc: #0c0c0e;
+    --bgch: #101014;
+    --bge: #161619;
+    --tx: #E8E0D0;
+    --t2: rgba(232,224,208,.7);
+    --t3: rgba(232,224,208,.5);
+    --t4: rgba(232,224,208,.35);
+    --t6: rgba(232,224,208,.08);
+    --ac: #C9A97C;
+    --ac2: rgba(201,169,124,.5);
+    --acbg: rgba(201,169,124,.06);
+    --acbr: rgba(201,169,124,.15);
+    --g: #4ADE80;
+    --gbg: rgba(74,222,128,.08);
+    --gbr: rgba(74,222,128,.2);
+    --r: #F87171;
+    --rbg: rgba(248,113,113,.08);
+    --rbr: rgba(248,113,113,.2);
+    --bd: rgba(232,224,208,.06);
+    --bd2: rgba(232,224,208,.12);
+    --fd: 'Space Grotesk', sans-serif;
+    --fb: 'Inter', sans-serif;
+    --fm: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #0b0d10;
-    color: #eee;
-    margin: 0;
-    padding: 40px 20px;
-    min-height: 100vh;
-  }
-  .wrap { max-width: 640px; margin: 0 auto; }
-  h1 { color: #febe02; margin: 0 0 8px; font-size: 28px; }
-  .sub { color: #888; margin: 0 0 32px; }
-  .card {
-    background: #14171c;
-    border: 1px solid #2a2f36;
-    border-radius: 12px;
-    padding: 28px;
-    margin-top: 20px;
-  }
-  h2 { margin: 0 0 12px; font-size: 20px; }
-  p { line-height: 1.55; color: #ccc; }
-  button {
-    background: #5865F2;
-    color: white;
-    padding: 14px 28px;
-    border: none;
-    border-radius: 8px;
+    background: var(--bg);
+    color: var(--tx);
+    font-family: var(--fb);
     font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 12px;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    position: relative;
+    overflow-x: hidden;
   }
-  button:hover { background: #4752c4; }
-  button.ghost { background: #2a2f36; color: #aaa; padding: 10px 18px; font-size: 13px; }
-  button.ghost:hover { background: #3a3f46; }
-  .ok { color: #5cd97a; font-weight: 700; }
-  .fail { color: #ff5a5a; font-weight: 700; }
-  .muted { color: #888; font-size: 13px; }
-  pre {
-    background: #0a0a0a;
-    padding: 12px;
-    border-radius: 6px;
-    overflow-x: auto;
+  /* Subtle gold gradient glow behind content */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(201,169,124,.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .wrap {
+    max-width: 440px;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  .logo {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .logo-mark {
+    display: inline-block;
+    font-family: var(--fd);
     font-size: 11px;
-    color: #888;
-    margin-top: 16px;
-    max-height: 260px;
-    overflow-y: auto;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--ac);
+    padding: 6px 14px;
+    border: 1px solid var(--acbr);
+    background: var(--acbg);
+    border-radius: 2px;
   }
-  .banner {
-    background: #fef3c7;
-    color: #7c2d12;
-    padding: 10px 14px;
-    border-radius: 8px;
+  .logo-title {
+    font-family: var(--fd);
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: var(--tx);
+    margin-top: 18px;
+  }
+  .logo-sub {
+    color: var(--t3);
     font-size: 13px;
-    margin-bottom: 24px;
+    margin-top: 6px;
+    font-family: var(--fm);
+    letter-spacing: 1px;
+    text-transform: uppercase;
   }
-  .warn {
-    background: #7c2d12;
-    color: #fed7aa;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    margin-bottom: 20px;
+
+  .card {
+    background: var(--bgc);
+    border: 1px solid var(--bd);
+    border-radius: 4px;
+    padding: 32px;
+    position: relative;
   }
-  code { background: #1a1d22; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+  /* Top gold accent line */
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--ac2), transparent);
+  }
+
+  h2 {
+    font-family: var(--fd);
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    margin-bottom: 10px;
+  }
+  p {
+    color: var(--t2);
+    font-size: 14px;
+    line-height: 1.65;
+    margin-bottom: 18px;
+  }
+  p:last-of-type { margin-bottom: 0; }
+
+  .btn {
+    font-family: var(--fm);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 14px 24px;
+    border: 1px solid var(--acbr);
+    background: var(--acbg);
+    color: var(--tx);
+    cursor: pointer;
+    transition: all .2s;
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .btn:hover {
+    background: rgba(201,169,124,.12);
+    border-color: var(--ac2);
+  }
+  .btn-g {
+    width: 100%;
+    justify-content: center;
+    background: var(--acbg);
+    border-color: var(--acbr);
+    color: var(--ac);
+    padding: 16px 24px;
+    font-size: 12px;
+  }
+  .btn-g:hover {
+    background: rgba(201,169,124,.12);
+    border-color: var(--ac);
+    color: var(--ac);
+  }
+  .btn-ghost {
+    background: transparent;
+    border-color: var(--bd2);
+    color: var(--t3);
+    font-size: 10px;
+    padding: 10px 18px;
+  }
+  .btn-ghost:hover {
+    background: var(--t6);
+    color: var(--tx);
+  }
+
+  .status-ok {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--fm);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--g);
+    padding: 5px 10px;
+    background: var(--gbg);
+    border: 1px solid var(--gbr);
+    border-radius: 2px;
+    margin-bottom: 16px;
+  }
+  .status-fail {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--fm);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--r);
+    padding: 5px 10px;
+    background: var(--rbg);
+    border: 1px solid var(--rbr);
+    border-radius: 2px;
+    margin-bottom: 16px;
+  }
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 8px currentColor;
+  }
+
+  .user-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-top: 1px solid var(--bd);
+    border-bottom: 1px solid var(--bd);
+    margin: 18px 0;
+  }
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bge);
+    border: 1px solid var(--bd2);
+  }
+  .user-name {
+    font-family: var(--fd);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--tx);
+  }
+  .user-id {
+    font-family: var(--fm);
+    font-size: 10px;
+    color: var(--t4);
+    letter-spacing: 0.5px;
+  }
+
+  .divider {
+    text-align: center;
+    margin: 20px 0;
+    font-family: var(--fm);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--t4);
+  }
+
+  .debug {
+    margin-top: 22px;
+    border-top: 1px solid var(--bd);
+    padding-top: 16px;
+  }
+  .debug-toggle {
+    cursor: pointer;
+    font-family: var(--fm);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--t4);
+    user-select: none;
+  }
+  .debug-toggle:hover { color: var(--t2); }
+  .debug pre {
+    margin-top: 12px;
+    font-family: var(--fm);
+    font-size: 10px;
+    line-height: 1.5;
+    color: var(--t3);
+    background: var(--bg);
+    border: 1px solid var(--bd);
+    border-radius: 2px;
+    padding: 14px;
+    max-height: 220px;
+    overflow: auto;
+    display: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .debug.open pre { display: block; }
+
+  .footer {
+    text-align: center;
+    margin-top: 28px;
+    font-family: var(--fm);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--t4);
+  }
+  .footer a { color: var(--ac2); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .2s; }
+  .footer a:hover { border-color: var(--ac2); }
+
+  .spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--t6);
+    border-top-color: var(--ac);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--fm);
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--t3);
+  }
+
+  .discord-icon {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    flex-shrink: 0;
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="banner">🧪 TEST ENVIRONMENT — Production site unaffected. Safe to experiment.</div>
-  <h1>🔒 Market Elites — Access Gate</h1>
-  <p class="sub">Verify Discord membership + soft launch role</p>
-
-  <div id="configWarn" class="warn" style="display:none">
-    <strong>⚠️ Worker URL not configured.</strong> Edit this HTML and set <code>WORKER_URL</code> at the top of the script.
+  <div class="logo">
+    <div class="logo-mark">Members Only</div>
+    <div class="logo-title">Market Elites</div>
+    <div class="logo-sub">Soft Launch · v1.0</div>
   </div>
 
   <div class="card" id="loginCard">
-    <h2>Sign in to continue</h2>
-    <p>Click below to verify your Discord account and check if you have the <strong>Soft Launch</strong> role in the Market Elites server.</p>
-    <button onclick="startLogin()">Sign in with Discord</button>
-    <p class="muted" style="margin-top:16px">You'll be redirected to Discord, then back here with a verification result.</p>
+    <h2>Verify Access</h2>
+    <p>This pre-release is limited to members with the <span style="color:var(--ac)">Soft Launch</span> role in the Market Elites Discord.</p>
+    <button class="btn btn-g" onclick="startLogin()">
+      <svg class="discord-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.058a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+      Continue with Discord
+    </button>
+    <p style="margin-top:20px;font-size:12px;color:var(--t4);font-family:var(--fm);letter-spacing:0.5px">You'll be redirected to Discord to authorize. We only read your server roles — no messages, no writes.</p>
+  </div>
+
+  <div class="card" id="loadingCard" style="display:none">
+    <div class="loading-line">
+      <div class="spinner"></div>
+      <span>Verifying credentials...</span>
+    </div>
   </div>
 
   <div class="card" id="resultCard" style="display:none">
-    <h2 id="resultTitle">Checking...</h2>
+    <div id="statusBadge"></div>
+    <h2 id="resultTitle"></h2>
     <div id="resultDetail"></div>
-    <pre id="resultRaw"></pre>
-    <button class="ghost" onclick="logout()">Sign out (clear test state)</button>
+    <div id="userLine"></div>
+    <div id="resultActions"></div>
+    <div class="debug" id="debugPanel">
+      <div class="debug-toggle" onclick="document.getElementById('debugPanel').classList.toggle('open')">› Diagnostic Response</div>
+      <pre id="resultRaw"></pre>
+    </div>
+  </div>
+
+  <div class="footer">
+    Not a member? <a href="https://discord.gg/marketelites" target="_blank">Request an invite</a>
   </div>
 </div>
 
 <script>
   const CLIENT_ID = '1496232351775068281';
   const REDIRECT_URI = window.location.origin + window.location.pathname;
-  const SCOPES = 'identify guilds.members.read';
-
-  // TODO: Replace with your Cloudflare Worker URL after deploying the worker.
-  // Example: 'https://market-elites-gate.yourname.workers.dev'
   const WORKER_URL = 'https://market-elites-gate.beau-e51.workers.dev';
+  const SCOPES = 'identify guilds.members.read';
+  const SITE_URL = '/market-elites-desktop/';
 
   function startLogin() {
-    if (WORKER_URL === 'REPLACE_WITH_WORKER_URL') {
-      document.getElementById('configWarn').style.display = '';
-      return;
-    }
     const authUrl = 'https://discord.com/api/oauth2/authorize' +
       '?client_id=' + encodeURIComponent(CLIENT_ID) +
       '&redirect_uri=' + encodeURIComponent(REDIRECT_URI) +
@@ -125,34 +401,33 @@
     window.location.href = REDIRECT_URI;
   }
 
+  function show(id) {
+    ['loginCard', 'loadingCard', 'resultCard'].forEach(x => {
+      document.getElementById(x).style.display = x === id ? '' : 'none';
+    });
+  }
+
   async function handleCallback() {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     const err = params.get('error');
 
     if (err) {
-      showResult({ ok: false, error: 'discord_denied', detail: err });
       history.replaceState({}, '', REDIRECT_URI);
+      showResult({ ok: false, error: 'discord_denied', detail: err });
       return;
     }
 
     if (!code) {
       const cached = localStorage.getItem('gateTestResult');
       if (cached) {
-        try { showResult(JSON.parse(cached)); } catch (e) {}
+        try { showResult(JSON.parse(cached)); return; } catch (e) {}
       }
-      if (WORKER_URL === 'REPLACE_WITH_WORKER_URL') {
-        document.getElementById('configWarn').style.display = '';
-      }
+      show('loginCard');
       return;
     }
 
-    document.getElementById('loginCard').style.display = 'none';
-    const card = document.getElementById('resultCard');
-    card.style.display = '';
-    document.getElementById('resultTitle').textContent = '⏳ Verifying with Discord...';
-    document.getElementById('resultDetail').innerHTML = '<p class="muted">Exchanging code, fetching roles...</p>';
-    document.getElementById('resultRaw').textContent = '';
+    show('loadingCard');
     history.replaceState({}, '', REDIRECT_URI);
 
     try {
@@ -170,33 +445,55 @@
   }
 
   function showResult(data) {
-    document.getElementById('loginCard').style.display = 'none';
-    const card = document.getElementById('resultCard');
-    card.style.display = '';
+    show('resultCard');
+    const badge = document.getElementById('statusBadge');
     const title = document.getElementById('resultTitle');
     const detail = document.getElementById('resultDetail');
+    const userLine = document.getElementById('userLine');
+    const actions = document.getElementById('resultActions');
     const raw = document.getElementById('resultRaw');
 
     if (data.ok) {
-      title.innerHTML = '<span class="ok">✓ Access Granted</span>';
-      const name = (data.user && data.user.username) ? data.user.username : 'unknown';
-      detail.innerHTML =
-        '<p>Welcome, <strong>' + escapeHtml(name) + '</strong>. You have the required role.</p>' +
-        '<p class="muted">In production, this is where the site unlocks.</p>';
+      badge.className = 'status-ok';
+      badge.innerHTML = '<span class="status-dot"></span>Verified';
+      title.textContent = 'Access Granted';
+      detail.innerHTML = '<p>Your Discord membership and <span style="color:var(--ac)">Soft Launch</span> role are confirmed. You can now enter the platform.</p>';
+
+      const u = data.user || {};
+      const avatarUrl = u.avatar
+        ? 'https://cdn.discordapp.com/avatars/' + u.id + '/' + u.avatar + '.png?size=64'
+        : 'https://cdn.discordapp.com/embed/avatars/0.png';
+      userLine.innerHTML =
+        '<div class="user-line">' +
+          '<img class="user-avatar" src="' + avatarUrl + '" alt="">' +
+          '<div>' +
+            '<div class="user-name">' + escapeHtml(u.username || 'unknown') + '</div>' +
+            '<div class="user-id">ID ' + escapeHtml(u.id || '—') + '</div>' +
+          '</div>' +
+        '</div>';
+      actions.innerHTML =
+        '<a class="btn btn-g" href="' + SITE_URL + '">Enter Platform →</a>' +
+        '<div class="divider">or</div>' +
+        '<button class="btn btn-ghost" onclick="logout()" style="width:100%;justify-content:center">Sign out</button>';
     } else {
-      title.innerHTML = '<span class="fail">✗ Access Denied</span>';
+      badge.className = 'status-fail';
+      badge.innerHTML = '<span class="status-dot"></span>Denied';
+      title.textContent = 'Access Denied';
       const reasons = {
-        not_in_server: 'You are not a member of the Market Elites Discord server. <a href="#" style="color:#5865F2">Join the server</a> and contact an admin to get the role.',
-        missing_role: 'You are in the server but do not have the Soft Launch role. Contact an admin to request access.',
-        token_exchange_failed: 'Discord OAuth token exchange failed. This usually means the redirect URI in the Discord app does not match this page, or the authorization code expired.',
+        not_in_server: 'You are not a member of the Market Elites Discord server. Join the server and contact an admin to request the Soft Launch role.',
+        missing_role: 'You are in the server but do not have the Soft Launch role yet. Contact an admin to request access.',
+        token_exchange_failed: 'Discord authorization failed. The code may have expired — try again.',
         member_fetch_failed: 'Could not read your server roles. Discord API error.',
-        network_error: 'Could not reach the auth worker. Check the Worker URL and that the Worker is deployed.',
+        network_error: 'Could not reach the verification service.',
         discord_denied: 'You denied the Discord authorization.',
-        server_misconfigured: 'The Worker is deployed but missing DISCORD_CLIENT_SECRET. Set it as an encrypted env variable.',
+        server_misconfigured: 'Service misconfigured. Contact an admin.',
       };
-      const msg = reasons[data.error] || ('Unknown error: ' + (data.error || 'n/a'));
-      detail.innerHTML = '<p>' + msg + '</p>';
+      detail.innerHTML = '<p>' + (reasons[data.error] || 'Unknown error.') + '</p>';
+      userLine.innerHTML = '';
+      actions.innerHTML =
+        '<button class="btn btn-g" onclick="logout()" style="width:100%;justify-content:center">Try Again</button>';
     }
+
     raw.textContent = JSON.stringify(data, null, 2);
   }
 
