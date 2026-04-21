@@ -884,6 +884,78 @@ window.onerror=function(msg,src,line,col,err){
 </head>
 <body>
 
+<style>
+/* __discord_gate_enforce_v1_css__ */
+#meGateOverlay{position:fixed;inset:0;background:#050505;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:24px;font-family:'Inter',sans-serif;color:#E8E0D0;overflow-y:auto}
+#meGateOverlay::before{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(201,169,124,.04) 0%,transparent 70%);pointer-events:none}
+#meGateOverlay .g-wrap{max-width:460px;width:100%;position:relative;z-index:1}
+#meGateOverlay .g-badge{display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:500;letter-spacing:4px;text-transform:uppercase;color:#C9A97C;padding:6px 14px;border:1px solid rgba(201,169,124,.15);background:rgba(201,169,124,.06);border-radius:2px}
+#meGateOverlay .g-head{text-align:center;margin-bottom:32px}
+#meGateOverlay .g-title{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:600;letter-spacing:-.5px;margin-top:18px}
+#meGateOverlay .g-sub{color:rgba(232,224,208,.5);font-size:13px;margin-top:6px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+#meGateOverlay .g-card{background:#0c0c0e;border:1px solid rgba(232,224,208,.06);border-radius:4px;padding:32px;position:relative}
+#meGateOverlay .g-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,169,124,.5),transparent)}
+#meGateOverlay h2{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;letter-spacing:-.3px;margin-bottom:10px}
+#meGateOverlay p{color:rgba(232,224,208,.7);font-size:14px;line-height:1.65;margin-bottom:18px}
+#meGateOverlay .g-btn{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;padding:16px 24px;border:1px solid rgba(201,169,124,.15);background:rgba(201,169,124,.06);color:#C9A97C;cursor:pointer;transition:all .2s;border-radius:2px;display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;width:100%;box-sizing:border-box}
+#meGateOverlay .g-btn:hover{background:rgba(201,169,124,.12);border-color:#C9A97C}
+#meGateOverlay .g-foot{text-align:center;margin-top:22px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(232,224,208,.35)}
+#meGateOverlay .g-foot a{color:rgba(201,169,124,.5);text-decoration:none;border-bottom:1px solid transparent}
+#meGateOverlay .g-foot a:hover{border-color:rgba(201,169,124,.5)}
+#meGateOverlay.g-hidden{display:none !important}
+#meGateOverlay .g-denied{margin-top:16px;padding:12px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:#F87171;border-radius:2px;font-size:13px;text-align:center}
+</style>
+<div id="meGateOverlay" role="dialog" aria-label="Discord verification required">
+  <div class="g-wrap">
+    <div class="g-head">
+      <div class="g-badge">Members Only</div>
+      <div class="g-title">Market Elites</div>
+      <div class="g-sub">Soft Launch · v1.0</div>
+    </div>
+    <div class="g-card">
+      <h2>Verify Access</h2>
+      <p>This pre-release is limited to members with the <span style="color:#C9A97C">Soft Launch</span> role in the Market Elites Discord.</p>
+      <a class="g-btn" href="gate-test.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.058a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+        Continue with Discord
+      </a>
+      <p style="margin-top:18px;margin-bottom:0;font-size:12px;color:rgba(232,224,208,.35);font-family:'JetBrains Mono',monospace;letter-spacing:.5px;text-align:center">Takes about 10 seconds. No messages, no writes — we only read your server role.</p>
+      <div id="meGateDeniedHint" style="display:none" class="g-denied"></div>
+    </div>
+    <div class="g-foot">
+      Not a member? <a href="https://discord.gg/marketelites" target="_blank">Request an invite</a>
+    </div>
+  </div>
+</div>
+<script>
+/* __discord_gate_enforce_v1__ */
+(function(){
+  try {
+    var raw = localStorage.getItem('gateTestResult');
+    if (raw) {
+      var r = JSON.parse(raw);
+      if (r && r.ok === true) {
+        // Gate passed previously — hide overlay, let normal app load.
+        var ov = document.getElementById('meGateOverlay');
+        if (ov) ov.classList.add('g-hidden');
+        return;
+      }
+      if (r && r.ok === false && r.error) {
+        // Previous attempt denied — show reason inline.
+        var hints = {
+          not_in_server: 'Your Discord isn\'t in the Market Elites server. Join the Discord and request the Soft Launch role, then try again.',
+          missing_role: 'Your Discord doesn\'t have the Soft Launch role yet. Ask an admin to grant it.',
+          token_exchange_failed: 'Discord authorization expired. Click the button above to retry.',
+          network_error: 'Could not reach the verification service. Check your connection and retry.'
+        };
+        var hint = document.getElementById('meGateDeniedHint');
+        if (hint && hints[r.error]) { hint.textContent = hints[r.error]; hint.style.display = ''; }
+      }
+    }
+  } catch (e) { /* fail open to verification — do NOT hide overlay */ }
+})();
+</script>
+
 <!-- SVG Defs -->
 <svg style="position:fixed;width:0;height:0">
   <filter id="noise"><feTurbulence type="fractalNoise" baseFrequency=".65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
