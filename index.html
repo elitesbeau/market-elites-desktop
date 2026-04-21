@@ -1420,7 +1420,7 @@ window.onerror=function(msg,src,line,col,err){
     <div class="wt-line"></div>
     <div class="wt-head-actions">
       <button class="btn btn-sm" onclick="openWtModal('calendarView')">Calendar</button>
-      <button class="btn btn-g btn-sm" onclick="openWtModal('createWheel')">+ New Wheel</button>
+      <button class="btn btn-g btn-sm" onclick="openWtModal('createWheel')">+ New Wheel</button> <button class="btn btn-sm" onclick="window._csvOpen()" style="margin-left:6px" title="Import positions from a brokerage CSV export">📥 Import CSV</button>
     </div>
   </div>
 
@@ -3324,6 +3324,464 @@ window._notifySignalStatus = function(sig, status) {
     }).catch(function (e) { console.warn('Discord notify:', e); });
   } catch (e) { console.warn('notifySignalStatus:', e); }
 };
+</script>
+
+<div class="wt-modal-bg" id="csvImportModal">
+  <div class="wt-modal" style="max-width:760px">
+    <div class="wt-modal-head">
+      <span class="wt-modal-title">Import Positions from Brokerage CSV</span>
+      <button class="wt-modal-close" onclick="closeWtModal('csvImportModal')">&times;</button>
+    </div>
+    <div class="wt-modal-body" id="csvImportBody">
+      <div id="csvStep1">
+        <div style="border:2px dashed #888;border-radius:10px;padding:32px;text-align:center;cursor:pointer;background:rgba(255,255,255,0.03)" id="csvDropZone" onclick="document.getElementById('csvFileInput').click()">
+          <div style="font-size:42px;margin-bottom:8px">📄</div>
+          <div style="font-size:15px;font-weight:600;margin-bottom:4px">Drop CSV file here or click to browse</div>
+          <div style="font-size:12px;opacity:0.65">Supports: ThinkorSwim, Interactive Brokers, Robinhood</div>
+          <input type="file" id="csvFileInput" accept=".csv,.txt" style="display:none" />
+        </div>
+        <div style="margin-top:14px;font-size:12px;opacity:0.7;line-height:1.5">
+          <strong>How to export:</strong><br>
+          • <strong>ThinkorSwim</strong>: Monitor → Account Statement → Export to File (CSV)<br>
+          • <strong>IBKR</strong>: Reports → Activity Statement → Format: CSV → Run<br>
+          • <strong>Robinhood</strong>: Account → Reports & Statements → Generate CSV<br>
+          <em style="opacity:0.7">Only short option positions (sold puts/calls) are imported.</em>
+        </div>
+      </div>
+      <div id="csvStep2" style="display:none">
+        <div id="csvBrokerLabel" style="font-size:13px;margin-bottom:10px"></div>
+        <div id="csvPreviewWrap" style="max-height:340px;overflow-y:auto;border:1px solid rgba(255,255,255,0.08);border-radius:8px"></div>
+        <div style="margin-top:8px;font-size:12px;opacity:0.7" id="csvSelCount">0 selected</div>
+      </div>
+    </div>
+    <div class="wt-modal-footer">
+      <button class="btn btn-sm" onclick="closeWtModal('csvImportModal')">Cancel</button>
+      <button class="btn btn-sm" id="csvBackBtn" style="display:none" onclick="window._csvReset()">← Back</button>
+      <button class="btn btn-g btn-sm" id="csvImportBtn" style="display:none" onclick="window._csvImport()">Import Selected</button>
+    </div>
+  </div>
+</div>
+<script>
+/* __csv_import_v1__ */
+(function(){
+  'use strict';
+
+  let parsed = []; // {ticker, type, strike, exp, premium, contracts, broker, _selected}
+
+  // ---- Open / reset modal ----
+  window._csvOpen = function() {
+    parsed = [];
+    document.getElementById('csvStep1').style.display = '';
+    document.getElementById('csvStep2').style.display = 'none';
+    document.getElementById('csvImportBtn').style.display = 'none';
+    document.getElementById('csvBackBtn').style.display = 'none';
+    document.getElementById('csvFileInput').value = '';
+    if (typeof openWtModal === 'function') openWtModal('csvImportModal');
+  };
+  window._csvReset = function() { window._csvOpen(); };
+
+  // ---- File input handling ----
+  document.addEventListener('DOMContentLoaded', wireFile);
+  if (document.readyState !== 'loading') wireFile();
+
+  function wireFile() {
+    const inp = document.getElementById('csvFileInput');
+    const dz = document.getElementById('csvDropZone');
+    if (!inp || !dz || inp._wired) return;
+    inp._wired = true;
+
+    inp.addEventListener('change', e => {
+      const f = e.target.files[0];
+      if (f) readFile(f);
+    });
+    ['dragover','dragenter'].forEach(ev => dz.addEventListener(ev, e => {
+      e.preventDefault(); dz.style.borderColor = '#7A5AF8';
+    }));
+    ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => {
+      e.preventDefault(); dz.style.borderColor = '#888';
+    }));
+    dz.addEventListener('drop', e => {
+      e.preventDefault();
+      const f = e.dataTransfer.files[0];
+      if (f) readFile(f);
+    });
+  }
+
+  function readFile(file) {
+    const r = new FileReader();
+    r.onload = ev => {
+      try {
+        const text = ev.target.result;
+        const result = parseAny(text);
+        if (!result || result.positions.length === 0) {
+          if (typeof Et === 'function') Et('No option positions found in CSV', 'error');
+          else alert('No option positions found in CSV');
+          return;
+        }
+        parsed = result.positions.map(p => Object.assign({}, p, { _selected: true }));
+        showPreview(result.broker);
+      } catch (err) {
+        console.error('[CSV Import]', err);
+        if (typeof Et === 'function') Et('Failed to parse CSV: ' + err.message, 'error');
+        else alert('Failed to parse CSV: ' + err.message);
+      }
+    };
+    r.readAsText(file);
+  }
+
+  // ---- CSV row tokenizer (handles quoted fields with commas) ----
+  function parseCSVLine(line) {
+    const out = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') {
+        if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+        else inQ = !inQ;
+      } else if (c === ',' && !inQ) {
+        out.push(cur); cur = '';
+      } else cur += c;
+    }
+    out.push(cur);
+    return out.map(s => s.trim());
+  }
+
+  function parseCSV(text) {
+    const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+    return lines.map(parseCSVLine);
+  }
+
+  // ---- Broker auto-detection ----
+  function detectBroker(rows) {
+    const flat = rows.map(r => r.join('|').toLowerCase()).join('\n');
+    // IBKR Activity Statement: section markers like "Trades,Header,..."
+    if (rows.some(r => r[0] === 'Trades' && r[1] === 'Header')) return 'ibkr';
+    // Robinhood: "Trans Code" column
+    if (flat.includes('trans code')) return 'robinhood';
+    // ThinkorSwim: "Pos Effect" or position statement headers
+    if (flat.includes('pos effect') || flat.includes('account trade history') ||
+        (flat.includes('instrument') && flat.includes('mark'))) return 'tos';
+    return null;
+  }
+
+  function parseAny(text) {
+    const rows = parseCSV(text);
+    const broker = detectBroker(rows);
+    if (!broker) throw new Error('Unrecognized CSV format. Supported: ThinkorSwim, IBKR, Robinhood.');
+    let positions = [];
+    if (broker === 'ibkr') positions = parseIBKR(rows);
+    else if (broker === 'robinhood') positions = parseRobinhood(rows);
+    else positions = parseToS(rows);
+    return { broker, positions };
+  }
+
+  // ---- Helpers: option symbol + date ----
+  function parseOCC(sym) {
+    // Format: "AAPL  250117P00150000" or "AAPL 250117P00150000"
+    const m = sym.replace(/\s+/g, ' ').match(/^([A-Z]{1,6})\s*(\d{6})([CP])(\d{8})$/);
+    if (!m) return null;
+    const [, ticker, ymd, cp, strikeRaw] = m;
+    const yyyy = '20' + ymd.slice(0,2);
+    const mm = ymd.slice(2,4);
+    const dd = ymd.slice(4,6);
+    return {
+      ticker,
+      type: cp === 'P' ? 'CSP' : 'CC',
+      strike: parseInt(strikeRaw, 10) / 1000,
+      exp: yyyy + '-' + mm + '-' + dd
+    };
+  }
+
+  function parseToSDescription(s) {
+    // "100 (Weeklys) 17 JAN 25 150 PUT" or "AAPL 17 JAN 25 150 PUT"
+    const m = s.match(/(\d{1,2})\s+([A-Z]{3})\s+(\d{2,4})\s+([\d.]+)\s+(PUT|CALL)/i);
+    if (!m) return null;
+    const [, dd, mon, yyRaw, strike, pc] = m;
+    const months = { JAN:'01',FEB:'02',MAR:'03',APR:'04',MAY:'05',JUN:'06',JUL:'07',AUG:'08',SEP:'09',OCT:'10',NOV:'11',DEC:'12' };
+    const mm = months[mon.toUpperCase()];
+    if (!mm) return null;
+    const yyyy = yyRaw.length === 2 ? '20' + yyRaw : yyRaw;
+    return {
+      type: pc.toUpperCase() === 'PUT' ? 'CSP' : 'CC',
+      strike: parseFloat(strike),
+      exp: yyyy + '-' + mm + '-' + dd.padStart(2, '0')
+    };
+  }
+
+  function parseRHDescription(s) {
+    // "MSFT 1/17/2025 Put $400.00"
+    const m = s.match(/^([A-Z]{1,6})\s+(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(Put|Call)\s+\$([\d.]+)/i);
+    if (!m) return null;
+    const [, ticker, mm, dd, yyyy, pc, strike] = m;
+    return {
+      ticker,
+      type: pc.toLowerCase() === 'put' ? 'CSP' : 'CC',
+      strike: parseFloat(strike),
+      exp: yyyy + '-' + mm.padStart(2,'0') + '-' + dd.padStart(2,'0')
+    };
+  }
+
+  // ---- ThinkorSwim parser ----
+  function parseToS(rows) {
+    // ToS account statement has multiple sections. Scan for option lines via PUT/CALL keyword.
+    const out = [];
+    let headerIdx = -1, headers = [];
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      const lower = r.map(c => c.toLowerCase());
+      if (lower.includes('symbol') || lower.includes('instrument')) {
+        headerIdx = i;
+        headers = lower;
+        continue;
+      }
+      if (headerIdx === -1) continue;
+      // Look for option indicators in any cell
+      const joined = r.join(' ');
+      if (!/\b(PUT|CALL)\b/i.test(joined)) continue;
+      const parsedOpt = parseToSDescription(joined);
+      if (!parsedOpt) continue;
+      // Ticker: try Symbol col first, else first standalone uppercase token
+      const symCol = headers.indexOf('symbol');
+      let ticker = null;
+      if (symCol !== -1) ticker = (r[symCol] || '').replace(/\W/g,'').toUpperCase();
+      if (!ticker) {
+        const m = joined.match(/\b([A-Z]{1,6})\b/);
+        if (m) ticker = m[1];
+      }
+      if (!ticker) continue;
+      // Qty: negative = short (sold). We want short only.
+      const qtyCol = headers.findIndex(h => h === 'qty' || h === 'quantity');
+      let qty = qtyCol !== -1 ? parseFloat((r[qtyCol] || '0').replace(/[+,]/g,'')) : 0;
+      if (qty >= 0) continue; // only short positions
+      const contracts = Math.abs(qty);
+      // Premium: try Trade Price or Price col
+      const priceCol = headers.findIndex(h => h.includes('trade price') || h === 'price' || h.includes('mark'));
+      const premium = priceCol !== -1 ? Math.abs(parseFloat((r[priceCol] || '0').replace(/[$,]/g,''))) || 0 : 0;
+      out.push({
+        ticker,
+        type: parsedOpt.type,
+        strike: parsedOpt.strike,
+        exp: parsedOpt.exp,
+        contracts,
+        premium,
+        broker: 'ThinkorSwim'
+      });
+    }
+    return out;
+  }
+
+  // ---- IBKR parser ----
+  function parseIBKR(rows) {
+    // IBKR Trades section: Trades,Header,DataDiscriminator,Asset Category,Currency,Symbol,Date/Time,Quantity,T. Price,...
+    const out = [];
+    let headers = [];
+    let inTrades = false;
+    for (const r of rows) {
+      if (r[0] === 'Trades' && r[1] === 'Header') {
+        headers = r.map(c => c.toLowerCase());
+        inTrades = true;
+        continue;
+      }
+      if (r[0] !== 'Trades' || r[1] !== 'Data') { continue; }
+      if (!inTrades) continue;
+      const get = name => {
+        const idx = headers.indexOf(name.toLowerCase());
+        return idx === -1 ? '' : (r[idx] || '');
+      };
+      const asset = get('Asset Category');
+      if (!/option/i.test(asset)) continue;
+      const symbol = get('Symbol');
+      const opt = parseOCC(symbol) || parseToSDescription(symbol);
+      if (!opt) continue;
+      let ticker = opt.ticker;
+      if (!ticker) {
+        const m = symbol.match(/^([A-Z]{1,6})/);
+        ticker = m ? m[1] : null;
+      }
+      if (!ticker) continue;
+      const qty = parseFloat(get('Quantity').replace(/,/g,'')) || 0;
+      if (qty >= 0) continue; // short only
+      const contracts = Math.abs(qty);
+      const premium = Math.abs(parseFloat(get('T. Price').replace(/[$,]/g,''))) || 0;
+      out.push({
+        ticker,
+        type: opt.type,
+        strike: opt.strike,
+        exp: opt.exp,
+        contracts,
+        premium,
+        broker: 'IBKR'
+      });
+    }
+    return out;
+  }
+
+  // ---- Robinhood parser ----
+  function parseRobinhood(rows) {
+    const out = [];
+    let headers = [];
+    let headerIdx = -1;
+    for (let i = 0; i < rows.length; i++) {
+      const lower = rows[i].map(c => c.toLowerCase());
+      if (lower.includes('trans code')) { headers = lower; headerIdx = i; break; }
+    }
+    if (headerIdx === -1) return out;
+    const idx = name => headers.indexOf(name.toLowerCase());
+    const cDesc = idx('description');
+    const cTrans = idx('trans code');
+    const cQty = idx('quantity');
+    const cPrice = idx('price');
+    for (let i = headerIdx + 1; i < rows.length; i++) {
+      const r = rows[i];
+      const trans = (r[cTrans] || '').toUpperCase().trim();
+      // STO = sell-to-open (puts/calls being sold) — that's what we want
+      if (trans !== 'STO') continue;
+      const desc = r[cDesc] || '';
+      const opt = parseRHDescription(desc);
+      if (!opt) continue;
+      const contracts = Math.abs(parseFloat((r[cQty] || '0').replace(/,/g,''))) || 1;
+      const premium = Math.abs(parseFloat((r[cPrice] || '0').replace(/[$,]/g,''))) || 0;
+      out.push({
+        ticker: opt.ticker,
+        type: opt.type,
+        strike: opt.strike,
+        exp: opt.exp,
+        contracts,
+        premium,
+        broker: 'Robinhood'
+      });
+    }
+    return out;
+  }
+
+  // ---- Preview rendering ----
+  function showPreview(broker) {
+    document.getElementById('csvStep1').style.display = 'none';
+    document.getElementById('csvStep2').style.display = '';
+    document.getElementById('csvImportBtn').style.display = '';
+    document.getElementById('csvBackBtn').style.display = '';
+    const brokerNames = { tos: 'ThinkorSwim', ibkr: 'Interactive Brokers', robinhood: 'Robinhood' };
+    document.getElementById('csvBrokerLabel').innerHTML =
+      '<strong>Detected:</strong> ' + (brokerNames[broker] || broker) +
+      ' — found <strong>' + parsed.length + '</strong> short option position' + (parsed.length === 1 ? '' : 's');
+
+    // Dedupe check vs existing wheel transactions
+    const existing = collectExisting();
+    parsed.forEach(p => {
+      p._dup = existing.has(dupKey(p));
+      if (p._dup) p._selected = false;
+    });
+
+    const wrap = document.getElementById('csvPreviewWrap');
+    let h = '<table style="width:100%;font-size:12px;border-collapse:collapse">';
+    h += '<thead style="background:rgba(255,255,255,0.04);position:sticky;top:0">';
+    h += '<tr><th style="padding:8px 6px;text-align:left"><input type="checkbox" id="csvSelAll" checked></th>';
+    h += '<th style="padding:8px 6px;text-align:left">Ticker</th>';
+    h += '<th style="padding:8px 6px;text-align:left">Type</th>';
+    h += '<th style="padding:8px 6px;text-align:right">Strike</th>';
+    h += '<th style="padding:8px 6px;text-align:left">Exp</th>';
+    h += '<th style="padding:8px 6px;text-align:right">Qty</th>';
+    h += '<th style="padding:8px 6px;text-align:right">Prem</th>';
+    h += '<th style="padding:8px 6px;text-align:left">Status</th></tr></thead><tbody>';
+    parsed.forEach((p, i) => {
+      h += '<tr style="border-top:1px solid rgba(255,255,255,0.06)' + (p._dup ? ';opacity:0.55' : '') + '">';
+      h += '<td style="padding:6px"><input type="checkbox" class="csv-row-cb" data-i="' + i + '"' + (p._selected ? ' checked' : '') + '></td>';
+      h += '<td style="padding:6px;font-weight:600">' + p.ticker + '</td>';
+      h += '<td style="padding:6px"><span style="color:' + (p.type === 'CSP' ? '#5cd97a' : '#febe02') + '">' + p.type + '</span></td>';
+      h += '<td style="padding:6px;text-align:right">$' + p.strike.toFixed(2) + '</td>';
+      h += '<td style="padding:6px">' + p.exp + '</td>';
+      h += '<td style="padding:6px;text-align:right">' + p.contracts + '</td>';
+      h += '<td style="padding:6px;text-align:right">$' + p.premium.toFixed(2) + '</td>';
+      h += '<td style="padding:6px;font-size:11px;opacity:0.75">' + (p._dup ? 'Already imported' : 'New') + '</td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+    wrap.innerHTML = h;
+
+    document.getElementById('csvSelAll').addEventListener('change', e => {
+      document.querySelectorAll('.csv-row-cb').forEach(cb => {
+        const i = +cb.dataset.i;
+        if (parsed[i]._dup) return;
+        cb.checked = e.target.checked;
+        parsed[i]._selected = e.target.checked;
+      });
+      updateSelCount();
+    });
+    document.querySelectorAll('.csv-row-cb').forEach(cb => {
+      cb.addEventListener('change', e => {
+        parsed[+e.target.dataset.i]._selected = e.target.checked;
+        updateSelCount();
+      });
+    });
+    updateSelCount();
+  }
+
+  function updateSelCount() {
+    const n = parsed.filter(p => p._selected).length;
+    document.getElementById('csvSelCount').textContent = n + ' selected';
+    document.getElementById('csvImportBtn').disabled = n === 0;
+  }
+
+  function dupKey(p) {
+    return p.ticker + '|' + p.type + '|' + p.strike + '|' + p.exp;
+  }
+
+  function collectExisting() {
+    const set = new Set();
+    if (typeof wt !== 'function') return set;
+    try {
+      const state = wt();
+      (state.wheels || []).forEach(w => {
+        (w.transactions || []).forEach(tx => {
+          if (!tx.strike || !tx.expiration) return;
+          const type = (tx.type === 'sell_csp' || tx.type === 'btc_put' || tx.type === 'put_assign') ? 'CSP' :
+                       (tx.type === 'sell_cc' || tx.type === 'btc_call' || tx.type === 'call_assign') ? 'CC' : null;
+          if (!type) return;
+          set.add(w.sym + '|' + type + '|' + tx.strike + '|' + tx.expiration);
+        });
+      });
+    } catch (e) { console.warn('[CSV] dedup scan failed', e); }
+    return set;
+  }
+
+  // ---- Import execution ----
+  window._csvImport = function() {
+    const sel = parsed.filter(p => p._selected);
+    if (sel.length === 0) return;
+    let added = 0, failed = 0;
+    sel.forEach(p => {
+      try {
+        const wid = St(p.ticker, p.strike, p.contracts);
+        if (!wid) { failed++; return; }
+        const txType = p.type === 'CSP' ? 'sell_csp' : 'sell_cc';
+        Ct(wid, txType, {
+          date: new Date().toISOString().slice(0,10),
+          strike: p.strike,
+          expiration: p.exp,
+          premium: p.premium,
+          contracts: p.contracts,
+          totalValue: p.premium * p.contracts * 100,
+          notes: 'Imported from ' + p.broker
+        });
+        added++;
+      } catch (e) {
+        console.error('[CSV] import row failed', p, e);
+        failed++;
+      }
+    });
+    try { if (typeof Le === 'function') Le(); } catch(e){}
+    try { if (typeof Jt === 'function') Jt(); } catch(e){}
+    try {
+      if (typeof Et === 'function') {
+        const msg = 'Imported ' + added + ' position' + (added === 1 ? '' : 's') +
+                    (failed ? ' (' + failed + ' failed)' : '');
+        Et(msg, failed ? 'error' : 'success');
+      }
+    } catch(e){}
+    if (typeof closeWtModal === 'function') closeWtModal('csvImportModal');
+  };
+
+})();
 </script>
 </body>
 </html>
