@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Elites — Access Gate Test</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0b0d10;
+    color: #eee;
+    margin: 0;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  h1 { color: #febe02; margin: 0 0 8px; font-size: 28px; }
+  .sub { color: #888; margin: 0 0 32px; }
+  .card {
+    background: #14171c;
+    border: 1px solid #2a2f36;
+    border-radius: 12px;
+    padding: 28px;
+    margin-top: 20px;
+  }
+  h2 { margin: 0 0 12px; font-size: 20px; }
+  p { line-height: 1.55; color: #ccc; }
+  button {
+    background: #5865F2;
+    color: white;
+    padding: 14px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+  button:hover { background: #4752c4; }
+  button.ghost { background: #2a2f36; color: #aaa; padding: 10px 18px; font-size: 13px; }
+  button.ghost:hover { background: #3a3f46; }
+  .ok { color: #5cd97a; font-weight: 700; }
+  .fail { color: #ff5a5a; font-weight: 700; }
+  .muted { color: #888; font-size: 13px; }
+  pre {
+    background: #0a0a0a;
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 11px;
+    color: #888;
+    margin-top: 16px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .banner {
+    background: #fef3c7;
+    color: #7c2d12;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  .warn {
+    background: #7c2d12;
+    color: #fed7aa;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  code { background: #1a1d22; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="banner">🧪 TEST ENVIRONMENT — Production site unaffected. Safe to experiment.</div>
+  <h1>🔒 Market Elites — Access Gate</h1>
+  <p class="sub">Verify Discord membership + soft launch role</p>
+
+  <div id="configWarn" class="warn" style="display:none">
+    <strong>⚠️ Worker URL not configured.</strong> Edit this HTML and set <code>WORKER_URL</code> at the top of the script.
+  </div>
+
+  <div class="card" id="loginCard">
+    <h2>Sign in to continue</h2>
+    <p>Click below to verify your Discord account and check if you have the <strong>Soft Launch</strong> role in the Market Elites server.</p>
+    <button onclick="startLogin()">Sign in with Discord</button>
+    <p class="muted" style="margin-top:16px">You'll be redirected to Discord, then back here with a verification result.</p>
+  </div>
+
+  <div class="card" id="resultCard" style="display:none">
+    <h2 id="resultTitle">Checking...</h2>
+    <div id="resultDetail"></div>
+    <pre id="resultRaw"></pre>
+    <button class="ghost" onclick="logout()">Sign out (clear test state)</button>
+  </div>
+</div>
+
+<script>
+  const CLIENT_ID = '1496232351775068281';
+  const REDIRECT_URI = window.location.origin + window.location.pathname;
+  const SCOPES = 'identify guilds.members.read';
+
+  // TODO: Replace with your Cloudflare Worker URL after deploying the worker.
+  // Example: 'https://market-elites-gate.yourname.workers.dev'
+  const WORKER_URL = 'REPLACE_WITH_WORKER_URL';
+
+  function startLogin() {
+    if (WORKER_URL === 'REPLACE_WITH_WORKER_URL') {
+      document.getElementById('configWarn').style.display = '';
+      return;
+    }
+    const authUrl = 'https://discord.com/api/oauth2/authorize' +
+      '?client_id=' + encodeURIComponent(CLIENT_ID) +
+      '&redirect_uri=' + encodeURIComponent(REDIRECT_URI) +
+      '&response_type=code' +
+      '&scope=' + encodeURIComponent(SCOPES);
+    window.location.href = authUrl;
+  }
+
+  function logout() {
+    localStorage.removeItem('gateTestResult');
+    window.location.href = REDIRECT_URI;
+  }
+
+  async function handleCallback() {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const err = params.get('error');
+
+    if (err) {
+      showResult({ ok: false, error: 'discord_denied', detail: err });
+      history.replaceState({}, '', REDIRECT_URI);
+      return;
+    }
+
+    if (!code) {
+      const cached = localStorage.getItem('gateTestResult');
+      if (cached) {
+        try { showResult(JSON.parse(cached)); } catch (e) {}
+      }
+      if (WORKER_URL === 'REPLACE_WITH_WORKER_URL') {
+        document.getElementById('configWarn').style.display = '';
+      }
+      return;
+    }
+
+    document.getElementById('loginCard').style.display = 'none';
+    const card = document.getElementById('resultCard');
+    card.style.display = '';
+    document.getElementById('resultTitle').textContent = '⏳ Verifying with Discord...';
+    document.getElementById('resultDetail').innerHTML = '<p class="muted">Exchanging code, fetching roles...</p>';
+    document.getElementById('resultRaw').textContent = '';
+    history.replaceState({}, '', REDIRECT_URI);
+
+    try {
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code, redirect_uri: REDIRECT_URI }),
+      });
+      const data = await res.json();
+      localStorage.setItem('gateTestResult', JSON.stringify(data));
+      showResult(data);
+    } catch (e) {
+      showResult({ ok: false, error: 'network_error', message: e.message });
+    }
+  }
+
+  function showResult(data) {
+    document.getElementById('loginCard').style.display = 'none';
+    const card = document.getElementById('resultCard');
+    card.style.display = '';
+    const title = document.getElementById('resultTitle');
+    const detail = document.getElementById('resultDetail');
+    const raw = document.getElementById('resultRaw');
+
+    if (data.ok) {
+      title.innerHTML = '<span class="ok">✓ Access Granted</span>';
+      const name = (data.user && data.user.username) ? data.user.username : 'unknown';
+      detail.innerHTML =
+        '<p>Welcome, <strong>' + escapeHtml(name) + '</strong>. You have the required role.</p>' +
+        '<p class="muted">In production, this is where the site unlocks.</p>';
+    } else {
+      title.innerHTML = '<span class="fail">✗ Access Denied</span>';
+      const reasons = {
+        not_in_server: 'You are not a member of the Market Elites Discord server. <a href="#" style="color:#5865F2">Join the server</a> and contact an admin to get the role.',
+        missing_role: 'You are in the server but do not have the Soft Launch role. Contact an admin to request access.',
+        token_exchange_failed: 'Discord OAuth token exchange failed. This usually means the redirect URI in the Discord app does not match this page, or the authorization code expired.',
+        member_fetch_failed: 'Could not read your server roles. Discord API error.',
+        network_error: 'Could not reach the auth worker. Check the Worker URL and that the Worker is deployed.',
+        discord_denied: 'You denied the Discord authorization.',
+        server_misconfigured: 'The Worker is deployed but missing DISCORD_CLIENT_SECRET. Set it as an encrypted env variable.',
+      };
+      const msg = reasons[data.error] || ('Unknown error: ' + (data.error || 'n/a'));
+      detail.innerHTML = '<p>' + msg + '</p>';
+    }
+    raw.textContent = JSON.stringify(data, null, 2);
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  handleCallback();
+</script>
+</body>
+</html>
