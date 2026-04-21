@@ -3783,5 +3783,64 @@ window._notifySignalStatus = function(sig, status) {
 
 })();
 </script>
+
+<script>
+/* __discord_gate_stitch_v1__ */
+(function(){
+  'use strict';
+
+  // Wait for firebase SDK to be available, then attach auth listener.
+  function ready() {
+    if (typeof firebase === 'undefined' || !firebase.auth || !firebase.database) {
+      setTimeout(ready, 200);
+      return;
+    }
+    attach();
+  }
+
+  function attach() {
+    firebase.auth().onAuthStateChanged(async function(user) {
+      if (!user || !user.uid) return;
+      try { await stitch(user); } catch (e) { console.warn('[gate-stitch]', e); }
+    });
+  }
+
+  async function stitch(user) {
+    const raw = localStorage.getItem('gateTestResult');
+    if (!raw) return;
+    let gate;
+    try { gate = JSON.parse(raw); } catch (e) { return; }
+    if (!gate || !gate.ok || !gate.user || !gate.user.id) return;
+
+    const db = firebase.database();
+    const uid = user.uid;
+    const discordId = gate.user.id;
+    const record = {
+      discordId: discordId,
+      discordUsername: gate.user.username || null,
+      discordAvatar: gate.user.avatar || null,
+      verifiedAt: new Date().toISOString(),
+      hasRequiredRole: true,
+    };
+
+    // 1. Write to user record (their own path — auth rule permits)
+    try {
+      await db.ref('users/' + uid + '/discordVerification').set(record);
+    } catch (e) { console.warn('[gate-stitch] user write failed', e.message); }
+
+    // 2. Attempt to also write firebaseUid back to /discordVerifications/{discordId}.
+    //    This may fail silently if Firebase rules don't allow it — that's OK,
+    //    the user-side record is the source of truth for this user's view.
+    try {
+      await db.ref('discordVerifications/' + discordId + '/firebaseUid').set(uid);
+    } catch (e) {
+      // silent — rules may restrict cross-path writes; the server worker will
+      // still have the record, and the stitch is preserved on the user side.
+    }
+  }
+
+  ready();
+})();
+</script>
 </body>
 </html>

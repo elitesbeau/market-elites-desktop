@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Elites — Access Audit</title>
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050505; --bgc: #0c0c0e; --bgch: #101014; --bge: #161619;
+    --tx: #E8E0D0; --t2: rgba(232,224,208,.7); --t3: rgba(232,224,208,.5); --t4: rgba(232,224,208,.35); --t6: rgba(232,224,208,.08);
+    --ac: #C9A97C; --ac2: rgba(201,169,124,.5); --acbg: rgba(201,169,124,.06); --acbr: rgba(201,169,124,.15);
+    --g: #4ADE80; --gbg: rgba(74,222,128,.08); --gbr: rgba(74,222,128,.2);
+    --r: #F87171; --rbg: rgba(248,113,113,.08); --rbr: rgba(248,113,113,.2);
+    --w: #FBBF24; --wbg: rgba(251,191,36,.08); --wbr: rgba(251,191,36,.2);
+    --bd: rgba(232,224,208,.06); --bd2: rgba(232,224,208,.12);
+    --fd: 'Space Grotesk', sans-serif; --fb: 'Inter', sans-serif; --fm: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--tx); font-family: var(--fb); font-size: 14px; line-height: 1.5; min-height: 100vh; padding: 32px; }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
+  .header-left h1 { font-family: var(--fd); font-size: 26px; font-weight: 600; letter-spacing: -0.3px; }
+  .header-left p { color: var(--t3); font-family: var(--fm); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+  .btn { font-family: var(--fm); font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; padding: 10px 18px; border: 1px solid var(--acbr); background: var(--acbg); color: var(--tx); cursor: pointer; transition: all .2s; border-radius: 2px; text-decoration: none; display: inline-block; }
+  .btn:hover { background: rgba(201,169,124,.12); border-color: var(--ac2); }
+  .btn-ghost { background: transparent; border-color: var(--bd2); color: var(--t3); }
+  .btn-ghost:hover { color: var(--tx); background: var(--t6); }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat { background: var(--bgc); border: 1px solid var(--bd); border-radius: 4px; padding: 18px 20px; position: relative; }
+  .stat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--ac2), transparent); }
+  .stat-label { font-family: var(--fm); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--t3); margin-bottom: 8px; }
+  .stat-val { font-family: var(--fd); font-size: 28px; font-weight: 600; color: var(--tx); }
+  .stat.ok .stat-val { color: var(--g); }
+  .stat.warn .stat-val { color: var(--w); }
+  .stat.danger .stat-val { color: var(--r); }
+
+  table { width: 100%; background: var(--bgc); border: 1px solid var(--bd); border-radius: 4px; border-collapse: collapse; overflow: hidden; margin-top: 16px; }
+  thead { background: var(--bgch); }
+  th, td { padding: 12px 16px; text-align: left; font-size: 13px; }
+  th { font-family: var(--fm); font-size: 10px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--t3); border-bottom: 1px solid var(--bd); }
+  td { border-bottom: 1px solid var(--bd); color: var(--t2); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(201,169,124,.03); color: var(--tx); }
+  .mono { font-family: var(--fm); font-size: 12px; color: var(--t2); }
+  .avatar { width: 24px; height: 24px; border-radius: 50%; display: inline-block; vertical-align: middle; margin-right: 8px; border: 1px solid var(--bd2); }
+
+  .pill { font-family: var(--fm); font-size: 10px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 10px; border-radius: 2px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid; }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+  .pill.ok { color: var(--g); background: var(--gbg); border-color: var(--gbr); }
+  .pill.warn { color: var(--w); background: var(--wbg); border-color: var(--wbr); }
+  .pill.danger { color: var(--r); background: var(--rbg); border-color: var(--rbr); }
+  .pill.muted { color: var(--t3); background: var(--t6); border-color: var(--bd); }
+
+  .loader { text-align: center; padding: 60px; color: var(--t3); font-family: var(--fm); font-size: 12px; letter-spacing: 1px; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--t6); border-top-color: var(--ac); border-radius: 50%; animation: spin .8s linear infinite; margin-right: 10px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .card { background: var(--bgc); border: 1px solid var(--bd); border-radius: 4px; padding: 24px; margin: 40px auto; max-width: 440px; text-align: center; position: relative; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--ac2), transparent); }
+  .card h2 { font-family: var(--fd); font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+  .card p { color: var(--t2); margin-bottom: 16px; }
+
+  .tabs { display: flex; gap: 2px; margin-bottom: 16px; border-bottom: 1px solid var(--bd); }
+  .tab { font-family: var(--fm); font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; padding: 12px 20px; cursor: pointer; color: var(--t3); border: none; background: transparent; border-bottom: 2px solid transparent; transition: all .2s; }
+  .tab:hover { color: var(--tx); }
+  .tab.active { color: var(--ac); border-bottom-color: var(--ac); }
+
+  .filter-row { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; }
+  .filter-row input { background: var(--bgch); border: 1px solid var(--bd); color: var(--tx); font-family: var(--fb); font-size: 13px; padding: 10px 14px; border-radius: 2px; width: 280px; }
+  .filter-row input:focus { outline: none; border-color: var(--ac2); }
+
+  .empty { text-align: center; padding: 40px; color: var(--t4); font-family: var(--fm); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="header-left">
+      <h1>Access Audit</h1>
+      <p>Discord verifications · slip-through detection</p>
+    </div>
+    <div id="headerActions"></div>
+  </div>
+
+  <div id="content">
+    <div class="loader">
+      <div class="spinner"></div>Initializing…
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+  import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
+
+  const firebaseConfig = {
+    apiKey: 'AIzaSyANXf3yA7qRE-BuT-PrPW--4eKre-9YqiI',
+    authDomain: 'market-elites.firebaseapp.com',
+    databaseURL: 'https://market-elites-default-rtdb.firebaseio.com',
+    projectId: 'market-elites',
+    storageBucket: 'market-elites.firebasestorage.app',
+    messagingSenderId: '347581977529',
+    appId: '1:347581977529:web:7cb9c741577eec19ff1c68',
+  };
+  const ADMIN_UID = 'EG4Qi2PZVdPfh3PT0SXl0GKQC972';
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+
+  let currentUser = null;
+  let view = 'verified'; // 'verified' | 'slipthrough' | 'denied'
+
+  const content = document.getElementById('content');
+  const headerActions = document.getElementById('headerActions');
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (!user) {
+      renderSignIn();
+      return;
+    }
+    if (user.uid !== ADMIN_UID) {
+      renderDenied();
+      return;
+    }
+    headerActions.innerHTML = '<button class="btn btn-ghost" id="signOutBtn">Sign out</button>';
+    document.getElementById('signOutBtn').onclick = () => signOut(auth);
+    await loadAudit();
+  });
+
+  function renderSignIn() {
+    headerActions.innerHTML = '';
+    content.innerHTML =
+      '<div class="card">' +
+        '<h2>Admin only</h2>' +
+        '<p>Sign in with the admin Google account to view the audit.</p>' +
+        '<button class="btn" id="signInBtn">Sign in with Google</button>' +
+      '</div>';
+    document.getElementById('signInBtn').onclick = async () => {
+      try {
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider);
+      } catch (e) {
+        alert('Sign-in failed: ' + e.message);
+      }
+    };
+  }
+
+  function renderDenied() {
+    headerActions.innerHTML = '<button class="btn btn-ghost" id="signOutBtn2">Sign out</button>';
+    document.getElementById('signOutBtn2').onclick = () => signOut(auth);
+    content.innerHTML =
+      '<div class="card">' +
+        '<h2 style="color:var(--r)">Access denied</h2>' +
+        '<p>This page is restricted to the platform admin.</p>' +
+        '<p class="mono" style="font-size:11px;color:var(--t4)">Signed in as: ' + escapeHtml(currentUser?.email || 'unknown') + '</p>' +
+      '</div>';
+  }
+
+  async function loadAudit() {
+    content.innerHTML = '<div class="loader"><div class="spinner"></div>Loading audit data…</div>';
+    try {
+      const [verifSnap, usersSnap] = await Promise.all([
+        get(ref(db, 'discordVerifications')),
+        get(ref(db, 'users')),
+      ]);
+      const verifications = verifSnap.val() || {};
+      const users = usersSnap.val() || {};
+      renderAudit(verifications, users);
+    } catch (e) {
+      content.innerHTML = '<div class="card"><h2>Error</h2><p>' + escapeHtml(e.message) + '</p></div>';
+    }
+  }
+
+  function renderAudit(verifications, users) {
+    const verifList = Object.entries(verifications).map(([discordId, v]) => ({ discordId, ...v }));
+    const userList = Object.entries(users).map(([uid, u]) => ({ uid, ...u }));
+
+    // Categorize verifications
+    const passedVerif = verifList.filter(v => v.hasRequiredRole);
+    const failedVerif = verifList.filter(v => !v.hasRequiredRole);
+
+    // Map uid -> discordVerification (for users who linked their accounts)
+    const stitchedByUid = {};
+    passedVerif.forEach(v => { if (v.firebaseUid) stitchedByUid[v.firebaseUid] = v; });
+
+    // Also check user records for discordVerification (the other side of the stitch)
+    userList.forEach(u => {
+      if (u.discordVerification) {
+        stitchedByUid[u.uid] = stitchedByUid[u.uid] || { ...u.discordVerification, discordId: u.discordVerification.discordId };
+      }
+    });
+
+    // Slip-through: Firebase users WITHOUT a Discord verification record
+    const slipThrough = userList.filter(u => !stitchedByUid[u.uid]);
+
+    // Build stats
+    const stats = [
+      { label: 'Verified (passed)', val: passedVerif.length, cls: 'ok' },
+      { label: 'Failed attempts', val: failedVerif.length, cls: 'warn' },
+      { label: 'Linked to app', val: Object.keys(stitchedByUid).length, cls: '' },
+      { label: 'Slipped through', val: slipThrough.length, cls: slipThrough.length ? 'danger' : '' },
+    ];
+    let html = '<div class="stats">';
+    stats.forEach(s => {
+      html += '<div class="stat ' + s.cls + '"><div class="stat-label">' + s.label + '</div><div class="stat-val">' + s.val + '</div></div>';
+    });
+    html += '</div>';
+
+    // Tabs
+    html += '<div class="tabs">';
+    html += '<button class="tab ' + (view === 'verified' ? 'active' : '') + '" data-view="verified">Verified (' + passedVerif.length + ')</button>';
+    html += '<button class="tab ' + (view === 'slipthrough' ? 'active' : '') + '" data-view="slipthrough">Slipped Through (' + slipThrough.length + ')</button>';
+    html += '<button class="tab ' + (view === 'denied' ? 'active' : '') + '" data-view="denied">Denied (' + failedVerif.length + ')</button>';
+    html += '</div>';
+
+    html += '<div class="filter-row"><input type="text" placeholder="Filter…" id="filterInput"></div>';
+
+    if (view === 'verified') html += renderVerifiedTable(passedVerif, stitchedByUid);
+    else if (view === 'slipthrough') html += renderSlipTable(slipThrough);
+    else if (view === 'denied') html += renderDeniedTable(failedVerif);
+
+    content.innerHTML = html;
+
+    document.querySelectorAll('.tab').forEach(el => {
+      el.onclick = () => { view = el.dataset.view; renderAudit(verifications, users); };
+    });
+    const filter = document.getElementById('filterInput');
+    if (filter) filter.oninput = (e) => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('tbody tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    };
+  }
+
+  function renderVerifiedTable(passed, stitchedByUid) {
+    if (passed.length === 0) return '<div class="empty">No verifications yet</div>';
+    // Reverse map: discordId -> stitched firebaseUid
+    const stitchedDiscordIds = new Set(Object.values(stitchedByUid).map(v => v.discordId));
+    let h = '<table><thead><tr>';
+    h += '<th>Discord User</th><th>Discord ID</th><th>Verified</th><th>Roles</th><th>Linked?</th>';
+    h += '</tr></thead><tbody>';
+    passed.sort((a, b) => (b.verifiedAtMs || 0) - (a.verifiedAtMs || 0));
+    passed.forEach(v => {
+      const avatarUrl = v.discordAvatar
+        ? 'https://cdn.discordapp.com/avatars/' + v.discordId + '/' + v.discordAvatar + '.png?size=32'
+        : 'https://cdn.discordapp.com/embed/avatars/0.png';
+      const isLinked = !!v.firebaseUid || stitchedDiscordIds.has(v.discordId);
+      h += '<tr>';
+      h += '<td><img class="avatar" src="' + avatarUrl + '" alt="">@' + escapeHtml(v.discordUsername || 'unknown') + '</td>';
+      h += '<td class="mono">' + escapeHtml(v.discordId) + '</td>';
+      h += '<td class="mono">' + formatDate(v.verifiedAt) + '</td>';
+      h += '<td class="mono">' + (v.roles ? v.roles.length : 0) + '</td>';
+      h += '<td>' + (isLinked
+        ? '<span class="pill ok"><span class="dot"></span>Linked</span>'
+        : '<span class="pill muted">Pending</span>') + '</td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+    return h;
+  }
+
+  function renderSlipTable(slipList) {
+    if (slipList.length === 0) return '<div class="empty" style="color:var(--g)">✓ No slip-throughs. All Firebase users are Discord-verified.</div>';
+    let h = '<table><thead><tr>';
+    h += '<th>Email</th><th>UID</th><th>Created</th><th>Status</th>';
+    h += '</tr></thead><tbody>';
+    slipList.forEach(u => {
+      const email = u.profile?.email || u.email || '(no email)';
+      const created = u.profile?.createdAt || u.createdAt || u.joinDate;
+      h += '<tr>';
+      h += '<td>' + escapeHtml(email) + '</td>';
+      h += '<td class="mono">' + escapeHtml(u.uid) + '</td>';
+      h += '<td class="mono">' + (created ? formatDate(created) : '—') + '</td>';
+      h += '<td><span class="pill danger"><span class="dot"></span>Not verified</span></td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+    return h;
+  }
+
+  function renderDeniedTable(failed) {
+    if (failed.length === 0) return '<div class="empty">No denied attempts</div>';
+    let h = '<table><thead><tr>';
+    h += '<th>Discord User</th><th>Discord ID</th><th>Attempted</th><th>In Server</th>';
+    h += '</tr></thead><tbody>';
+    failed.sort((a, b) => (b.verifiedAtMs || 0) - (a.verifiedAtMs || 0));
+    failed.forEach(v => {
+      const avatarUrl = v.discordAvatar
+        ? 'https://cdn.discordapp.com/avatars/' + v.discordId + '/' + v.discordAvatar + '.png?size=32'
+        : 'https://cdn.discordapp.com/embed/avatars/0.png';
+      const inServer = (v.roles && v.roles.length > 0);
+      h += '<tr>';
+      h += '<td><img class="avatar" src="' + avatarUrl + '" alt="">@' + escapeHtml(v.discordUsername || 'unknown') + '</td>';
+      h += '<td class="mono">' + escapeHtml(v.discordId) + '</td>';
+      h += '<td class="mono">' + formatDate(v.verifiedAt) + '</td>';
+      h += '<td>' + (inServer
+        ? '<span class="pill warn"><span class="dot"></span>Missing role</span>'
+        : '<span class="pill danger"><span class="dot"></span>Not in server</span>') + '</td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+    return h;
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '—';
+    try {
+      const d = new Date(iso);
+      return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return String(iso); }
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+</script>
+</body>
+</html>
