@@ -167,21 +167,25 @@
   async function loadAudit() {
     content.innerHTML = '<div class="loader"><div class="spinner"></div>Loading audit data…</div>';
     try {
-      const [verifSnap, usersSnap] = await Promise.all([
+      const [verifSnap, usersSnap, slipSnap] = await Promise.all([
         get(ref(db, 'discordVerifications')),
         get(ref(db, 'users')),
+        get(ref(db, 'slipThroughs')),
       ]);
       const verifications = verifSnap.val() || {};
       const users = usersSnap.val() || {};
-      renderAudit(verifications, users);
+      const slipThroughs = slipSnap.val() || {};
+      renderAudit(verifications, users, slipThroughs);
     } catch (e) {
       content.innerHTML = '<div class="card"><h2>Error</h2><p>' + escapeHtml(e.message) + '</p></div>';
     }
   }
 
-  function renderAudit(verifications, users) {
+  function renderAudit(verifications, users, slipThroughsMap) {
+    slipThroughsMap = slipThroughsMap || {};
     const verifList = Object.entries(verifications).map(([discordId, v]) => ({ discordId, ...v }));
     const userList = Object.entries(users).map(([uid, u]) => ({ uid, ...u }));
+    const slipList = Object.entries(slipThroughsMap).map(([uid, s]) => ({ uid, ...s }));
 
     // Categorize verifications
     const passedVerif = verifList.filter(v => v.hasRequiredRole);
@@ -190,16 +194,18 @@
     // Map uid -> discordVerification (for users who linked their accounts)
     const stitchedByUid = {};
     passedVerif.forEach(v => { if (v.firebaseUid) stitchedByUid[v.firebaseUid] = v; });
-
-    // Also check user records for discordVerification (the other side of the stitch)
     userList.forEach(u => {
       if (u.discordVerification) {
         stitchedByUid[u.uid] = stitchedByUid[u.uid] || { ...u.discordVerification, discordId: u.discordVerification.discordId };
       }
     });
 
-    // Slip-through: Firebase users WITHOUT a Discord verification record
-    const slipThrough = userList.filter(u => !stitchedByUid[u.uid]);
+    // Slip-through: prefer the rich /slipThroughs/ records, fall back to users minus verified
+    const slipThroughIds = new Set(slipList.filter(s => !s.resolved).map(s => s.uid));
+    const unresolvedSlip = slipList.filter(s => !s.resolved);
+    const slipThrough = unresolvedSlip.length > 0
+      ? unresolvedSlip
+      : userList.filter(u => !stitchedByUid[u.uid]);
 
     // Build stats
     const stats = [
@@ -230,7 +236,7 @@
     content.innerHTML = html;
 
     document.querySelectorAll('.tab').forEach(el => {
-      el.onclick = () => { view = el.dataset.view; renderAudit(verifications, users); };
+      el.onclick = () => { view = el.dataset.view; renderAudit(verifications, users, slipThroughsMap); };
     });
     const filter = document.getElementById('filterInput');
     if (filter) filter.oninput = (e) => {
@@ -269,17 +275,20 @@
   }
 
   function renderSlipTable(slipList) {
-    if (slipList.length === 0) return '<div class="empty" style="color:var(--g)">✓ No slip-throughs. All Firebase users are Discord-verified.</div>';
+    if (slipList.length === 0) return '<div class="empty" style="color:var(--g)">✓ No slip-throughs. All users are Discord-verified.</div>';
     let h = '<table><thead><tr>';
-    h += '<th>Email</th><th>UID</th><th>Created</th><th>Status</th>';
+    h += '<th>Email</th><th>UID</th><th>Detected</th><th>Provider</th><th>Status</th>';
     h += '</tr></thead><tbody>';
+    slipList.sort((a, b) => (b.detectedAtMs || 0) - (a.detectedAtMs || 0));
     slipList.forEach(u => {
-      const email = u.profile?.email || u.email || '(no email)';
-      const created = u.profile?.createdAt || u.createdAt || u.joinDate;
+      const email = u.email || u.profile?.email || '(no email)';
+      const detected = u.detectedAt || u.createdAt || u.joinDate;
+      const provider = (u.providerId || '').replace('.com', '') || '—';
       h += '<tr>';
       h += '<td>' + escapeHtml(email) + '</td>';
       h += '<td class="mono">' + escapeHtml(u.uid) + '</td>';
-      h += '<td class="mono">' + (created ? formatDate(created) : '—') + '</td>';
+      h += '<td class="mono">' + (detected ? formatDate(detected) : '—') + '</td>';
+      h += '<td class="mono">' + escapeHtml(provider) + '</td>';
       h += '<td><span class="pill danger"><span class="dot"></span>Not verified</span></td>';
       h += '</tr>';
     });

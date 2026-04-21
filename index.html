@@ -3914,5 +3914,126 @@ window._notifySignalStatus = function(sig, status) {
   ready();
 })();
 </script>
+
+<style>
+/* __discord_gate_slip_v1_css__ */
+#meSlipToast{position:fixed;bottom:24px;right:24px;background:#0c0c0e;border:1px solid rgba(248,113,113,.3);border-radius:4px;padding:16px 20px;max-width:360px;z-index:2147483646;font-family:'Inter',sans-serif;color:#E8E0D0;box-shadow:0 8px 32px rgba(0,0,0,.6);display:none;animation:meSlipIn .3s ease}
+#meSlipToast::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(248,113,113,.5),transparent)}
+#meSlipToast.show{display:block}
+#meSlipToast .sl-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+#meSlipToast .sl-dot{width:8px;height:8px;border-radius:50%;background:#F87171;box-shadow:0 0 10px #F87171;flex-shrink:0}
+#meSlipToast .sl-title{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#F87171;font-weight:500}
+#meSlipToast .sl-body{font-size:13px;color:rgba(232,224,208,.8);line-height:1.5;margin-bottom:10px}
+#meSlipToast .sl-count{font-family:'Space Grotesk',sans-serif;font-weight:600;color:#F87171}
+#meSlipToast .sl-actions{display:flex;gap:8px}
+#meSlipToast a.sl-btn,#meSlipToast button.sl-btn{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;padding:8px 14px;border:1px solid rgba(248,113,113,.3);background:rgba(248,113,113,.08);color:#F87171;cursor:pointer;border-radius:2px;text-decoration:none;transition:all .15s}
+#meSlipToast button.sl-btn{background:transparent;border-color:rgba(232,224,208,.12);color:rgba(232,224,208,.5)}
+#meSlipToast a.sl-btn:hover{background:rgba(248,113,113,.15)}
+#meSlipToast button.sl-btn:hover{color:#E8E0D0}
+@keyframes meSlipIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+<div id="meSlipToast" role="alert">
+  <div class="sl-head">
+    <div class="sl-dot"></div>
+    <div class="sl-title">Access Alert</div>
+  </div>
+  <div class="sl-body"><span class="sl-count" id="meSlipCount">0</span> user(s) signed in without Discord verification.</div>
+  <div class="sl-actions">
+    <a class="sl-btn" href="gate-audit.html">Review →</a>
+    <button class="sl-btn" onclick="document.getElementById('meSlipToast').classList.remove('show')">Dismiss</button>
+  </div>
+</div>
+<script>
+/* __discord_gate_slip_v1__ */
+(function(){
+  'use strict';
+  var ADMIN_UID = 'EG4Qi2PZVdPfh3PT0SXl0GKQC972';
+  var LAST_SEEN_KEY = 'meSlipLastSeen';
+
+  function ready(){
+    if (typeof firebase === 'undefined' || !firebase.auth || !firebase.database) {
+      setTimeout(ready, 200);
+      return;
+    }
+    firebase.auth().onAuthStateChanged(function(user){
+      if (!user || !user.uid) return;
+      handleAuth(user).catch(function(e){ console.warn('[slip-through]', e); });
+    });
+  }
+
+  async function handleAuth(user) {
+    var gated = hasGateVerification();
+
+    if (!gated && user.uid !== ADMIN_UID) {
+      await logSlipThrough(user);
+    }
+
+    if (user.uid === ADMIN_UID) {
+      await checkAdminAlerts();
+    }
+  }
+
+  function hasGateVerification() {
+    try {
+      var raw = localStorage.getItem('gateTestResult');
+      if (!raw) return false;
+      var r = JSON.parse(raw);
+      return r && r.ok === true;
+    } catch (e) { return false; }
+  }
+
+  async function logSlipThrough(user) {
+    try {
+      var db = firebase.database();
+      var ref = db.ref('slipThroughs/' + user.uid);
+      // Only write once per user — check existence first
+      var snap = await ref.once('value');
+      if (snap.exists()) return;
+      await ref.set({
+        uid: user.uid,
+        email: user.email || null,
+        displayName: user.displayName || null,
+        providerId: (user.providerData && user.providerData[0]) ? user.providerData[0].providerId : null,
+        detectedAt: new Date().toISOString(),
+        detectedAtMs: Date.now(),
+        userAgent: (navigator.userAgent || '').slice(0, 200),
+        resolved: false,
+      });
+    } catch (e) { console.warn('[slip-through] write failed', e && e.message); }
+  }
+
+  async function checkAdminAlerts() {
+    try {
+      var db = firebase.database();
+      var snap = await db.ref('slipThroughs').orderByChild('resolved').equalTo(false).once('value');
+      var data = snap.val() || {};
+      var unresolved = Object.keys(data);
+      if (unresolved.length === 0) return;
+
+      // Compare against last-seen count to determine if anything is new
+      var lastSeen = 0;
+      try { lastSeen = parseInt(localStorage.getItem(LAST_SEEN_KEY) || '0', 10); } catch (e) {}
+      var maxMs = 0;
+      unresolved.forEach(function(k){
+        var t = data[k].detectedAtMs || 0;
+        if (t > maxMs) maxMs = t;
+      });
+      // Show toast if there are unresolved entries, with count
+      showToast(unresolved.length, maxMs);
+    } catch (e) { console.warn('[slip-through] admin check failed', e && e.message); }
+  }
+
+  function showToast(count, maxMs) {
+    var toast = document.getElementById('meSlipToast');
+    var countEl = document.getElementById('meSlipCount');
+    if (!toast || !countEl) return;
+    countEl.textContent = String(count);
+    toast.classList.add('show');
+    try { localStorage.setItem(LAST_SEEN_KEY, String(maxMs || Date.now())); } catch (e) {}
+  }
+
+  ready();
+})();
+</script>
 </body>
 </html>
