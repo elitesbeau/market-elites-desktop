@@ -1022,7 +1022,7 @@ window.onerror=function(msg,src,line,col,err){
   </nav>
   <div class="sb-div" style="margin-top:16px"></div>
   <div class="sb-footer">
-    <a href="javascript:void(0)" onclick="window._brOpen()" id="brSidebarLink" style="display:inline-block;font-family:var(--fm);font-size:9px;color:var(--ac);letter-spacing:1.5px;text-decoration:none;margin-bottom:12px;padding:5px 10px;border:1px solid rgba(201,169,124,0.4);border-radius:4px;background:rgba(201,169,124,0.04);opacity:0.95;transition:all .2s" onmouseover="this.style.background='rgba(201,169,124,0.14)';this.style.borderColor='var(--ac)'" onmouseout="this.style.background='rgba(201,169,124,0.04)';this.style.borderColor='rgba(201,169,124,0.4)'" title="Report a bug (Ctrl+Shift+B)">↳ REPORT AN ISSUE</a>
+    <a href="javascript:void(0)" onclick="window._brOpen()" id="brSidebarLink" style="display:inline-block;font-family:var(--fm);font-size:9px;color:var(--ac);letter-spacing:1.5px;text-decoration:none;margin-bottom:12px;padding:5px 10px;border:1px solid rgba(201,169,124,0.4);border-radius:4px;background:rgba(201,169,124,0.04);opacity:0.95;transition:all .2s" onmouseover="this.style.background='rgba(201,169,124,0.14)';this.style.borderColor='var(--ac)'" onmouseout="this.style.background='rgba(201,169,124,0.04)';this.style.borderColor='rgba(201,169,124,0.4)'" title="Report a bug (Ctrl+Shift+B)">↳ REPORT AN ISSUE</a><a href="javascript:void(0)" onclick="window._brAdminOpen()" id="brAdminLink" style="display:none;font-family:var(--fm);font-size:9px;color:#fca5a5;letter-spacing:1.5px;text-decoration:none;margin:0 0 12px 8px;padding:5px 10px;border:1px solid rgba(252,165,165,0.4);border-radius:4px;background:rgba(252,165,165,0.04);opacity:0.95;transition:all .2s" onmouseover="this.style.background='rgba(252,165,165,0.14)';this.style.borderColor='#fca5a5'" onmouseout="this.style.background='rgba(252,165,165,0.04)';this.style.borderColor='rgba(252,165,165,0.4)'" title="Bug Reports admin (Ctrl+Shift+R)">▤ BUG REPORTS</a>
     <div class="sb-status"><div class="status-dot"></div>NYSE OPEN</div>
     <div class="sb-meta">ME — SYS.07<br>2026.03.03 · EST</div>
   </div>
@@ -4687,6 +4687,427 @@ window._notifySignalStatus = function(sig, status) {
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
+  }
+})();
+</script>
+
+/* __bug_reports_admin_v2__ */
+<style>
+  .bra2-overlay{position:fixed;inset:0;background:rgba(5,5,5,0.96);z-index:9998;display:none;flex-direction:column;color:#E8E0D0;font-family:'Inter',sans-serif}
+  .bra2-overlay.open{display:flex}
+  .bra2-head{padding:16px 24px;border-bottom:1px solid rgba(201,169,124,0.2);display:flex;align-items:center;gap:18px;flex-shrink:0}
+  .bra2-title{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;letter-spacing:2.5px;color:#C9A97C}
+  .bra2-stats{display:flex;gap:14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(232,224,208,0.55)}
+  .bra2-stats b{color:#E8E0D0;font-weight:600}
+  .bra2-pills{display:flex;gap:6px;margin-left:auto}
+  .bra2-pill{padding:5px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;border:1px solid rgba(232,224,208,0.18);border-radius:4px;background:transparent;color:rgba(232,224,208,0.65);cursor:pointer;text-transform:uppercase}
+  .bra2-pill.active{background:rgba(201,169,124,0.14);border-color:#C9A97C;color:#C9A97C}
+  .bra2-close{margin-left:6px;background:transparent;border:1px solid rgba(232,224,208,0.18);color:#E8E0D0;width:32px;height:32px;border-radius:6px;font-size:18px;cursor:pointer}
+  .bra2-close:hover{border-color:#C9A97C}
+  .bra2-list{flex:1;overflow-y:auto;padding:14px 24px}
+  .bra2-empty{text-align:center;padding:60px 20px;color:rgba(232,224,208,0.4);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px}
+  .bra2-row{border:1px solid rgba(232,224,208,0.08);border-radius:8px;margin-bottom:8px;overflow:hidden;background:rgba(232,224,208,0.02)}
+  .bra2-row.expanded{border-color:rgba(201,169,124,0.35)}
+  .bra2-row-head{padding:11px 14px;display:flex;align-items:center;gap:12px;cursor:pointer}
+  .bra2-row-head:hover{background:rgba(232,224,208,0.04)}
+  .bra2-badge{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 8px;border-radius:3px;letter-spacing:1.2px;text-transform:uppercase;flex-shrink:0}
+  .bra2-badge-open{background:rgba(252,165,165,0.18);color:#fca5a5;border:1px solid rgba(252,165,165,0.4)}
+  .bra2-badge-closed{background:rgba(134,239,172,0.16);color:#86efac;border:1px solid rgba(134,239,172,0.35)}
+  .bra2-row-title{flex:1;font-size:13px;color:#E8E0D0}
+  .bra2-row-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(232,224,208,0.5);flex-shrink:0;text-align:right}
+  .bra2-row-detail{padding:14px 18px;border-top:1px solid rgba(232,224,208,0.08);display:none;background:rgba(0,0,0,0.25)}
+  .bra2-row.expanded .bra2-row-detail{display:block}
+  .bra2-section{margin-bottom:14px}
+  .bra2-h{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.8px;color:#C9A97C;margin-bottom:6px;text-transform:uppercase}
+  .bra2-desc{font-size:13px;line-height:1.55;white-space:pre-wrap;color:rgba(232,224,208,0.9)}
+  .bra2-kv{display:grid;grid-template-columns:140px 1fr;gap:6px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(232,224,208,0.7)}
+  .bra2-kv b{color:rgba(232,224,208,0.45);font-weight:400}
+  .bra2-buf{font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.55;color:rgba(232,224,208,0.65);max-height:160px;overflow-y:auto;padding:8px 10px;background:rgba(0,0,0,0.4);border:1px solid rgba(232,224,208,0.06);border-radius:5px}
+  .bra2-buf-line{padding:2px 0;border-bottom:1px dashed rgba(232,224,208,0.05);word-break:break-all}
+  .bra2-buf-line:last-child{border-bottom:none}
+  .bra2-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .bra2-act{padding:6px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;border:1px solid rgba(232,224,208,0.2);border-radius:4px;background:transparent;color:#E8E0D0;cursor:pointer;text-transform:uppercase}
+  .bra2-act:hover{border-color:#C9A97C;color:#C9A97C}
+  .bra2-act-danger{border-color:rgba(252,165,165,0.4);color:#fca5a5}
+  .bra2-act-danger:hover{border-color:#fca5a5;background:rgba(252,165,165,0.08)}
+  .bra2-raw{margin-top:10px}
+  .bra2-raw summary{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(232,224,208,0.45);cursor:pointer;letter-spacing:1.5px;text-transform:uppercase}
+  .bra2-raw pre{margin-top:8px;font-size:10px;color:rgba(232,224,208,0.55);background:rgba(0,0,0,0.4);padding:10px;border-radius:5px;max-height:280px;overflow:auto}
+</style>
+
+<div class="bra2-overlay" id="bra2Overlay">
+  <div class="bra2-head">
+    <span class="bra2-title">▤ BUG REPORTS</span>
+    <span class="bra2-stats" id="bra2Stats"><b>0</b> total · <b>0</b> open</span>
+    <div class="bra2-pills" id="bra2Pills">
+      <button class="bra2-pill active" data-f="all">All</button>
+      <button class="bra2-pill" data-f="open">Open</button>
+      <button class="bra2-pill" data-f="closed">Closed</button>
+      <button class="bra2-pill" onclick="window._brAdminRefresh()" title="Reload from Firebase">⟳ Refresh</button>
+    </div>
+    <button class="bra2-close" onclick="window._brAdminClose()" aria-label="Close">×</button>
+  </div>
+  <div class="bra2-list" id="bra2List">
+    <div class="bra2-empty">No reports loaded yet — click ⟳ Refresh.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var ADMIN_UID = 'EG4Qi2PZVdPfh3PT0SXl0GKQC972';
+  var allReports = [];
+  var filter = 'all';
+
+  function isAdmin(){
+    try {
+      if (!window.firebase || !firebase.auth) return false;
+      var u = firebase.auth().currentUser;
+      return !!(u && u.uid === ADMIN_UID);
+    } catch(_){ return false; }
+  }
+
+  // Reveal admin link once Firebase resolves auth.
+  function maybeShowAdminLink(){
+    var link = document.getElementById('brAdminLink');
+    if (!link) return;
+    link.style.display = isAdmin() ? 'inline-block' : 'none';
+  }
+  function startAdminWatch(){
+    try {
+      if (window.firebase && firebase.auth) {
+        firebase.auth().onAuthStateChanged(function(){ maybeShowAdminLink(); });
+      }
+    } catch(_){}
+    // Fallback poll for ~10s in case firebase loads after this script.
+    var ticks = 0;
+    var iv = setInterval(function(){
+      ticks++;
+      maybeShowAdminLink();
+      if (ticks > 20) clearInterval(iv);
+    }, 500);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startAdminWatch);
+  } else {
+    startAdminWatch();
+  }
+
+  function timeAgo(ts){
+    if (!ts) return '';
+    var diff = Date.now() - ts;
+    if (diff < 60000) return Math.round(diff/1000) + 's ago';
+    if (diff < 3600000) return Math.round(diff/60000) + 'm ago';
+    if (diff < 86400000) return Math.round(diff/3600000) + 'h ago';
+    return Math.round(diff/86400000) + 'd ago';
+  }
+  function escapeHtml(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function shortUid(u){ return (u||'').slice(0, 8); }
+
+  async function fetchAllReports(){
+    if (!isAdmin()) throw new Error('not authorized');
+    var snap = await firebase.database().ref('users').once('value');
+    var val = snap.val() || {};
+    var out = [];
+    Object.keys(val).forEach(function(uid){
+      var u = val[uid] || {};
+      var br = u.bugReports || {};
+      var emailHint = (u.email) || '';
+      Object.keys(br).forEach(function(rid){
+        var r = br[rid] || {};
+        r._uid = uid;
+        r._userEmail = (r.context && r.context.identity && r.context.identity.email) || emailHint || '';
+        out.push(r);
+      });
+    });
+    out.sort(function(a, b){ return (b.createdAt || 0) - (a.createdAt || 0); });
+    return out;
+  }
+
+  function statsHtml(){
+    var open = allReports.filter(function(r){ return r.status !== 'closed'; }).length;
+    var closed = allReports.length - open;
+    return '<b>' + allReports.length + '</b> total · <b>' + open + '</b> open · <b>' + closed + '</b> closed';
+  }
+
+  function filtered(){
+    if (filter === 'open')   return allReports.filter(function(r){ return r.status !== 'closed'; });
+    if (filter === 'closed') return allReports.filter(function(r){ return r.status === 'closed'; });
+    return allReports;
+  }
+
+  function renderRow(r){
+    var ctx = r.context || {};
+    var ident = ctx.identity || {};
+    var env = ctx.env || {};
+    var page = ctx.page || {};
+    var counts = ctx.counts || {};
+    var bufs = ctx.buffers || {};
+    var consoleLines = (bufs.console || []).slice(-10).map(function(c){
+      return '<div class="bra2-buf-line">[' + escapeHtml(c.kind || '') + '] ' + escapeHtml(c.msg || '') + '</div>';
+    }).join('') || '<div class="bra2-buf-line" style="opacity:.5">(no console activity captured)</div>';
+    var actionLines = (bufs.actions || []).slice(-10).map(function(a){
+      return '<div class="bra2-buf-line">[' + escapeHtml(a.kind || '') + '] ' + escapeHtml(a.label || '') + '</div>';
+    }).join('') || '<div class="bra2-buf-line" style="opacity:.5">(no actions captured)</div>';
+    var networkLines = (bufs.network || []).slice(-10).map(function(n){
+      return '<div class="bra2-buf-line">[' + escapeHtml(n.kind || '') + '] ' + escapeHtml((n.method||'') + ' ' + (n.url||'') + ' · ' + (n.status||0)) + '</div>';
+    }).join('') || '<div class="bra2-buf-line" style="opacity:.5">(no failed requests captured)</div>';
+
+    var statusBadge = r.status === 'closed'
+      ? '<span class="bra2-badge bra2-badge-closed">closed</span>'
+      : '<span class="bra2-badge bra2-badge-open">open</span>';
+    var who = (r._userEmail || ('uid ' + shortUid(r._uid)));
+
+    return '<div class="bra2-row" data-uid="' + escapeHtml(r._uid) + '" data-rid="' + escapeHtml(r.id || '') + '">' +
+      '<div class="bra2-row-head" onclick="this.parentNode.classList.toggle(\'expanded\')">' +
+        statusBadge +
+        '<div class="bra2-row-title">' + escapeHtml(r.title || '(untitled)') + '</div>' +
+        '<div class="bra2-row-meta">' + escapeHtml(who) + '<br>' + escapeHtml(timeAgo(r.createdAt)) + '</div>' +
+      '</div>' +
+      '<div class="bra2-row-detail">' +
+        '<div class="bra2-section"><div class="bra2-h">Description</div><div class="bra2-desc">' + escapeHtml(r.description || '') + '</div></div>' +
+        '<div class="bra2-section"><div class="bra2-h">Page + Environment</div><div class="bra2-kv">' +
+          '<b>page</b><span>' + escapeHtml(page.url || '') + '</span>' +
+          '<b>active tab</b><span>' + escapeHtml(page.activeTab || '(none)') + '</span>' +
+          '<b>open modal</b><span>' + escapeHtml(page.openModal || '(none)') + '</span>' +
+          '<b>focused</b><span>' + escapeHtml(page.focused || '(none)') + '</span>' +
+          '<b>userAgent</b><span>' + escapeHtml((env.userAgent || '').slice(0, 140)) + '</span>' +
+          '<b>viewport</b><span>' + escapeHtml(env.viewport || '') + ' (dpr ' + (env.devicePixelRatio || 1) + ')</span>' +
+          '<b>timezone</b><span>' + escapeHtml(env.timezone || '') + ' · ' + escapeHtml(env.language || '') + '</span>' +
+          '<b>online</b><span>' + (env.online ? 'yes' : 'no') + (env.connection ? ' · ' + escapeHtml(env.connection.effectiveType || '') : '') + '</span>' +
+          '<b>identity</b><span>uid ' + escapeHtml(shortUid(ident.uid)) + (ident.isAdmin ? ' · admin' : '') + '</span>' +
+        '</div></div>' +
+        '<div class="bra2-section"><div class="bra2-h">App state counts</div><div class="bra2-kv">' +
+          '<b>positions</b><span>' + (counts.positions || 0) + '</span>' +
+          '<b>history</b><span>' + (counts.history || 0) + '</span>' +
+          '<b>wheels</b><span>' + (counts.wheels || 0) + ' (' + (counts.cycles || 0) + ' cycles)</span>' +
+          '<b>watchlist</b><span>' + (counts.watchlist || 0) + '</span>' +
+        '</div></div>' +
+        '<div class="bra2-section"><div class="bra2-h">Console (last 10)</div><div class="bra2-buf">' + consoleLines + '</div></div>' +
+        '<div class="bra2-section"><div class="bra2-h">Actions (last 10)</div><div class="bra2-buf">' + actionLines + '</div></div>' +
+        '<div class="bra2-section"><div class="bra2-h">Failed network (last 10)</div><div class="bra2-buf">' + networkLines + '</div></div>' +
+        '<div class="bra2-actions">' +
+          (r.status === 'closed'
+            ? '<button class="bra2-act" onclick="window._brAdminToggleStatus(\'' + r._uid + '\',\'' + r.id + '\',\'open\')">Reopen</button>'
+            : '<button class="bra2-act" onclick="window._brAdminToggleStatus(\'' + r._uid + '\',\'' + r.id + '\',\'closed\')">Mark Closed</button>') +
+          '<button class="bra2-act" onclick="window._brAdminCopyJson(\'' + r._uid + '\',\'' + r.id + '\')">Copy JSON</button>' +
+          '<button class="bra2-act" onclick="window._brAdminCopyMarkdown(\'' + r._uid + '\',\'' + r.id + '\')">Copy for chat</button>' +
+        '</div>' +
+        '<details class="bra2-raw"><summary>Raw JSON</summary><pre>' + escapeHtml(JSON.stringify(r, null, 2)) + '</pre></details>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function render(){
+    var list = document.getElementById('bra2List');
+    var stats = document.getElementById('bra2Stats');
+    if (!list || !stats) return;
+    stats.innerHTML = statsHtml();
+    document.querySelectorAll('#bra2Pills .bra2-pill[data-f]').forEach(function(b){
+      b.classList.toggle('active', b.dataset.f === filter);
+    });
+    var rows = filtered();
+    if (!rows.length) {
+      list.innerHTML = '<div class="bra2-empty">No ' + (filter === 'all' ? '' : filter + ' ') + 'reports.</div>';
+      return;
+    }
+    list.innerHTML = rows.map(renderRow).join('');
+  }
+
+  function findReport(uid, rid){
+    return allReports.find(function(r){ return r._uid === uid && r.id === rid; });
+  }
+
+  window._brAdminOpen = async function(){
+    if (!isAdmin()) return;
+    var ov = document.getElementById('bra2Overlay');
+    ov.classList.add('open');
+    if (!allReports.length) await window._brAdminRefresh();
+  };
+  window._brAdminClose = function(){
+    var ov = document.getElementById('bra2Overlay');
+    if (ov) ov.classList.remove('open');
+  };
+  window._brAdminRefresh = async function(){
+    var list = document.getElementById('bra2List');
+    if (list) list.innerHTML = '<div class="bra2-empty">Loading…</div>';
+    try {
+      allReports = await fetchAllReports();
+      render();
+    } catch (err) {
+      console.error('[admin] refresh failed:', err);
+      if (list) list.innerHTML = '<div class="bra2-empty" style="color:#fca5a5">Load failed: ' + escapeHtml((err && err.message) || 'unknown') + '<br><br>If this says "permission denied" — Firebase rules need updating to allow admin reads across /users/*/bugReports.</div>';
+    }
+  };
+  window._brAdminToggleStatus = async function(uid, rid, newStatus){
+    try {
+      await firebase.database().ref('users/' + uid + '/bugReports/' + rid + '/status').set(newStatus);
+      var r = findReport(uid, rid); if (r) r.status = newStatus;
+      render();
+    } catch (err) {
+      alert('Update failed: ' + (err && err.message || 'unknown'));
+    }
+  };
+  window._brAdminCopyJson = function(uid, rid){
+    var r = findReport(uid, rid); if (!r) return;
+    navigator.clipboard.writeText(JSON.stringify(r, null, 2)).then(function(){ console.log('[admin] JSON copied'); });
+  };
+  window._brAdminCopyMarkdown = function(uid, rid){
+    var r = findReport(uid, rid); if (!r) return;
+    var ctx = r.context || {};
+    var env = ctx.env || {};
+    var page = ctx.page || {};
+    var counts = ctx.counts || {};
+    var bufs = ctx.buffers || {};
+    var lines = [];
+    lines.push('### Bug report: ' + (r.title || ''));
+    lines.push('Reporter: ' + (r._userEmail || 'uid ' + shortUid(r._uid)) + ' · ' + new Date(r.createdAt).toISOString());
+    lines.push('Status: ' + (r.status || 'open'));
+    lines.push('');
+    lines.push('**Description:**');
+    lines.push((r.description || '').trim());
+    lines.push('');
+    lines.push('**Page:** ' + (page.url || '') + ' · tab: ' + (page.activeTab || '-') + ' · modal: ' + (page.openModal || '-'));
+    lines.push('**Env:** ' + (env.userAgent || '') + ' · ' + (env.viewport || '') + ' · ' + (env.timezone || ''));
+    lines.push('**Counts:** positions=' + (counts.positions||0) + ' history=' + (counts.history||0) + ' wheels=' + (counts.wheels||0) + ' (' + (counts.cycles||0) + ' cycles)');
+    var con = (bufs.console || []).slice(-8);
+    if (con.length) {
+      lines.push('');
+      lines.push('**Console (last ' + con.length + '):**');
+      con.forEach(function(c){ lines.push('- [' + c.kind + '] ' + c.msg); });
+    }
+    var acts = (bufs.actions || []).slice(-8);
+    if (acts.length) {
+      lines.push('');
+      lines.push('**Actions (last ' + acts.length + '):**');
+      acts.forEach(function(a){ lines.push('- [' + a.kind + '] ' + a.label); });
+    }
+    var net = (bufs.network || []).slice(-8);
+    if (net.length) {
+      lines.push('');
+      lines.push('**Failed network:**');
+      net.forEach(function(n){ lines.push('- [' + n.kind + '] ' + (n.method||'') + ' ' + (n.url||'') + ' (' + (n.status||0) + ')'); });
+    }
+    navigator.clipboard.writeText(lines.join('\n')).then(function(){ console.log('[admin] Markdown copied'); });
+  };
+
+  // Filter pills.
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    if (t && t.classList && t.classList.contains('bra2-pill') && t.dataset && t.dataset.f) {
+      filter = t.dataset.f;
+      render();
+    }
+  });
+
+  // Ctrl+Shift+R / Cmd+Shift+R shortcut for admin only.
+  document.addEventListener('keydown', function(e){
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'R' || e.key === 'r')) {
+      if (isAdmin()) {
+        e.preventDefault();
+        window._brAdminOpen();
+      }
+    }
+    if (e.key === 'Escape') {
+      var ov = document.getElementById('bra2Overlay');
+      if (ov && ov.classList.contains('open')) window._brAdminClose();
+    }
+  });
+})();
+</script>
+
+/* __bug_report_discord_v1__ */ /* __bug_report_worker_relay_v1__ */
+<script>
+(function(){
+  // After Firebase write succeeds, fire a sanitized summary to a Discord
+  // webhook (URL stored in localStorage 'bugReportWebhook'). Wraps the
+  // existing window._brSubmit so we don't have to re-implement the
+  // whole submit flow.
+  function shortUid(u){ return (u || '').slice(0, 8); }
+  function truncate(s, n){ if (!s) return ''; s = String(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+
+  async function pingDiscord(report){
+    var WORKER_URL = 'https://market-elites-gate.beau-e51.workers.dev/bug-report';
+    try {
+      var ctx = report.context || {};
+      var ident = ctx.identity || {};
+      var env = ctx.env || {};
+      var page = ctx.page || {};
+      var bufs = ctx.buffers || {};
+      var counts = ctx.counts || {};
+      var reporter = ident.email || ('uid ' + shortUid(ident.uid));
+      var consoleErrCount = (bufs.console || []).filter(function(c){ return c.kind === 'console.error' || c.kind === 'window.error' || c.kind === 'unhandledrejection'; }).length;
+      var failedNet = (bufs.network || []).length;
+      var fields = [
+        { name: 'Reporter', value: reporter, inline: true },
+        { name: 'Report ID', value: '\`' + (report.id || '').slice(0, 14) + '\`', inline: true },
+        { name: 'Page', value: '\`' + truncate(page.url || '(unknown)', 120) + '\`' + (page.activeTab ? ' · tab: ' + page.activeTab : ''), inline: false },
+        { name: 'Counts', value: 'positions: ' + (counts.positions||0) + ' · history: ' + (counts.history||0) + ' · wheels: ' + (counts.wheels||0) + ' (' + (counts.cycles||0) + ' cycles)', inline: false },
+        { name: 'Env', value: truncate((env.userAgent || '').replace(/Mozilla\/[^ ]+ /, ''), 90) + '\n' + (env.viewport || '') + ' · ' + (env.timezone || '') + (env.online ? '' : ' · offline'), inline: false },
+        { name: 'Captured signals', value: consoleErrCount + ' console errors · ' + failedNet + ' failed requests', inline: false },
+      ];
+      var embed = {
+        title: '🐛 ' + truncate(report.title || '(untitled)', 200),
+        description: truncate(report.description || '', 600),
+        color: 0xC9A97C,
+        fields: fields,
+        footer: { text: 'Market Elites Desktop · Bug Reporter' },
+        timestamp: new Date(report.createdAt || Date.now()).toISOString(),
+      };
+      // Fire-and-forget through the worker relay. Worker validates origin,
+      // enforces size limits, and forwards to Discord with the secret URL.
+      fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ embed: embed }),
+      }).then(function(r){
+        if (!r.ok) console.warn('[bugReport] worker relay returned', r.status);
+        else console.log('[bugReport] Discord ping sent via worker');
+      }).catch(function(err){
+        console.warn('[bugReport] worker relay failed:', err && err.message);
+      });
+    } catch (err) {
+      console.warn('[bugReport] Discord ping crashed:', err && err.message);
+    }
+  }
+
+  // Wrap window._brSubmit so the existing modal flow keeps working,
+  // but a successful submit now also fires the webhook.
+  function install(){
+    if (typeof window._brSubmit !== 'function') { setTimeout(install, 200); return; }
+    if (window._brSubmit._discordWrapped) return;
+    var orig = window._brSubmit;
+    var wrapped = async function(){
+      // Stash the modal status reader so we can detect a successful submit.
+      var statusEl = document.getElementById('brStatus');
+      var beforeText = statusEl ? statusEl.textContent : '';
+      await orig.apply(this, arguments);
+      // After submit, the original sets a green status starting with "Submitted."
+      // and stashes the report under firebase. We re-read the latest
+      // bugReport for this user to forward.
+      try {
+        var afterText = statusEl ? statusEl.textContent : '';
+        if (!/^Submitted\./i.test(afterText)) return;
+        if (!window.firebase || !firebase.auth || !firebase.database) return;
+        var u = firebase.auth().currentUser;
+        if (!u) return;
+        var snap = await firebase.database().ref('users/' + u.uid + '/bugReports').orderByChild('createdAt').limitToLast(1).once('value');
+        var val = snap.val() || {};
+        var keys = Object.keys(val);
+        if (!keys.length) return;
+        await pingDiscord(val[keys[0]]);
+      } catch(_){}
+    };
+    wrapped._discordWrapped = true;
+    window._brSubmit = wrapped;
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', install);
+  } else {
+    install();
   }
 })();
 </script>
