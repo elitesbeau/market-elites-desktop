@@ -385,7 +385,9 @@
   const REDIRECT_URI = window.location.origin + window.location.pathname;
   const WORKER_URL = 'https://market-elites-gate.beau-e51.workers.dev';
   const SCOPES = 'identify guilds.members.read';
-  const SITE_URL = '/market-elites-desktop/';
+  // On Firebase Hosting (thetahq.web.app) the app is served from root.
+  // On GitHub Pages it lived under /market-elites-desktop/. Detect host.
+  const SITE_URL = (location.hostname.endsWith('.github.io')) ? '/market-elites-desktop/' : '/';
 
   function startLogin() {
     const authUrl = 'https://discord.com/api/oauth2/authorize' +
