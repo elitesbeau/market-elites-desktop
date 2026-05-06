@@ -1,4 +1,4 @@
-# Market Elites Desktop
+# Theta
 
 Desktop-focused trading dashboard with a dark/gold aesthetic.
 
