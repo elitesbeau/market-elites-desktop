@@ -5118,8 +5118,10 @@ window._notifySignalStatus = function(sig, status) {
 })();
 </script>
 
-<!-- /* __theta_duotone_v1__ */ -->
-<!-- Gold/black duotone treatment for brand imagery — matches the launch poster aesthetic -->
+<!-- /* __theta_duotone_v2__ */ -->
+<!-- Discrete 3-tone duotone: pure black (outlines), mid-gold, bright gold.
+     The hard thresholds collapse mid-tones (including any third-party helmet logos) into
+     the surrounding gold — so the brand image looks like a clean gold/black mark. -->
 <svg style="position:absolute;width:0;height:0;pointer-events:none" aria-hidden="true">
   <filter id="thetaDuo">
     <feColorMatrix type="matrix" values="
@@ -5128,9 +5130,9 @@ window._notifySignalStatus = function(sig, status) {
       0.299 0.587 0.114 0 0
       0     0     0     1 0"/>
     <feComponentTransfer>
-      <feFuncR tableValues="0.04 0.79"/>
-      <feFuncG tableValues="0.04 0.66"/>
-      <feFuncB tableValues="0.04 0.49"/>
+      <feFuncR type="discrete" tableValues="0.04 0.04 0.55 0.79 0.79"/>
+      <feFuncG type="discrete" tableValues="0.04 0.04 0.45 0.66 0.66"/>
+      <feFuncB type="discrete" tableValues="0.04 0.04 0.32 0.49 0.49"/>
     </feComponentTransfer>
   </filter>
 </svg>
