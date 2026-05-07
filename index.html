@@ -1022,7 +1022,7 @@ window.onerror=function(msg,src,line,col,err){
   </nav>
   <div class="sb-div" style="margin-top:16px"></div>
   <div class="sb-footer">
-    <a href="javascript:void(0)" onclick="window._brOpen()" id="brSidebarLink" style="display:inline-block;font-family:var(--fm);font-size:9px;color:var(--ac);letter-spacing:1.5px;text-decoration:none;margin-bottom:12px;padding:5px 10px;border:1px solid rgba(201,169,124,0.4);border-radius:4px;background:rgba(201,169,124,0.04);opacity:0.95;transition:all .2s" onmouseover="this.style.background='rgba(201,169,124,0.14)';this.style.borderColor='var(--ac)'" onmouseout="this.style.background='rgba(201,169,124,0.04)';this.style.borderColor='rgba(201,169,124,0.4)'" title="Report a bug (Ctrl+Shift+B)">↳ REPORT AN ISSUE</a><a href="javascript:void(0)" onclick="window._brAdminOpen()" id="brAdminLink" style="display:none;font-family:var(--fm);font-size:9px;color:#fca5a5;letter-spacing:1.5px;text-decoration:none;margin:0 0 12px 8px;padding:5px 10px;border:1px solid rgba(252,165,165,0.4);border-radius:4px;background:rgba(252,165,165,0.04);opacity:0.95;transition:all .2s" onmouseover="this.style.background='rgba(252,165,165,0.14)';this.style.borderColor='#fca5a5'" onmouseout="this.style.background='rgba(252,165,165,0.04)';this.style.borderColor='rgba(252,165,165,0.4)'" title="Bug Reports admin (Ctrl+Shift+R)">▤ BUG REPORTS</a>
+    <a href="javascript:void(0)" onclick="window._brOpen()" id="brSidebarLink" style="display:inline-block;font-family:var(--fm);font-size:9px;color:var(--ac);letter-spacing:1.5px;text-decoration:none;margin-bottom:12px;padding:5px 10px;border:1px solid rgba(201,169,124,0.4);border-radius:4px;background:rgba(201,169,124,0.04);opacity:0.95;transition:all .2s" onmouseover="this.style.background='rgba(201,169,124,0.14)';this.style.borderColor='var(--ac)'" onmouseout="this.style.background='rgba(201,169,124,0.04)';this.style.borderColor='rgba(201,169,124,0.4)'" title="Report a bug (Ctrl+Shift+B)">↳ REPORT AN ISSUE</a><a href="javascript:void(0)" onclick="window._brAdminOpen()" id="brAdminLink" style="display:none;font-family:var(--fm);font-size:9px;color:#fca5a5;letter-spacing:1.5px;text-decoration:none;margin:0 0 12px 8px;padding:5px 10px;border:1px solid rgba(252,165,165,0.4);border-radius:4px;background:rgba(252,165,165,0.04);opacity:0.95;transition:all .2s" onmouseover="this.style.background='rgba(252,165,165,0.14)';this.style.borderColor='#fca5a5'" onmouseout="this.style.background='rgba(252,165,165,0.04)';this.style.borderColor='rgba(252,165,165,0.4)'" title="Bug Reports admin (Ctrl+Alt+R)">▤ BUG REPORTS</a>
     <div class="sb-status"><div class="status-dot"></div>NYSE OPEN</div>
     <div class="sb-meta">ME — SYS.07<br>2026.03.03 · EST</div>
   </div>
@@ -5008,9 +5008,9 @@ window._notifySignalStatus = function(sig, status) {
     }
   });
 
-  // Ctrl+Shift+R / Cmd+Shift+R shortcut for admin only.
+  // Ctrl+Alt+R / Cmd+Alt+R shortcut for admin only (Shift+R clashes with browser hard-refresh).
   document.addEventListener('keydown', function(e){
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'R' || e.key === 'r')) {
+    if ((e.ctrlKey || e.metaKey) && e.altKey && !e.shiftKey && (e.key === 'R' || e.key === 'r')) {
       if (isAdmin()) {
         e.preventDefault();
         window._brAdminOpen();
