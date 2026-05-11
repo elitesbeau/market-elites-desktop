@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theta — Diagnostic (Read-Only)</title>
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050505; --bgc: #0c0c0e; --bgch: #101014;
+    --tx: #E8E0D0; --t2: rgba(232,224,208,.7); --t3: rgba(232,224,208,.5); --t4: rgba(232,224,208,.35); --t6: rgba(232,224,208,.08);
+    --ac: #C9A97C; --ac2: rgba(201,169,124,.5); --acbg: rgba(201,169,124,.06); --acbr: rgba(201,169,124,.15);
+    --g: #4ADE80; --gbg: rgba(74,222,128,.08); --gbr: rgba(74,222,128,.2);
+    --r: #F87171; --rbg: rgba(248,113,113,.08); --rbr: rgba(248,113,113,.2);
+    --w: #FBBF24; --wbg: rgba(251,191,36,.08); --wbr: rgba(251,191,36,.2);
+    --bd: rgba(232,224,208,.06); --bd2: rgba(232,224,208,.12);
+    --fd: 'Space Grotesk', sans-serif; --fb: 'Inter', sans-serif; --fm: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--tx); font-family: var(--fb); font-size: 14px; line-height: 1.5; min-height: 100vh; padding: 32px; }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+  .header h1 { font-family: var(--fd); font-size: 24px; font-weight: 600; letter-spacing: -0.3px; }
+  .header p { color: var(--t3); font-family: var(--fm); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+  .btn { font-family: var(--fm); font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; padding: 10px 18px; border: 1px solid var(--acbr); background: var(--acbg); color: var(--tx); cursor: pointer; transition: all .2s; border-radius: 2px; }
+  .btn:hover { background: rgba(201,169,124,.12); border-color: var(--ac2); }
+  .btn-ghost { background: transparent; border-color: var(--bd2); color: var(--t3); }
+  .btn-ghost:hover { color: var(--tx); background: var(--t6); }
+  .banner { background: var(--wbg); border: 1px solid var(--wbr); border-radius: 4px; padding: 12px 16px; margin-bottom: 20px; color: var(--w); font-family: var(--fm); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  .card { background: var(--bgc); border: 1px solid var(--bd); border-radius: 4px; padding: 20px; margin-bottom: 16px; position: relative; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--ac2), transparent); }
+  .card h3 { font-family: var(--fd); font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--ac); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .stat { padding: 12px 14px; background: var(--bgch); border: 1px solid var(--bd); border-radius: 3px; }
+  .stat-label { font-family: var(--fm); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--t3); margin-bottom: 4px; }
+  .stat-val { font-family: var(--fd); font-size: 22px; font-weight: 600; color: var(--tx); }
+  .stat.ok .stat-val { color: var(--g); } .stat.warn .stat-val { color: var(--w); } .stat.danger .stat-val { color: var(--r); }
+  pre { background: var(--bgch); border: 1px solid var(--bd); border-radius: 3px; padding: 14px; font-family: var(--fm); font-size: 12px; color: var(--t2); overflow-x: auto; white-space: pre-wrap; word-break: break-word; max-height: 480px; overflow-y: auto; }
+  .loader { text-align: center; padding: 60px; color: var(--t3); font-family: var(--fm); font-size: 12px; letter-spacing: 1px; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--t6); border-top-color: var(--ac); border-radius: 50%; animation: spin .8s linear infinite; margin-right: 10px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .signin-card { max-width: 440px; margin: 60px auto; text-align: center; }
+  .verdict { padding: 14px 16px; border-radius: 3px; font-family: var(--fm); font-size: 12px; letter-spacing: .8px; margin-bottom: 12px; }
+  .verdict.ok { background: var(--gbg); border: 1px solid var(--gbr); color: var(--g); }
+  .verdict.warn { background: var(--wbg); border: 1px solid var(--wbr); color: var(--w); }
+  .verdict.danger { background: var(--rbg); border: 1px solid var(--rbr); color: var(--r); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <h1>Diagnostic</h1>
+      <p>Read-only · APLD &amp; CIFR location trace</p>
+    </div>
+    <div id="headerActions"></div>
+  </div>
+  <div class="banner">READ-ONLY · This page performs no writes to Firebase or localStorage.</div>
+  <div id="content"><div class="loader"><div class="spinner"></div>Initializing…</div></div>
+</div>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+  import { getDatabase, ref, get, query, orderByChild, limitToLast } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
+
+  const firebaseConfig = {
+    apiKey: 'AIzaSyANXf3yA7qRE-BuT-PrPW--4eKre-9YqiI',
+    authDomain: 'market-elites.firebaseapp.com',
+    databaseURL: 'https://market-elites-default-rtdb.firebaseio.com',
+    projectId: 'market-elites',
+    storageBucket: 'market-elites.firebasestorage.app',
+    messagingSenderId: '347581977529',
+    appId: '1:347581977529:web:7cb9c741577eec19ff1c68',
+  };
+  const ADMIN_UID = 'EG4Qi2PZVdPfh3PT0SXl0GKQC972';
+  const TICKERS = ['APLD','CIFR'];
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+
+  const content = document.getElementById('content');
+  const headerActions = document.getElementById('headerActions');
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return renderSignIn();
+    if (user.uid !== ADMIN_UID) return renderDenied();
+    headerActions.innerHTML = '<button class="btn btn-ghost" id="signOutBtn">Sign out</button>';
+    document.getElementById('signOutBtn').onclick = () => signOut(auth);
+    await runDiagnostic(user);
+  });
+
+  function renderSignIn() {
+    headerActions.innerHTML = '';
+    content.innerHTML = '<div class="card signin-card"><h3>Admin only</h3><p style="color:var(--t2);margin-bottom:16px">Sign in with the admin Google account to run the read-only diagnostic.</p><button class="btn" id="signInBtn">Sign in with Google</button></div>';
+    document.getElementById('signInBtn').onclick = async () => {
+      try { await signInWithPopup(auth, new GoogleAuthProvider()); }
+      catch (e) { alert('Sign-in failed: ' + e.message); }
+    };
+  }
+  function renderDenied() {
+    headerActions.innerHTML = '<button class="btn btn-ghost" id="signOutBtn">Sign out</button>';
+    document.getElementById('signOutBtn').onclick = () => signOut(auth);
+    content.innerHTML = '<div class="card signin-card"><h3 style="color:var(--r)">Access denied</h3><p style="color:var(--t2)">This page is admin-only.</p></div>';
+  }
+
+  function parseMaybeJson(x) {
+    if (typeof x === 'string') { try { return JSON.parse(x); } catch (e) { return []; } }
+    return Array.isArray(x) ? x : (x ? Object.values(x) : []);
+  }
+  function fmt(v) { return JSON.stringify(v, null, 2); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  async function runDiagnostic(user) {
+    content.innerHTML = '<div class="loader"><div class="spinner"></div>Querying Firebase &amp; localStorage…</div>';
+
+    const out = { user: { uid: user.uid, email: user.email }, ticker_query: TICKERS };
+
+    // localStorage (same origin)
+    try {
+      const raw = localStorage.getItem('meDesktop');
+      if (raw) {
+        const local = JSON.parse(raw);
+        out.local = {
+          totalPositions: (local.positions || []).length,
+          totalHistory: (local.history || []).length,
+          matchingPositions: (local.positions || []).filter(p => TICKERS.includes((p.symbol || '').toUpperCase())),
+          matchingHistory: (local.history || []).filter(p => TICKERS.includes((p.symbol || '').toUpperCase())),
+          _localSaveAt: local._localSaveAt ? new Date(local._localSaveAt).toISOString() : null,
+        };
+      } else {
+        out.local = { error: 'no meDesktop key in localStorage on this origin' };
+      }
+    } catch (e) { out.local = { error: e.message }; }
+
+    // Firebase tradingData
+    try {
+      const snap = await get(ref(db, 'users/' + user.uid + '/tradingData'));
+      const v = snap.val() || {};
+      const positions = parseMaybeJson(v.positions);
+      const history = parseMaybeJson(v.history);
+      out.firebase = {
+        totalPositions: positions.length,
+        totalHistory: history.length,
+        matchingPositions: positions.filter(p => TICKERS.includes((p.symbol || '').toUpperCase())),
+        matchingHistory: history.filter(p => TICKERS.includes((p.symbol || '').toUpperCase())),
+        _meta: v._meta || null,
+      };
+    } catch (e) { out.firebase = { error: e.message }; }
+
+    // Admin signals (posts)
+    try {
+      const q = query(ref(db, 'posts'), orderByChild('timestamp'), limitToLast(200));
+      const snap = await get(q);
+      const posts = [];
+      snap.forEach(child => { posts.push({ ...child.val(), id: child.key }); });
+      out.adminSignals = {
+        totalScanned: posts.length,
+        matches: posts.filter(p => TICKERS.includes((p.ticker || p.symbol || '').toUpperCase())).map(p => ({
+          id: p.id, ticker: p.ticker || p.symbol, status: p.status, type: p.type,
+          strike: p.strike, exp: p.exp, prem: p.prem,
+          timestamp: p.timestamp ? new Date(p.timestamp).toISOString() : null,
+          assignedAt: p.assignedAt ? new Date(p.assignedAt).toISOString() : null,
+        })),
+      };
+    } catch (e) { out.adminSignals = { error: e.message }; }
+
+    renderResult(out);
+  }
+
+  function summarise(out) {
+    const lines = [];
+    for (const t of TICKERS) {
+      const fbHist  = (out.firebase?.matchingHistory   || []).filter(p => (p.symbol||'').toUpperCase() === t);
+      const fbPos   = (out.firebase?.matchingPositions || []).filter(p => (p.symbol||'').toUpperCase() === t);
+      const locHist = (out.local?.matchingHistory      || []).filter(p => (p.symbol||'').toUpperCase() === t);
+      const locPos  = (out.local?.matchingPositions    || []).filter(p => (p.symbol||'').toUpperCase() === t);
+      const sigs    = (out.adminSignals?.matches       || []).filter(p => (p.ticker||'').toUpperCase() === t);
+      lines.push({
+        ticker: t,
+        sigStatuses: sigs.map(s => s.status || 'open'),
+        inLocalHistory: locHist.length, inFirebaseHistory: fbHist.length,
+        inLocalPositions: locPos.length, inFirebasePositions: fbPos.length,
+      });
+    }
+    return lines;
+  }
+
+  function renderResult(out) {
+    const sum = summarise(out);
+    const verdicts = sum.map(row => {
+      const closedUpstream = row.sigStatuses.some(s => ['winner','closed','called','rolled'].includes(s));
+      const inHistAnywhere = row.inLocalHistory + row.inFirebaseHistory > 0;
+      const inPosAnywhere  = row.inLocalPositions + row.inFirebasePositions > 0;
+      let cls = 'warn', msg = '';
+      if (!closedUpstream && !inPosAnywhere && !inHistAnywhere) { cls = 'danger'; msg = row.ticker + ': nowhere — signal not closed upstream AND no position record. Either never copied or fully wiped.'; }
+      else if (!closedUpstream && inPosAnywhere) { cls = 'ok'; msg = row.ticker + ': signal still open upstream; position still tracked. Working as intended.'; }
+      else if (closedUpstream && inHistAnywhere) { cls = 'ok'; msg = row.ticker + ': closed upstream and in history. Should render in Monthly Performance.'; }
+      else if (closedUpstream && !inHistAnywhere && inPosAnywhere) { cls = 'warn'; msg = row.ticker + ': signal closed upstream but position not yet moved to history. R() sync did not run / failed.'; }
+      else if (closedUpstream && !inHistAnywhere && !inPosAnywhere) { cls = 'danger'; msg = row.ticker + ': signal closed upstream, but no position and no history entry. Lost via Le() race or never copy-traded.'; }
+      else { msg = row.ticker + ': ' + JSON.stringify(row); }
+      return '<div class="verdict ' + cls + '">' + esc(msg) + '</div>';
+    }).join('');
+
+    content.innerHTML =
+      verdicts +
+      '<div class="card"><h3>Summary</h3>' +
+      '<div class="stats">' +
+        sum.map(row =>
+          '<div class="stat"><div class="stat-label">' + esc(row.ticker) + ' · Sig</div><div class="stat-val">' + esc(row.sigStatuses.join(',') || '—') + '</div></div>' +
+          '<div class="stat"><div class="stat-label">' + esc(row.ticker) + ' · Local Pos/Hist</div><div class="stat-val">' + row.inLocalPositions + ' / ' + row.inLocalHistory + '</div></div>' +
+          '<div class="stat"><div class="stat-label">' + esc(row.ticker) + ' · FB Pos/Hist</div><div class="stat-val">' + row.inFirebasePositions + ' / ' + row.inFirebaseHistory + '</div></div>'
+        ).join('') +
+      '</div></div>' +
+      '<div class="card"><h3>Full JSON dump <button class="btn btn-ghost" id="copyBtn" style="float:right">Copy JSON</button></h3>' +
+        '<pre id="dump">' + esc(fmt(out)) + '</pre></div>';
+
+    document.getElementById('copyBtn').onclick = async () => {
+      try { await navigator.clipboard.writeText(fmt(out)); document.getElementById('copyBtn').textContent = 'Copied'; setTimeout(() => { document.getElementById('copyBtn').textContent = 'Copy JSON'; }, 1500); }
+      catch (e) { alert('Copy failed: ' + e.message); }
+    };
+  }
+</script>
+</body>
+</html>
