@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theta — Recover Lost Wins</title>
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050505; --bgc: #0c0c0e; --bgch: #101014;
+    --tx: #E8E0D0; --t2: rgba(232,224,208,.7); --t3: rgba(232,224,208,.5); --t4: rgba(232,224,208,.35); --t6: rgba(232,224,208,.08);
+    --ac: #C9A97C; --ac2: rgba(201,169,124,.5); --acbg: rgba(201,169,124,.06); --acbr: rgba(201,169,124,.15);
+    --g: #4ADE80; --gbg: rgba(74,222,128,.08); --gbr: rgba(74,222,128,.2);
+    --r: #F87171; --rbg: rgba(248,113,113,.08); --rbr: rgba(248,113,113,.2);
+    --w: #FBBF24; --wbg: rgba(251,191,36,.08); --wbr: rgba(251,191,36,.2);
+    --bd: rgba(232,224,208,.06); --bd2: rgba(232,224,208,.12);
+    --fd: 'Space Grotesk', sans-serif; --fb: 'Inter', sans-serif; --fm: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--tx); font-family: var(--fb); font-size: 14px; line-height: 1.5; min-height: 100vh; padding: 32px; }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+  .header h1 { font-family: var(--fd); font-size: 24px; font-weight: 600; letter-spacing: -0.3px; }
+  .header p { color: var(--t3); font-family: var(--fm); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+  .btn { font-family: var(--fm); font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; padding: 10px 18px; border: 1px solid var(--acbr); background: var(--acbg); color: var(--tx); cursor: pointer; transition: all .2s; border-radius: 2px; }
+  .btn:hover { background: rgba(201,169,124,.12); border-color: var(--ac2); }
+  .btn-ghost { background: transparent; border-color: var(--bd2); color: var(--t3); }
+  .btn-ghost:hover { color: var(--tx); background: var(--t6); }
+  .btn-danger { border-color: var(--rbr); background: var(--rbg); color: var(--r); }
+  .btn-danger:hover { background: rgba(248,113,113,.16); border-color: var(--r); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .banner { background: var(--wbg); border: 1px solid var(--wbr); border-radius: 4px; padding: 12px 16px; margin-bottom: 20px; color: var(--w); font-family: var(--fm); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  .card { background: var(--bgc); border: 1px solid var(--bd); border-radius: 4px; padding: 20px; margin-bottom: 16px; position: relative; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--ac2), transparent); }
+  .card h3 { font-family: var(--fd); font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--ac); }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 10px 12px; text-align: left; font-size: 13px; }
+  th { font-family: var(--fm); font-size: 10px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--t3); border-bottom: 1px solid var(--bd); }
+  td { border-bottom: 1px solid var(--bd); color: var(--t2); }
+  tr:last-child td { border-bottom: none; }
+  tr.disabled td { color: var(--t4); }
+  .mono { font-family: var(--fm); font-size: 12px; }
+  .gain { color: var(--g); }
+  .pill { font-family: var(--fm); font-size: 10px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; border: 1px solid; display: inline-block; }
+  .pill.ok { color: var(--g); background: var(--gbg); border-color: var(--gbr); }
+  .pill.warn { color: var(--w); background: var(--wbg); border-color: var(--wbr); }
+  .pill.muted { color: var(--t3); background: var(--t6); border-color: var(--bd); }
+  .loader { text-align: center; padding: 60px; color: var(--t3); font-family: var(--fm); font-size: 12px; letter-spacing: 1px; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--t6); border-top-color: var(--ac); border-radius: 50%; animation: spin .8s linear infinite; margin-right: 10px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .signin-card { max-width: 440px; margin: 60px auto; text-align: center; }
+  .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .controls label { font-family: var(--fm); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--t3); }
+  .controls input[type=number] { background: var(--bgch); border: 1px solid var(--bd); color: var(--tx); font-family: var(--fm); font-size: 13px; padding: 6px 10px; border-radius: 2px; width: 80px; }
+  pre { background: var(--bgch); border: 1px solid var(--bd); border-radius: 3px; padding: 12px; font-family: var(--fm); font-size: 11px; color: var(--t2); overflow-x: auto; max-height: 320px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .stat { padding: 12px 14px; background: var(--bgch); border: 1px solid var(--bd); border-radius: 3px; }
+  .stat-label { font-family: var(--fm); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--t3); margin-bottom: 4px; }
+  .stat-val { font-family: var(--fd); font-size: 22px; font-weight: 600; color: var(--tx); }
+  .stat.ok .stat-val { color: var(--g); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <h1>Recover Lost Wins</h1>
+      <p>Admin only · Read-then-append · Idempotent</p>
+    </div>
+    <div id="headerActions"></div>
+  </div>
+  <div class="banner">SAFETY · Writes ONLY to your own user history. Read-then-append. Dedupes by signalId. Touches zero other users.</div>
+  <div id="content"><div class="loader"><div class="spinner"></div>Initializing…</div></div>
+</div>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+  import { getDatabase, ref, get, set } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
+
+  const firebaseConfig = {
+    apiKey: 'AIzaSyANXf3yA7qRE-BuT-PrPW--4eKre-9YqiI',
+    authDomain: 'market-elites.firebaseapp.com',
+    databaseURL: 'https://market-elites-default-rtdb.firebaseio.com',
+    projectId: 'market-elites',
+    storageBucket: 'market-elites.firebasestorage.app',
+    messagingSenderId: '347581977529',
+    appId: '1:347581977529:web:7cb9c741577eec19ff1c68',
+  };
+  const ADMIN_UID = 'EG4Qi2PZVdPfh3PT0SXl0GKQC972';
+
+  // Lost winners (extracted from diag JSON). Each maps 1:1 to an admin signal.
+  const LOST = [
+    { signalId: '-OlgxaxDn60lGwBTgMwA', symbol: 'APLD', strike: 27,   premium: 0.12, exp: 'Feb 20, 26', openDate: '2026-02-17T18:56:54.197Z', closeDate: '2026-02-20T21:00:00.000Z' },
+    { signalId: '-Onr6CuzalGfmK3z7Iwr', symbol: 'CIFR', strike: 11.5, premium: 0.05, exp: '2026-03-20',  openDate: '2026-03-16T14:46:30.546Z', closeDate: '2026-03-20T21:00:00.000Z' },
+    { signalId: '-Oq6ApeMgC3gy0fEHcut', symbol: 'APLD', strike: 21,   premium: 0.07, exp: 'Apr 17',      openDate: '2026-04-13T14:12:00.854Z', closeDate: '2026-04-17T21:00:00.000Z' },
+    { signalId: '-Oq6CHkAQ5EH0Tp8tZq2', symbol: 'CIFR', strike: 13.5, premium: 0.07, exp: 'Apr 17',      openDate: '2026-04-13T14:18:22.161Z', closeDate: '2026-04-17T21:00:00.000Z' },
+    { signalId: '-OrFGCSDyCiv7ARpLnaG', symbol: 'APLD', strike: 26,   premium: 0.09, exp: 'May 1',       openDate: '2026-04-27T18:47:45.076Z', closeDate: '2026-05-01T21:00:00.000Z' },
+    { signalId: '-OrsXn-cwf_4TQXBa_Pu', symbol: 'APLD', strike: 29.5, premium: 0.08, exp: 'May 8',       openDate: '2026-05-05T14:29:23.444Z', closeDate: '2026-05-08T21:00:00.000Z' },
+    { signalId: '-OrsYGt6tUS95i_poe82', symbol: 'CIFR', strike: 16,   premium: 0.08, exp: 'May 8',       openDate: '2026-05-05T14:31:29.939Z', closeDate: '2026-05-08T21:00:00.000Z' },
+  ];
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+
+  const content = document.getElementById('content');
+  const headerActions = document.getElementById('headerActions');
+
+  let currentUser = null;
+  let currentHistory = [];
+  let contractsDefault = 100;
+  let feePerContract = 0.65;
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (!user) return renderSignIn();
+    if (user.uid !== ADMIN_UID) return renderDenied();
+    headerActions.innerHTML = '<button class="btn btn-ghost" id="signOutBtn">Sign out</button>';
+    document.getElementById('signOutBtn').onclick = () => signOut(auth);
+    await loadAndRender();
+  });
+
+  function renderSignIn() {
+    headerActions.innerHTML = '';
+    content.innerHTML = '<div class="card signin-card"><h3>Admin only</h3><p style="color:var(--t2);margin-bottom:16px">Sign in to preview and (optionally) write recovery entries.</p><button class="btn" id="signInBtn">Sign in with Google</button></div>';
+    document.getElementById('signInBtn').onclick = async () => {
+      try { await signInWithPopup(auth, new GoogleAuthProvider()); }
+      catch (e) { alert('Sign-in failed: ' + e.message); }
+    };
+  }
+  function renderDenied() {
+    headerActions.innerHTML = '<button class="btn btn-ghost" id="signOutBtn">Sign out</button>';
+    document.getElementById('signOutBtn').onclick = () => signOut(auth);
+    content.innerHTML = '<div class="card signin-card"><h3 style="color:var(--r)">Access denied</h3><p style="color:var(--t2)">This page is admin-only.</p></div>';
+  }
+
+  function parseMaybe(x) {
+    if (typeof x === 'string') { try { return JSON.parse(x); } catch (e) { return []; } }
+    return Array.isArray(x) ? x : (x ? Object.values(x) : []);
+  }
+
+  function buildEntry(lost, contracts) {
+    const grossPnl = lost.premium * contracts * 100;
+    const fees = contracts * feePerContract;
+    return {
+      id: 'recovered-' + lost.signalId,
+      symbol: lost.symbol,
+      type: 'csp',
+      strike: lost.strike,
+      premium: lost.premium,
+      contracts: contracts,
+      expiration: lost.exp,
+      openDate: lost.openDate,
+      closeDate: lost.closeDate,
+      signalId: lost.signalId,
+      outcome: 'expired',
+      grossPnl: grossPnl,
+      fees: fees,
+      pnl: grossPnl - fees,
+      autoSynced: true,
+      recovered: true,
+      recoveredAt: Date.now(),
+      recoveryNote: 'Reconstructed from admin signal data after fixRolled() dedupe bug (commit f22d383).',
+    };
+  }
+
+  async function loadAndRender() {
+    content.innerHTML = '<div class="loader"><div class="spinner"></div>Loading your current history…</div>';
+    const snap = await get(ref(db, 'users/' + currentUser.uid + '/tradingData'));
+    const v = snap.val() || {};
+    currentHistory = parseMaybe(v.history);
+    renderPreview();
+  }
+
+  function renderPreview() {
+    const existingSignalIds = new Set(currentHistory.map(h => h.signalId).filter(Boolean));
+    const rows = LOST.map(l => ({ lost: l, exists: existingSignalIds.has(l.signalId), entry: buildEntry(l, contractsDefault) }));
+    const toAdd = rows.filter(r => !r.exists);
+    const totalGain = toAdd.reduce((s, r) => s + r.entry.pnl, 0);
+
+    content.innerHTML =
+      '<div class="card"><h3>Step 1 · Preview</h3>' +
+        '<div class="stats">' +
+          '<div class="stat"><div class="stat-label">Current history</div><div class="stat-val">' + currentHistory.length + '</div></div>' +
+          '<div class="stat"><div class="stat-label">To add</div><div class="stat-val">' + toAdd.length + '</div></div>' +
+          '<div class="stat"><div class="stat-label">Already present</div><div class="stat-val">' + (rows.length - toAdd.length) + '</div></div>' +
+          '<div class="stat ok"><div class="stat-label">Total recovered PnL</div><div class="stat-val">+$' + totalGain.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '</div></div>' +
+        '</div>' +
+        '<div class="controls">' +
+          '<label>Contracts per trade:</label><input type="number" id="contractsInput" value="' + contractsDefault + '" min="1" step="1">' +
+          '<label>Fee/contract:</label><input type="number" id="feeInput" value="' + feePerContract + '" min="0" step="0.01">' +
+          '<button class="btn btn-ghost" id="recalcBtn">Recalc</button>' +
+        '</div>' +
+        '<table>' +
+          '<thead><tr><th>Status</th><th>Date</th><th>Ticker</th><th>Type</th><th>Strike</th><th>Prem</th><th>Contracts</th><th>Exp</th><th>Gross</th><th>Fees</th><th>PnL</th></tr></thead>' +
+          '<tbody>' +
+          rows.map(r => {
+            const e = r.entry;
+            const cls = r.exists ? ' class="disabled"' : '';
+            const status = r.exists ? '<span class="pill muted">Already present</span>' : '<span class="pill ok">Will add</span>';
+            return '<tr' + cls + '><td>' + status + '</td><td class="mono">' + new Date(e.openDate).toISOString().slice(0,10) + '</td><td><strong>' + e.symbol + '</strong></td><td>' + e.type.toUpperCase() + '</td><td class="mono">$' + e.strike + '</td><td class="mono">$' + e.premium + '</td><td class="mono">' + e.contracts + '</td><td class="mono">' + e.expiration + '</td><td class="mono">$' + e.grossPnl.toFixed(0) + '</td><td class="mono">$' + e.fees.toFixed(0) + '</td><td class="mono gain">+$' + e.pnl.toFixed(0) + '</td></tr>';
+          }).join('') +
+          '</tbody></table>' +
+      '</div>' +
+      '<div class="card"><h3>Step 2 · Confirm &amp; write</h3>' +
+        '<p style="color:var(--t2);margin-bottom:12px">Clicking Restore will:</p>' +
+        '<ul style="color:var(--t2);margin-left:20px;margin-bottom:16px">' +
+          '<li>Re-read the latest history from Firebase (safe against concurrent writes)</li>' +
+          '<li>Append the ' + toAdd.length + ' new entries (skipping any already present)</li>' +
+          '<li>Write the merged array back to <code class="mono">users/' + currentUser.uid.slice(0,8) + '…/tradingData/history</code></li>' +
+        '</ul>' +
+        '<button class="btn" id="restoreBtn"' + (toAdd.length === 0 ? ' disabled' : '') + '>Restore ' + toAdd.length + ' entries</button> ' +
+        '<button class="btn btn-ghost" id="cancelBtn">Cancel</button>' +
+        '<div id="restoreResult" style="margin-top:16px"></div>' +
+      '</div>';
+
+    document.getElementById('recalcBtn').onclick = () => {
+      const c = parseInt(document.getElementById('contractsInput').value, 10);
+      const f = parseFloat(document.getElementById('feeInput').value);
+      if (c > 0) contractsDefault = c;
+      if (f >= 0) feePerContract = f;
+      renderPreview();
+    };
+    document.getElementById('cancelBtn').onclick = () => { content.innerHTML = '<div class="card">Cancelled. Nothing was written.</div>'; };
+    if (toAdd.length > 0) document.getElementById('restoreBtn').onclick = () => doRestore(toAdd.map(r => r.entry));
+  }
+
+  async function doRestore(newEntries) {
+    const btn = document.getElementById('restoreBtn');
+    btn.disabled = true;
+    btn.textContent = 'Restoring…';
+    const result = document.getElementById('restoreResult');
+    try {
+      const snap = await get(ref(db, 'users/' + currentUser.uid + '/tradingData/history'));
+      const latest = parseMaybe(snap.val());
+      const existingIds = new Set(latest.map(h => h.signalId).filter(Boolean));
+      const fresh = newEntries.filter(e => !existingIds.has(e.signalId));
+      if (fresh.length === 0) {
+        result.innerHTML = '<div class="pill warn">All entries already present in Firebase. Nothing to add.</div>';
+        return;
+      }
+      const merged = [...fresh, ...latest];
+      await set(ref(db, 'users/' + currentUser.uid + '/tradingData/history'), merged);
+      result.innerHTML = '<div class="pill ok">Wrote ' + fresh.length + ' new entries. New history length: ' + merged.length + '. Reload Theta to see them in Monthly Performance.</div>';
+      btn.textContent = 'Done';
+    } catch (e) {
+      result.innerHTML = '<div class="pill" style="color:var(--r);background:var(--rbg);border-color:var(--rbr)">Write failed: ' + (e.message || e) + '</div>';
+      btn.disabled = false;
+      btn.textContent = 'Retry';
+    }
+  }
+</script>
+</body>
+</html>
