@@ -564,21 +564,10 @@ function _reopenSignal(id) {
         }
       }
     });
-    // Dedup history: only one entry per symbol+outcome combo
-    // Sort oldest first so we keep the original
-    var sorted = st.history.slice().sort(function(a,b) {
-      return (a.closeDate||a.openDate||'') < (b.closeDate||b.openDate||'') ? -1 : 1;
-    });
-    var seen = {};
-    var clean = [];
-    sorted.forEach(function(h) {
-      var key = (h.symbol||'') + '|' + (h.outcome||'');
-      if (seen[key]) { changed = true; return; }
-      seen[key] = true;
-      clean.push(h);
-    });
-    // Restore newest-first order
-    if (changed) st.history = clean.reverse();
+    /* __history_dedupe_disabled_v1__ destructive dedupe removed —
+       it collapsed every weekly CSP win on the same ticker into one entry
+       (key was symbol+outcome). Distinct strikes/expirations are separate
+       trades and must each survive. */
     if (changed) {
       localStorage.setItem("meDesktop", JSON.stringify(st));
       if (typeof loadState === "function") loadState();
@@ -3126,21 +3115,10 @@ function _reopenSignal(id) {
         }
       }
     });
-    // Dedup history: only one entry per symbol+outcome combo
-    // Sort oldest first so we keep the original
-    var sorted = st.history.slice().sort(function(a,b) {
-      return (a.closeDate||a.openDate||'') < (b.closeDate||b.openDate||'') ? -1 : 1;
-    });
-    var seen = {};
-    var clean = [];
-    sorted.forEach(function(h) {
-      var key = (h.symbol||'') + '|' + (h.outcome||'');
-      if (seen[key]) { changed = true; return; }
-      seen[key] = true;
-      clean.push(h);
-    });
-    // Restore newest-first order
-    if (changed) st.history = clean.reverse();
+    /* __history_dedupe_disabled_v1__ destructive dedupe removed —
+       it collapsed every weekly CSP win on the same ticker into one entry
+       (key was symbol+outcome). Distinct strikes/expirations are separate
+       trades and must each survive. */
     if (changed) {
       localStorage.setItem("meDesktop", JSON.stringify(st));
       if (typeof loadState === "function") loadState();
