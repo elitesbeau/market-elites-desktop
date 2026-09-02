@@ -2547,7 +2547,7 @@ async function _thSettlePrice(sym, expMs){
 // Close every open position whose expiration has passed 16:00 ET.
 // Outcome comes from the settlement close, never from an assumption.
 async function sweepExpiredPositions(){
-  var out = { closed: 0, assigned: 0, skipped: 0, unresolved: 0 };
+  var out = { closed: 0, assigned: 0, skipped: 0, unresolved: 0, rolled: 0, stale: 0 };
   var openPos = (t.positions || []).slice();
   if (!openPos.length) return out;
   var now = Date.now();
@@ -2558,6 +2558,12 @@ async function sweepExpiredPositions(){
     if (!p) continue;
     if (p.assigned) continue;                                   // already in the wheel
     if (p.status && p.status !== 'open') continue;
+    /* __autoclose_roll_guard_v3__: a rolled position is superseded by its successor and its
+       own `expiration` goes stale at the pre-roll date -- never book one.
+       rollCount is not a marker here: a rolled-INTO position is normal. */
+    if (p.signalStatus === 'rolled' || p._autoRolledTo || p.rolledToSignalId) {
+      out.rolled++; continue;
+    }
 
     var expMs = _thExpiryMs(p.expiration);
     if (expMs === null || now < expMs) continue;                // not expired yet
@@ -2568,6 +2574,10 @@ async function sweepExpiredPositions(){
       t.positions = (t.positions || []).filter(function(x){ return x.id !== p.id; });
       out.skipped++; touched = true; continue;
     }
+
+    /* __autoclose_roll_guard_v3__: a real expiry is swept within ~15 min. Months past due
+       means the stored date is wrong, not that the option quietly expired. */
+    if ((now - expMs) > 7 * 86400000) { out.stale++; continue; }
 
     var quote = await _thSettlePrice(p.symbol, expMs);
     if (!quote) { out.unresolved++; continue; }                 // leave it alone
@@ -2642,6 +2652,12 @@ async function sweepExpiredPositions(){
   }
   if (out.unresolved > 0) {
     try { console.warn('[autoclose] ' + out.unresolved + ' expired position(s) left open -- no settlement price available'); } catch(e){}
+  }
+  if (out.stale > 0) {
+    try { console.warn('[autoclose] ' + out.stale + ' position(s) more than 7 days past expiration left open -- close these by hand, the stored date looks stale'); } catch(e){}
+  }
+  if (out.rolled > 0) {
+    try { console.info('[autoclose] ' + out.rolled + ' rolled position(s) skipped -- superseded by a roll'); } catch(e){}
   }
   return out;
 }
