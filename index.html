@@ -2513,7 +2513,9 @@ async function _thSettlePrice(sym, expMs){
   var p2 = Math.floor((expMs + 4 * 86400000) / 1000);
   var qs = '?interval=1d&period1=' + p1 + '&period2=' + p2;
   var direct = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + qs;
+  /* __autoclose_price_worker_v2__: purpose-built worker first, Railway and allorigins as backup */
   var urls = [
+    'https://theta-prices.beau-e51.workers.dev/chart/' + encodeURIComponent(sym) + qs,
     'https://web-production-feb8.up.railway.app/api/yahoo/chart/' + encodeURIComponent(sym) + qs,
     'https://api.allorigins.win/raw?url=' + encodeURIComponent(direct)
   ];
