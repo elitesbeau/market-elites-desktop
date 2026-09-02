@@ -2516,7 +2516,6 @@ async function _thSettlePrice(sym, expMs){
   /* __autoclose_price_worker_v2__: purpose-built worker first, Railway and allorigins as backup */
   var urls = [
     'https://theta-prices.beau-e51.workers.dev/chart/' + encodeURIComponent(sym) + qs,
-    'https://web-production-feb8.up.railway.app/api/yahoo/chart/' + encodeURIComponent(sym) + qs,
     'https://api.allorigins.win/raw?url=' + encodeURIComponent(direct)
   ];
   var want = _thYmdET(expMs);
