@@ -2544,43 +2544,94 @@ async function _thSettlePrice(sym, expMs){
   return null;
 }
 
-// Close every open position whose expiration has passed 16:00 ET.
+/* __autoclose_dryrun_v5__ */
+// Decide what should happen to every open position whose expiration has
+// passed 16:00 ET, then apply it ONLY if this device is explicitly armed.
 // Outcome comes from the settlement close, never from an assumption.
-async function sweepExpiredPositions(){
-  var out = { closed: 0, assigned: 0, skipped: 0, unresolved: 0, rolled: 0, stale: 0 };
+//
+// Arm with: localStorage.setItem('thetaAutoCloseArmed','1')
+// Disarm with: localStorage.removeItem('thetaAutoCloseArmed')
+
+function _thAutoCloseArmed(){
+  try { return localStorage.getItem('thetaAutoCloseArmed') === '1'; }
+  catch (e) { return false; }
+}
+
+function _thPlanLine(e){
+  var m = e.symbol + ' $' + e.strike + ' x' + e.contracts + ' (' + e.expiration + ') -> ' + e.action;
+  if (e.settle !== null && e.settle !== undefined) m += ' @ ' + Number(e.settle).toFixed(2);
+  if (e.pnl !== null && e.pnl !== undefined) m += '  P&L ' + (e.pnl >= 0 ? '+' : '') + Math.round(e.pnl);
+  return m;
+}
+
+async function sweepExpiredPositions(opts){
+  opts = opts || {};
+  // Dry run unless this device is armed. An explicit opts.apply cannot
+  // override the arming check -- both must agree before anything is written.
+  var armed = _thAutoCloseArmed() && opts.apply !== false;
+  var out = {
+    dryRun: !armed, closed: 0, assigned: 0, skipped: 0,
+    unresolved: 0, rolled: 0, stale: 0, plan: []
+  };
   var openPos = (t.positions || []).slice();
   if (!openPos.length) return out;
   var now = Date.now();
-  var touched = false;
 
+  // ---- decide ------------------------------------------------------------
+  var apply = [];
   for (var i = 0; i < openPos.length; i++) {
     var p = openPos[i];
     if (!p) continue;
-    if (p.assigned) continue;                                   // already in the wheel
+    var base = {
+      id: p.id, symbol: p.symbol, strike: parseFloat(p.strike) || 0,
+      contracts: p.contracts || 1, expiration: p.expiration,
+      action: null, reason: null, settle: null, pnl: null
+    };
+
+    if (p.assigned) { continue; }                               // already in the wheel
     if (p.status && p.status !== 'open') continue;
-    /* __autoclose_roll_guard_v3__: a rolled position is superseded by its successor and its
-       own `expiration` goes stale at the pre-roll date -- never book one.
-       rollCount is not a marker here: a rolled-INTO position is normal. */
-    if (p.signalStatus === 'rolled' || p._autoRolledTo || p.rolledToSignalId) {
-      out.rolled++; continue;
+
+    /* A position whose signal was rolled may be superseded, and its own
+       expiration then goes stale at the pre-roll date. Never book one.
+       NOTE _autoRolledTo is NOT checked here: that marks the SUCCESSOR of a
+       roll, which is a live position with a fresh expiration. */
+    if (p.signalStatus === 'rolled' || p.rolledToSignalId) {
+      base.action = 'skip'; base.reason = 'rolled-marker';
+      out.plan.push(base); out.rolled++; continue;
     }
 
     var expMs = _thExpiryMs(p.expiration);
-    if (expMs === null || now < expMs) continue;                // not expired yet
-
-    // Already booked (manual close, or an earlier signal sync): drop the
-    // stale open row rather than writing a duplicate history entry.
-    if (_thAlreadyClosed(p)) {
-      t.positions = (t.positions || []).filter(function(x){ return x.id !== p.id; });
-      out.skipped++; touched = true; continue;
+    if (expMs === null) {
+      base.action = 'skip'; base.reason = 'unparseable-date';
+      out.plan.push(base); continue;
+    }
+    if (now < expMs) {
+      base.action = 'skip'; base.reason = 'not-due';
+      out.plan.push(base); continue;
     }
 
-    /* __autoclose_roll_guard_v3__: a real expiry is swept within ~15 min. Months past due
-       means the stored date is wrong, not that the option quietly expired. */
-    if ((now - expMs) > 7 * 86400000) { out.stale++; continue; }
+    // Already booked (manual close, or an earlier signal sync): the open row
+    // is stale and should just be dropped, never written a second time.
+    if (_thAlreadyClosed(p)) {
+      base.action = 'drop-stale-row'; base.reason = 'already-closed';
+      out.plan.push(base); out.skipped++;
+      apply.push({ kind: 'drop', p: p });
+      continue;
+    }
+
+    /* A real expiry is swept within ~15 min. Months past due means the stored
+       date is wrong, not that the option quietly expired. */
+    if ((now - expMs) > 7 * 86400000) {
+      base.action = 'skip'; base.reason = 'stale-date';
+      base.daysPast = Math.round((now - expMs) / 86400000);
+      out.plan.push(base); out.stale++; continue;
+    }
 
     var quote = await _thSettlePrice(p.symbol, expMs);
-    if (!quote) { out.unresolved++; continue; }                 // leave it alone
+    if (!quote) {
+      base.action = 'skip'; base.reason = 'no-price';
+      out.plan.push(base); out.unresolved++; continue;
+    }
 
     var settle = quote.price;
     var ct = p.contracts || 1;
@@ -2589,52 +2640,88 @@ async function sweepExpiredPositions(){
     var itm = isCsp ? (settle < strike) : (settle > strike);
     var gross = (p.premium || 0) * ct * 100;
     var fees = (p.fees || 0) + (t.feePerContract || 0) * ct;
-    var closeIso = new Date(expMs).toISOString();
+    base.settle = settle;
 
     if (isCsp && itm) {
-      // Assigned. Mirrors markAssigned(): premium is kept but booked on the
-      // wheel, so the history row itself is P&L-neutral.
-      var shares = 100 * ct;
+      base.action = 'assign'; base.reason = 'assigned'; base.pnl = 0;
+      out.plan.push(base); out.assigned++;
+      apply.push({ kind: 'assign', p: p, settle: settle, ct: ct, strike: strike, gross: gross, expMs: expMs });
+    } else {
+      base.action = itm ? 'close-called' : 'close-expired';
+      base.reason = itm ? 'called' : 'expired';
+      base.pnl = gross - fees + (p.rollChainPnl || 0);
+      out.plan.push(base); out.closed++;
+      apply.push({
+        kind: 'close', p: p, settle: settle, gross: gross, fees: fees,
+        outcome: itm ? 'called' : 'expired', pnl: base.pnl, expMs: expMs
+      });
+    }
+  }
+
+  // ---- report ------------------------------------------------------------
+  try {
+    if (out.plan.length) {
+      var acting = out.plan.filter(function(e){ return e.action !== 'skip'; });
+      var head = armed ? '[autoclose] APPLYING' : '[autoclose] DRY RUN (nothing written)';
+      console.log(head + ' -- ' + acting.length + ' of ' + out.plan.length + ' position(s) would change');
+      out.plan.forEach(function(e){
+        console.log('  ' + (e.action === 'skip' ? '[skip:' + e.reason + '] ' : '[' + e.action + '] ') + _thPlanLine(e));
+      });
+      if (!armed && acting.length) {
+        console.log("  to apply on THIS device only: localStorage.setItem('thetaAutoCloseArmed','1')");
+      }
+    }
+  } catch (e) {}
+
+  if (!armed) return out;   // <-- dry run stops here; nothing below can run
+
+  // ---- apply -------------------------------------------------------------
+  var touched = false;
+  for (var k = 0; k < apply.length; k++) {
+    var a = apply[k];
+    var pos = a.p;
+    if (a.kind === 'drop') {
+      t.positions = (t.positions || []).filter(function(x){ return x.id !== pos.id; });
+      touched = true; continue;
+    }
+    var closeIso = new Date(a.expMs).toISOString();
+    if (a.kind === 'assign') {
+      var shares = 100 * a.ct;
       var already = (t.wheelPositions || []).find(function(w){
-        return w.cspSignalId && w.cspSignalId === (p.signalId || p.id);
+        return w.cspSignalId && w.cspSignalId === (pos.signalId || pos.id);
       });
       if (!already) {
         if (!t.wheelPositions) t.wheelPositions = [];
         t.wheelPositions.push({
-          id: String(Date.now()) + '-' + p.id,
-          symbol: p.symbol, shares: shares, contracts: ct,
-          assignPrice: strike, currentPrice: settle,
-          cspPremium: p.premium || 0,
-          costBasis: strike, originalCostBasis: strike,
-          assignedAt: expMs, cspSignalId: p.signalId || p.id,
+          id: String(Date.now()) + '-' + pos.id,
+          symbol: pos.symbol, shares: shares, contracts: a.ct,
+          assignPrice: a.strike, currentPrice: a.settle,
+          cspPremium: pos.premium || 0,
+          costBasis: a.strike, originalCostBasis: a.strike,
+          assignedAt: a.expMs, cspSignalId: pos.signalId || pos.id,
           status: 'holding', ccHistory: [],
-          totalPremiumCollected: gross
+          totalPremiumCollected: a.gross
         });
         try {
-          Ct(St(p.symbol, strike, ct), 'assignment', {
-            strike: strike, shares: shares, contracts: ct, totalValue: 0,
-            notes: 'Auto: assigned at expiration ($' + settle.toFixed(2) + ' < $' + strike.toFixed(2) + ')'
+          Ct(St(pos.symbol, a.strike, a.ct), 'assignment', {
+            strike: a.strike, shares: shares, contracts: a.ct, totalValue: 0,
+            notes: 'Auto: assigned at expiration ($' + a.settle.toFixed(2) + ' < $' + a.strike.toFixed(2) + ')'
           });
         } catch(e){}
       }
       t.history = t.history || [];
-      t.history.unshift(Object.assign({}, p, {
-        closeDate: closeIso, pnl: 0, grossPnl: gross, fees: p.fees || 0,
-        outcome: 'assigned', settlePrice: settle, autoExpired: true
+      t.history.unshift(Object.assign({}, pos, {
+        closeDate: closeIso, pnl: 0, grossPnl: a.gross, fees: pos.fees || 0,
+        outcome: 'assigned', settlePrice: a.settle, autoExpired: true
       }));
-      out.assigned++;
     } else {
-      var outcome = itm ? 'called' : 'expired';
-      var pnl = gross - fees + (p.rollChainPnl || 0);
       t.history = t.history || [];
-      t.history.unshift(Object.assign({}, p, {
-        closeDate: closeIso, pnl: pnl, grossPnl: gross, fees: fees,
-        outcome: outcome, settlePrice: settle, autoExpired: true
+      t.history.unshift(Object.assign({}, pos, {
+        closeDate: closeIso, pnl: a.pnl, grossPnl: a.gross, fees: a.fees,
+        outcome: a.outcome, settlePrice: a.settle, autoExpired: true
       }));
-      out.closed++;
     }
-
-    t.positions = (t.positions || []).filter(function(x){ return x.id !== p.id; });
+    t.positions = (t.positions || []).filter(function(x){ return x.id !== pos.id; });
     touched = true;
   }
 
@@ -2649,15 +2736,6 @@ async function sweepExpiredPositions(){
       showToast(n + ' expired position' + (n > 1 ? 's' : '') + ' closed automatically' +
         (out.assigned ? ' (' + out.assigned + ' assigned)' : ''), 'success');
     }
-  }
-  if (out.unresolved > 0) {
-    try { console.warn('[autoclose] ' + out.unresolved + ' expired position(s) left open -- no settlement price available'); } catch(e){}
-  }
-  if (out.stale > 0) {
-    try { console.warn('[autoclose] ' + out.stale + ' position(s) more than 7 days past expiration left open -- close these by hand, the stored date looks stale'); } catch(e){}
-  }
-  if (out.rolled > 0) {
-    try { console.info('[autoclose] ' + out.rolled + ' rolled position(s) skipped -- superseded by a roll'); } catch(e){}
   }
   return out;
 }
